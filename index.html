@@ -970,27 +970,37 @@ input[type=range]::-moz-range-thumb {
   background: var(--surface-warm);
   border-radius: var(--radius-sm);
   display: grid;
-  gap: 6px;
+  gap: 9px;
 }
 .rc-why-row {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 2px;
   font-size: 13px;
   color: var(--text-2);
   line-height: 1.4;
 }
-.rc-why-row.zero > span:first-child { color: var(--text-3); }
-.rc-why-w {
-  color: var(--primary);
-  font-weight: 600;
-  white-space: nowrap;
+.rc-why-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
-.rc-why-w.neg { color: var(--text-3); }
-.rc-why-upto {
-  font-weight: 500;
+.rc-why-ic {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 1;
+}
+.rc-why-fact {
+  font-weight: 600;
+  color: var(--text-2);
+}
+.rc-why-sub {
+  padding-left: 19px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.rc-why-row.warn .rc-why-sub {
   color: var(--warning);
-  margin-left: 4px;
 }
 .rc-why-note {
   font-size: 11px;
@@ -2115,12 +2125,19 @@ function explainProgram(prog, answers) {
       if (r.w > maxW) maxW = r.w;
       if (matched == null && r.v.includes(have)) matched = r;
     });
+    // Ответы, дающие максимум по этому вопросу — нужны для подсказки «что подошло бы лучше».
+    const bestValues = [];
+    byQ[q].forEach(function(r) {
+      if (r.w !== maxW) return;
+      r.v.forEach(function(v) { if (bestValues.indexOf(v) === -1) bestValues.push(v); });
+    });
     softFactors.push({
       q: q,
       short: questionShort(q),
       label: optionLabel(q, have),   // фактический ответ пользователя
       w: matched ? matched.w : 0,    // сколько баллов он принёс
-      maxW: maxW                     // потолок по этому вопросу
+      maxW: maxW,                    // потолок по этому вопросу
+      bestLabel: bestValues.map(function(v) { return optionLabel(q, v); }).join(' или ')
     });
   });
   const rawScore = softFactors.reduce(function(s, f) { return s + f.w; }, 0);
@@ -2411,37 +2428,42 @@ function renderResults() {
   attachResultHandlers();
 }
 
-// Раскрывающийся разбор процента совпадения — из каких факторов он сложился
-// и где недобор. Строки с «до +N» — это и есть ответ на «почему не 100%».
+// Раскрывающийся разбор процента: что в профиле подошло программе, а что —
+// частично. Для неидеальных пунктов показываем, какой ответ дал бы совпадение выше.
 function renderWhyMatch(explain, score) {
   const factors = explain.softFactors;
   let body;
   if (factors.length > 0) {
     body = factors.map(function(f) {
       const optimal = f.w >= f.maxW;
-      const hint = optimal ? '' : ' <span class="rc-why-upto">до +' + f.maxW + '</span>';
-      return '<div class="rc-why-row' + (f.w === 0 ? ' zero' : '') + '">' +
-        '<span>' + f.short + ': ' + f.label + '</span>' +
-        '<span class="rc-why-w' + (optimal ? '' : ' neg') + '">+' + f.w + hint + '</span>' +
+      const sub = optimal
+        ? 'этот ответ подходит программе'
+        : 'выше совпадение при ответе «' + f.bestLabel + '»';
+      return '<div class="rc-why-row ' + (optimal ? 'ok' : 'warn') + '">' +
+        '<div class="rc-why-head">' +
+          '<span class="rc-why-ic">' + (optimal ? '✅' : '⚠️') + '</span>' +
+          '<span class="rc-why-fact">' + f.short + ': ' + f.label + '</span>' +
+        '</div>' +
+        '<div class="rc-why-sub">' + sub + '</div>' +
       '</div>';
     }).join('');
     const allOptimal = factors.every(function(f) { return f.w >= f.maxW; });
     if (score < 100 && allOptimal) {
-      body += '<div class="rc-why-note">Это максимальное совпадение для вашего набора ' +
-        'ответов — выше эта программа по вашему профилю не поднимается.</div>';
+      body += '<div class="rc-why-note">Все ваши ответы подходят этой программе. ' +
+        'Выше ' + score + '% она по вашему профилю подняться не может — это её максимум для таких заявок.</div>';
     } else if (score < 100) {
-      body += '<div class="rc-why-note">Строки «до +N» — где недобор до 100%. ' +
-        'Это не ошибка: процент показывает, насколько программа близка вашему профилю.</div>';
+      body += '<div class="rc-why-note">100% — это когда профиль совпадает с программой по всем пунктам. ' +
+        'Пункты с «⚠️» подходят частично — это не ошибка, программа вам всё равно подходит.</div>';
     } else if (explain.rawScore > 100) {
-      body += '<div class="rc-why-note">Сумма факторов — ' + explain.rawScore +
-        ', поэтому итог ограничен 100%.</div>';
+      body += '<div class="rc-why-note">Ваш профиль подходит программе с запасом — поэтому совпадение максимальное, 100%.</div>';
     }
   } else {
-    body = '<div class="rc-why-row"><span>Программа подобрана по жёстким условиям ' +
-      '(цель, отрасль и т. д.), без дополнительных баллов за профиль.</span></div>';
+    body = '<div class="rc-why-row"><div class="rc-why-head">' +
+      '<span class="rc-why-fact">Программа подобрана по обязательным условиям ' +
+      '(цель, отрасль и т. д.) — все они у вас совпали.</span></div></div>';
   }
   return '<details class="rc-why">' +
-    '<summary>Почему ' + score + '% совпадения</summary>' +
+    '<summary>Почему совпадение ' + score + '%</summary>' +
     '<div class="rc-why-body">' + body + '</div>' +
   '</details>';
 }

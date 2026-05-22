@@ -429,16 +429,16 @@ test.describe('Объяснимость подбора — разбор проц
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
 
     const why = page.locator('.result-card').first().locator('.rc-why');
-    await expect(why.locator('summary')).toContainText(/Почему \d+% совпадения/);
+    await expect(why.locator('summary')).toContainText(/Почему совпадение \d+%/);
     // По умолчанию свёрнут — строки разбора скрыты, после клика видны.
     await expect(why.locator('.rc-why-row').first()).toBeHidden();
     await why.locator('summary').click();
     await expect(why.locator('.rc-why-row').first()).toBeVisible();
-    // У карточки на 100% все факторы максимальны — строк «до +N» нет.
-    await expect(why.locator('.rc-why-upto')).toHaveCount(0);
+    // У карточки на 100% все пункты подходят — частичных (warn) строк нет.
+    await expect(why.locator('.rc-why-row.warn')).toHaveCount(0);
   });
 
-  test('при неполном совпадении показывает недобор строкой «до +N»', async ({ page }) => {
+  test('при неполном совпадении подсказывает, какой ответ повысил бы совпадение', async ({ page }) => {
     await page.goto('/');
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
@@ -453,6 +453,7 @@ test.describe('Объяснимость подбора — разбор проц
     await why.locator('summary').click();
     const expRow = why.locator('.rc-why-row').filter({ hasText: 'Опыт' });
     await expect(expRow).toContainText('1 – 3 года');
-    await expect(expRow.locator('.rc-why-upto')).toContainText('до +40');
+    await expect(expRow).toHaveClass(/warn/);
+    await expect(expRow.locator('.rc-why-sub')).toContainText('Более 3 лет');
   });
 });
