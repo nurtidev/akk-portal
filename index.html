@@ -980,80 +980,25 @@ input[type=range]::-moz-range-thumb {
   color: var(--text-2);
   line-height: 1.4;
 }
+.rc-why-row.zero > span:first-child { color: var(--text-3); }
 .rc-why-w {
   color: var(--primary);
   font-weight: 600;
   white-space: nowrap;
 }
+.rc-why-w.neg { color: var(--text-3); }
+.rc-why-upto {
+  font-weight: 500;
+  color: var(--warning);
+  margin-left: 4px;
+}
 .rc-why-note {
   font-size: 11px;
   color: var(--text-3);
+  line-height: 1.5;
   border-top: 1px solid var(--border-soft);
   padding-top: 6px;
   margin-top: 2px;
-}
-
-/* ===== Блок «почему не подошли остальные программы» ===== */
-.why-not {
-  margin-top: 28px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-.why-not > summary {
-  cursor: pointer;
-  padding: 16px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-2);
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  user-select: none;
-}
-.why-not > summary::-webkit-details-marker { display: none; }
-.why-not > summary::before {
-  content: '▸';
-  font-size: 10px;
-  color: var(--text-3);
-  transition: transform 150ms;
-}
-.why-not[open] > summary::before { transform: rotate(90deg); }
-.why-not > summary:hover { color: var(--primary); }
-.why-not-list {
-  padding: 0 20px 8px;
-}
-.why-not-item {
-  padding: 14px 0;
-  border-top: 1px solid var(--border-soft);
-}
-.why-not-name {
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-.why-not-fail {
-  font-size: 13px;
-  color: var(--text-2);
-  line-height: 1.55;
-  padding: 8px 12px;
-  background: var(--danger-soft);
-  border-radius: var(--radius-sm);
-  border-left: 2px solid var(--danger);
-  margin-bottom: 6px;
-}
-.why-not-fail.weak {
-  background: var(--warning-soft);
-  border-left-color: var(--warning);
-}
-.why-not-fail b { color: var(--text); }
-.why-not-ok {
-  font-size: 12px;
-  color: var(--text-3);
-  line-height: 1.5;
-  padding-left: 12px;
 }
 
 .rc-footer {
@@ -1620,7 +1565,7 @@ input[type=range]::-moz-range-thumb {
             <div class="hero-stat-l">Ставка по субсидированным программам</div>
           </div>
           <div>
-            <div class="hero-stat-v">7</div>
+            <div class="hero-stat-v">6</div>
             <div class="hero-stat-l">Программ под цели АПК</div>
           </div>
           <div>
@@ -1742,7 +1687,6 @@ input[type=range]::-moz-range-thumb {
       <div>
         <h4>Программы</h4>
         <ul>
-          <li><a href="#">Кең дала</a></li>
           <li><a href="#">Кең дала 2</a></li>
           <li><a href="#">Агробизнес</a></li>
           <li><a href="#">Агробизнес 2.0</a></li>
@@ -1775,7 +1719,7 @@ input[type=range]::-moz-range-thumb {
 // ===== Programs data (from П АКК 002-207-22) =========
 // =====================================================
 const PROGRAMS = [
-  { id: 'ken_dala', title: 'Кең дала', category: 'ВПРиУР через КТ',
+  { id: 'ken_dala', title: 'Кең дала', category: 'ВПРиУР через КТ', hidden: true,
     org: 'АО «Аграрная кредитная корпорация»',
     description: 'Финансирование оборотных средств на весенне-полевые и уборочные работы. Программа ориентирована на финансовые институты — прямые заёмщики получают финансирование через кредитные товарищества, МФО, БВУ или РИЦ.',
     rate: 1.5, rateNote: '1,5% годовых для финучреждений. Прямые заёмщики получают финансирование через КТ/МФО/БВУ/РИЦ — конечная ставка устанавливается посредником.',
@@ -1896,7 +1840,7 @@ const QUESTIONS = [
   { key: 'purpose', short: 'Цель', title: 'Что хотите профинансировать?', hint: 'Выберите основную цель кредита',
     options: [
       { value: 'vprir', label: 'Весенне-полевые и уборочные работы', desc: 'ВПРиУР: семена, ГСМ, удобрения, средства защиты' },
-      { value: 'livestock', label: 'Покупка племенного скота', desc: 'КРС, МРС, лошади, верблюды' },
+      { value: 'livestock', label: 'Покупка скота', desc: 'КРС, МРС, лошади, верблюды — племенной или товарный' },
       { value: 'feedlot', label: 'Откорм или птицеводство', desc: 'Откормочные площадки, птицефабрики' },
       { value: 'investments', label: 'Инвестиции, покупка основных средств', desc: 'Оборудование, техника, СМР, расширение' },
       { value: 'working', label: 'Пополнение оборотных средств', desc: 'ПОС: сырьё, переработка, межсезонье' },
@@ -1953,11 +1897,11 @@ const ANIMAL_TYPE_Q = {
 // по регламенту П АКК 002-207-22 (стр. 28) Игілік и Береке финансируют
 // исключительно приобретение импортного племенного поголовья.
 const CATTLE_ORIGIN_Q = {
-  key: 'cattleOrigin', short: 'Импорт', title: 'Импортное или отечественное племенное поголовье?',
+  key: 'cattleOrigin', short: 'Импорт', title: 'Импортное или отечественное поголовье?',
   hint: 'Игілік и Береке по регламенту финансируют только приобретение импортного племенного поголовья КРС',
   options: [
-    { value: 'imported', label: 'Импортное племенное поголовье', desc: 'Завоз скота из-за рубежа — подпадает под условия Игілік / Береке' },
-    { value: 'domestic', label: 'Отечественный скот или обновление стада', desc: 'Покупка внутри Казахстана — подойдёт универсальная программа' }
+    { value: 'imported', label: 'Импортное племенное поголовье', desc: 'Завоз племенного скота из-за рубежа — подпадает под условия Игілік / Береке' },
+    { value: 'domestic', label: 'Отечественный скот или обновление стада', desc: 'Покупка внутри Казахстана — обычный (товарный) или племенной скот, подойдёт универсальная программа' }
   ]
 };
 
@@ -2112,7 +2056,7 @@ function getQuestions() {
     if (q.key !== 'sector') return true;
     return !purpose || !PURPOSE_TO_SECTOR[purpose];
   });
-  // Для покупки племенного скота — добавляем вид животных и количество голов.
+  // Для покупки скота — добавляем вид животных и количество голов.
   if (purpose === 'livestock') {
     const livestockQs = [ANIMAL_TYPE_Q];
     // Импорт/отечественный спрашиваем только для КРС — это условие именно Игілік/Береке.
@@ -2130,7 +2074,7 @@ function questionByKey(key) {
   }
   return null;
 }
-// Подпись варианта ответа («livestock» → «Покупка племенного скота»).
+// Подпись варианта ответа («livestock» → «Покупка скота»).
 function optionLabel(key, value) {
   const q = questionByKey(key);
   if (!q) return value;
@@ -2145,37 +2089,44 @@ function questionShort(key) {
   return q ? q.short : key;
 }
 
-// Полный разбор программы: проходит ли по жёстким условиям + из чего сложился процент.
+// Разбор программы: проходит ли по жёстким условиям + из чего сложился процент.
+// softFactors — мягкие правила, сгруппированные по вопросу. Для каждого вопроса:
+// w — сколько баллов реально дал ответ пользователя, maxW — максимум по этому вопросу.
+// Если w < maxW — это и есть «почему не 100%».
 function explainProgram(prog, answers) {
-  // Жёсткие условия — каждое либо выполнено, либо нет.
-  const hardChecks = prog.hard.map(function(rule) {
-    const have = answers[rule.q];
-    return {
-      q: rule.q,
-      short: questionShort(rule.q),
-      need: rule.v.map(function(v) { return optionLabel(rule.q, v); }),
-      have: have != null ? optionLabel(rule.q, have) : null,
-      met: rule.v.includes(have)
-    };
+  const passedHard = prog.hard.every(function(rule) {
+    return rule.v.includes(answers[rule.q]);
   });
-  const passedHard = hardChecks.every(function(c) { return c.met; });
-  // Мягкие веса — что именно дало баллы.
-  const softMatched = [];
+  // Группируем мягкие правила по вопросу, сохраняя порядок появления.
+  const byQ = {};
+  const order = [];
   prog.soft.forEach(function(rule) {
-    if (rule.v.includes(answers[rule.q])) {
-      softMatched.push({
-        q: rule.q,
-        short: questionShort(rule.q),
-        label: optionLabel(rule.q, answers[rule.q]),
-        w: rule.w
-      });
-    }
+    if (!byQ[rule.q]) { byQ[rule.q] = []; order.push(rule.q); }
+    byQ[rule.q].push(rule);
   });
-  const rawScore = softMatched.reduce(function(s, m) { return s + m.w; }, 0);
+  const softFactors = [];
+  order.forEach(function(q) {
+    const have = answers[q];
+    // Вопрос не задавался в этом сценарии (напр. вид животных вне покупки скота) — пропускаем.
+    if (have == null) return;
+    let maxW = 0;
+    let matched = null;
+    byQ[q].forEach(function(r) {
+      if (r.w > maxW) maxW = r.w;
+      if (matched == null && r.v.includes(have)) matched = r;
+    });
+    softFactors.push({
+      q: q,
+      short: questionShort(q),
+      label: optionLabel(q, have),   // фактический ответ пользователя
+      w: matched ? matched.w : 0,    // сколько баллов он принёс
+      maxW: maxW                     // потолок по этому вопросу
+    });
+  });
+  const rawScore = softFactors.reduce(function(s, f) { return s + f.w; }, 0);
   return {
     passedHard: passedHard,
-    hardChecks: hardChecks,
-    softMatched: softMatched,
+    softFactors: softFactors,
     rawScore: rawScore,
     score: passedHard ? Math.min(100, rawScore) : null
   };
@@ -2253,16 +2204,6 @@ function scoredPrograms() {
     .sort(function(a, b) { return b.score - a.score; });
 }
 
-// Программы, которые НЕ попали в результаты — с разбором причины.
-// indirectOnly (Кең дала) исключаем: она намеренно не подбирается, только в обзорной сетке.
-function rejectedPrograms() {
-  const shown = {};
-  scoredPrograms().forEach(function(x) { shown[x.program.id] = true; });
-  return PROGRAMS
-    .filter(function(p) { return !p.indirectOnly && !shown[p.id]; })
-    .map(function(p) { return { program: p, explain: explainProgram(p, state.answers) }; });
-}
-
 // =====================================================
 // ===== Section management ============================
 // =====================================================
@@ -2288,8 +2229,9 @@ function showSection(id) {
 // =====================================================
 function renderProgramsPreview() {
   const grid = document.getElementById('prog-grid');
-  const ordered = PROGRAMS.filter(function(p) { return p.featured; })
-    .concat(PROGRAMS.filter(function(p) { return !p.featured; }));
+  const visible = PROGRAMS.filter(function(p) { return !p.hidden; });
+  const ordered = visible.filter(function(p) { return p.featured; })
+    .concat(visible.filter(function(p) { return !p.featured; }));
   grid.innerHTML = ordered.map(function(p) {
     return '<div class="prog-tile' + (p.indirectOnly ? ' indirect' : '') + (p.featured ? ' featured' : '') + '">' +
       (p.featured ? '<span class="prog-tile-flag"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Самая популярная программа</span>' : '') +
@@ -2449,8 +2391,7 @@ function renderResults() {
       '<div style="display: flex; gap: 12px; flex-wrap: wrap;">' +
         '<button class="btn-primary" onclick="requestConsultation()">Получить консультацию менеджера</button>' +
         '<button class="btn-ghost" onclick="startQuiz()">Изменить ответы</button>' +
-      '</div>' +
-      renderRejectedBlock();
+      '</div>';
     return;
   }
   container.innerHTML =
@@ -2465,69 +2406,43 @@ function renderResults() {
     '</div>' +
     '<div class="results-cards">' +
       scored.map(function(x, i) { return renderResultCard(x.program, x.score, i === 0); }).join('') +
-    '</div>' +
-    renderRejectedBlock();
+    '</div>';
 
   attachResultHandlers();
 }
 
-// Блок «почему не подошли»: отсеянные программы с конкретной невыполненной причиной.
-function renderRejectedBlock() {
-  const rejected = rejectedPrograms();
-  if (rejected.length === 0) return '';
-  const anyShown = scoredPrograms().length > 0;
-  const summary = anyShown
-    ? 'Почему не подошли остальные программы (' + rejected.length + ')'
-    : 'Почему ни одна программа не подошла (' + rejected.length + ')';
-  return '<details class="why-not"' + (anyShown ? '' : ' open') + '>' +
-    '<summary>' + summary + '</summary>' +
-    '<div class="why-not-list">' +
-      rejected.map(function(r) {
-        const ex = r.explain;
-        let body;
-        if (!ex.passedHard) {
-          const failed = ex.hardChecks.filter(function(c) { return !c.met; });
-          const passed = ex.hardChecks.filter(function(c) { return c.met; });
-          body = failed.map(function(c) {
-            return '<div class="why-not-fail">✗ <b>' + c.short + ':</b> подходит ' +
-              c.need.map(function(n) { return '«' + n + '»'; }).join(' или ') +
-              ', у вас ' + (c.have ? '«' + c.have + '»' : 'нет ответа') + '</div>';
-          }).join('');
-          if (passed.length > 0) {
-            body += '<div class="why-not-ok">✓ Уже выполнено: ' +
-              passed.map(function(c) { return c.short.toLowerCase(); }).join(', ') + '</div>';
-          }
-        } else {
-          body = '<div class="why-not-fail weak">Все условия выполнены, но программа слабо подходит вашему профилю — ' +
-            ex.score + '% совпадения при пороге показа 20%. Уточните детали у менеджера.</div>';
-        }
-        return '<div class="why-not-item">' +
-          '<div class="why-not-name">' + r.program.title + '</div>' + body +
-        '</div>';
-      }).join('') +
-    '</div>' +
-  '</details>';
-}
-
-// Раскрывающийся разбор процента совпадения — из каких факторов он сложился.
+// Раскрывающийся разбор процента совпадения — из каких факторов он сложился
+// и где недобор. Строки с «до +N» — это и есть ответ на «почему не 100%».
 function renderWhyMatch(explain, score) {
-  let rows;
-  if (explain.softMatched.length > 0) {
-    rows = explain.softMatched.map(function(m) {
-      return '<div class="rc-why-row"><span>' + m.short + ': ' + m.label + '</span>' +
-        '<span class="rc-why-w">+' + m.w + '</span></div>';
+  const factors = explain.softFactors;
+  let body;
+  if (factors.length > 0) {
+    body = factors.map(function(f) {
+      const optimal = f.w >= f.maxW;
+      const hint = optimal ? '' : ' <span class="rc-why-upto">до +' + f.maxW + '</span>';
+      return '<div class="rc-why-row' + (f.w === 0 ? ' zero' : '') + '">' +
+        '<span>' + f.short + ': ' + f.label + '</span>' +
+        '<span class="rc-why-w' + (optimal ? '' : ' neg') + '">+' + f.w + hint + '</span>' +
+      '</div>';
     }).join('');
-    if (explain.rawScore > 100) {
-      rows += '<div class="rc-why-note">Сумма факторов — ' + explain.rawScore +
+    const allOptimal = factors.every(function(f) { return f.w >= f.maxW; });
+    if (score < 100 && allOptimal) {
+      body += '<div class="rc-why-note">Это максимальное совпадение для вашего набора ' +
+        'ответов — выше эта программа по вашему профилю не поднимается.</div>';
+    } else if (score < 100) {
+      body += '<div class="rc-why-note">Строки «до +N» — где недобор до 100%. ' +
+        'Это не ошибка: процент показывает, насколько программа близка вашему профилю.</div>';
+    } else if (explain.rawScore > 100) {
+      body += '<div class="rc-why-note">Сумма факторов — ' + explain.rawScore +
         ', поэтому итог ограничен 100%.</div>';
     }
   } else {
-    rows = '<div class="rc-why-row"><span>Совпадений по профилю нет — программа подобрана ' +
-      'по жёстким условиям (цель, отрасль и т. д.).</span></div>';
+    body = '<div class="rc-why-row"><span>Программа подобрана по жёстким условиям ' +
+      '(цель, отрасль и т. д.), без дополнительных баллов за профиль.</span></div>';
   }
   return '<details class="rc-why">' +
     '<summary>Почему ' + score + '% совпадения</summary>' +
-    '<div class="rc-why-body">' + rows + '</div>' +
+    '<div class="rc-why-body">' + body + '</div>' +
   '</details>';
 }
 

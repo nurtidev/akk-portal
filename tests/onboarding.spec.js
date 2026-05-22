@@ -10,17 +10,17 @@ test.describe('АКК Онбординг — лендинг и базовая н
     await expect(page).toHaveTitle(/АКК.*Подбор программы/);
     await expect(page.locator('h1')).toContainText('Финансирование');
 
-    // Hero stat: 7 программ
-    const programsStat = page.locator('.hero-stat-v').filter({ hasText: /^7$/ });
+    // Hero stat: 6 программ
+    const programsStat = page.locator('.hero-stat-v').filter({ hasText: /^6$/ });
     await expect(programsStat).toBeVisible();
   });
 
-  test('в превью-сетке показаны все 7 программ', async ({ page }) => {
+  test('в превью-сетке показаны все 6 программ', async ({ page }) => {
     const tiles = page.locator('#prog-grid .prog-tile');
-    await expect(tiles).toHaveCount(7);
+    await expect(tiles).toHaveCount(6);
 
     const expectedTitles = [
-      'Кең дала', 'Кең дала 2', 'Агробизнес', 'Игілік и Береке',
+      'Кең дала 2', 'Агробизнес', 'Игілік и Береке',
       'Іскер', 'Откормплощадки и птицефабрики', 'Агробизнес 2.0',
     ];
     for (const title of expectedTitles) {
@@ -30,10 +30,11 @@ test.describe('АКК Онбординг — лендинг и базовая н
     }
   });
 
-  test('Кең дала помечена как «только через КТ/МФО/БВУ»', async ({ page }) => {
-    const tile = page.locator('#prog-grid .prog-tile.indirect').first();
-    await expect(tile.locator('.prog-tile-title')).toHaveText('Кең дала');
-    await expect(tile.locator('.prog-tile-badge')).toContainText(/только через/i);
+  test('Кең дала скрыта из превью-сетки', async ({ page }) => {
+    await expect(
+      page.locator('#prog-grid .prog-tile-title').filter({ hasText: /^Кең дала$/ })
+    ).toHaveCount(0);
+    await expect(page.locator('#prog-grid .prog-tile.indirect')).toHaveCount(0);
   });
 });
 
@@ -57,7 +58,7 @@ test.describe('Квиз — основной флоу', () => {
   });
 
   test('Племенной скот → КРС → импортный → 100–499 голов → подбирает Игілік', async ({ page }) => {
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Покупка скота")');
     await expect(page.locator('.quiz-question')).toContainText('лет ведёте');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
@@ -71,7 +72,7 @@ test.describe('Квиз — основной флоу', () => {
   });
 
   test('Племенной скот → КРС → импортный → 500+ голов → подбирает Береке', async ({ page }) => {
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("Более 500 млн")');
@@ -84,7 +85,7 @@ test.describe('Квиз — основной флоу', () => {
   });
 
   test('Племенной скот → КРС → отечественный → Игілік не подходит, fallback Агробизнес', async ({ page }) => {
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
@@ -101,7 +102,7 @@ test.describe('Квиз — основной флоу', () => {
   });
 
   test('Племенной скот → лошади → Игілік не подходит, fallback Агробизнес', async ({ page }) => {
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
@@ -230,7 +231,7 @@ test.describe('Калькулятор — расчёт графика', () => {
   test('ставка Игілік — 6%, срок до 84 мес', async ({ page }) => {
     await page.goto('/');
     await page.click('button:has-text("Начать подбор")');
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
@@ -256,10 +257,10 @@ test.describe('Калькулятор — расчёт графика', () => {
     let termValue = await card.locator('.rc-stat-v').filter({ hasText: /мес/ }).textContent();
     expect(termValue).toMatch(/60 мес/);
 
-    // Покупка племенного скота МРС → должно быть 84 мес.
+    // Покупка скота МРС → должно быть 84 мес.
     await page.goto('/');
     await page.click('button:has-text("Начать подбор")');
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Только открываюсь")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("До 20 млн")');
@@ -289,7 +290,7 @@ test.describe('Стресс-тест (Fajr-lite)', () => {
   test('форма стресс-теста доступна для Игілік с выбором животного', async ({ page }) => {
     await page.goto('/');
     await page.click('button:has-text("Начать подбор")');
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
@@ -307,7 +308,7 @@ test.describe('Стресс-тест (Fajr-lite)', () => {
   test('стресс-тест выдаёт вердикт после ввода данных', async ({ page }) => {
     await page.goto('/');
     await page.click('button:has-text("Начать подбор")');
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
@@ -418,8 +419,8 @@ test.describe('Тупик подбора — индивидуальная кон
   });
 });
 
-test.describe('Объяснимость подбора — почему подхожу / не подхожу', () => {
-  test('карточка показывает раскрывающийся разбор процента совпадения', async ({ page }) => {
+test.describe('Объяснимость подбора — разбор процента совпадения', () => {
+  test('разбор раскрывается и показывает засчитанные факторы', async ({ page }) => {
     await page.goto('/');
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
@@ -433,39 +434,25 @@ test.describe('Объяснимость подбора — почему подх
     await expect(why.locator('.rc-why-row').first()).toBeHidden();
     await why.locator('summary').click();
     await expect(why.locator('.rc-why-row').first()).toBeVisible();
+    // У карточки на 100% все факторы максимальны — строк «до +N» нет.
+    await expect(why.locator('.rc-why-upto')).toHaveCount(0);
   });
 
-  test('блок «почему не подошли» объясняет отсев Игілік по импортному поголовью', async ({ page }) => {
+  test('при неполном совпадении показывает недобор строкой «до +N»', async ({ page }) => {
     await page.goto('/');
     await page.click('button:has-text("Начать подбор")');
-    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
-    await page.click('.quiz-opt:has-text("Более 3 лет")');
+    await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
+    await page.click('.quiz-opt:has-text("1 – 3 года")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
-    await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
-    await page.click('.quiz-opt:has-text("Отечественный скот")');
-    await page.click('.quiz-opt:has-text("100 – 499 голов")');
 
-    const whyNot = page.locator('.why-not');
-    await expect(whyNot.locator('> summary')).toContainText('Почему не подошли');
-    await whyNot.locator('> summary').click();
-    const igilikItem = whyNot.locator('.why-not-item').filter({ hasText: 'Игілік и Береке' });
-    await expect(igilikItem).toBeVisible();
-    await expect(igilikItem.locator('.why-not-fail')).toContainText(/импортн/i);
-  });
-
-  test('на тупиковом сценарии блок причин раскрыт и перечисляет все 6 программ', async ({ page }) => {
-    await page.goto('/');
-    await page.click('button:has-text("Начать подбор")');
-    await page.click('.quiz-opt:has-text("Микрокредит, стартап")');
-    await page.click('.quiz-opt:has-text("Услуги, торговля, прочее")');
-    await page.click('.quiz-opt:has-text("Только открываюсь")');
-    await page.click('.quiz-opt:has-text("Областной центр")');
-    await page.click('.quiz-opt:has-text("100 – 500 млн")');
-
-    const whyNot = page.locator('.why-not');
-    await expect(whyNot).toHaveJSProperty('open', true);
-    await expect(whyNot.locator('> summary')).toContainText('Почему ни одна программа не подошла');
-    await expect(whyNot.locator('.why-not-item')).toHaveCount(6);
+    const card = page.locator('.result-card').first();
+    // Опыт «1 – 3 года» даёт +20 из +40 — итог 80%, а не 100%.
+    await expect(card.locator('.rc-match')).toContainText('80%');
+    const why = card.locator('.rc-why');
+    await why.locator('summary').click();
+    const expRow = why.locator('.rc-why-row').filter({ hasText: 'Опыт' });
+    await expect(expRow).toContainText('1 – 3 года');
+    await expect(expRow.locator('.rc-why-upto')).toContainText('до +40');
   });
 });

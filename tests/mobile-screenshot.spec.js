@@ -26,7 +26,7 @@ test('mobile viewport — quiz', async ({ page }) => {
 test('mobile viewport — result card (top)', async ({ page }) => {
   await page.goto('/');
   await page.click('button:has-text("Начать подбор")');
-  await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+  await page.click('.quiz-opt:has-text("Покупка скота")');
   await page.click('.quiz-opt:has-text("Более 3 лет")');
   await page.click('.quiz-opt:has-text("Село")');
   await page.click('.quiz-opt:has-text("100 – 500 млн")');
@@ -41,7 +41,7 @@ test('mobile viewport — result card (top)', async ({ page }) => {
 test('mobile viewport — result stats (label сверху, value снизу)', async ({ page }) => {
   await page.goto('/');
   await page.click('button:has-text("Начать подбор")');
-  await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+  await page.click('.quiz-opt:has-text("Покупка скота")');
   await page.click('.quiz-opt:has-text("Более 3 лет")');
   await page.click('.quiz-opt:has-text("Село")');
   await page.click('.quiz-opt:has-text("100 – 500 млн")');
