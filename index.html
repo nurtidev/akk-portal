@@ -1516,6 +1516,169 @@ input[type=range]::-moz-range-thumb {
   .rc-stat-v { font-size: 18px; }
   .hero-visual { display: none; }
 }
+
+/* ===== Program detail modal ===== */
+.prog-tile { cursor: pointer; }
+.prog-tile:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.prog-tile-more {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.prog-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+.prog-modal.open { display: flex; }
+.prog-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 36, 24, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.prog-modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+  animation: pmIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes pmIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.prog-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-tint);
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.prog-modal-close:hover { background: var(--border); }
+.pm-cat {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pm-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+  margin: 12px 0 8px;
+}
+.pm-sub {
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.55;
+  margin: 0 0 20px;
+}
+.pm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.pm-stat-l {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.pm-stat-v {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-top: 4px;
+}
+.pm-section { margin-bottom: 20px; }
+.pm-section h4 {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 10px;
+}
+.pm-section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.pm-section li {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.pm-section p {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin: 0;
+}
+.pm-note {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.6;
+  padding: 14px 16px;
+  background: var(--surface-warm);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent);
+  margin-bottom: 24px;
+}
+.pm-note strong { color: var(--text); }
+.pm-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pm-actions .btn-primary,
+.pm-actions .btn-ghost {
+  flex: 1;
+  justify-content: center;
+  min-width: 180px;
+}
+@media (max-width: 640px) {
+  .prog-modal { padding: 20px 12px; }
+  .prog-modal-dialog { padding: 24px 20px; }
+  .pm-title { font-size: 23px; }
+  .pm-stat-v { font-size: 16px; }
+}
 </style>
 </head>
 <body>
@@ -1722,6 +1885,15 @@ input[type=range]::-moz-range-thumb {
   <div class="analytics-panel-list" id="analytics-list"></div>
 </div>
 
+<!-- ===== Program detail modal ===== -->
+<div class="prog-modal" id="prog-modal" aria-hidden="true">
+  <div class="prog-modal-backdrop" onclick="closeProgramModal()"></div>
+  <div class="prog-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+    <button class="prog-modal-close" onclick="closeProgramModal()" aria-label="Закрыть">✕</button>
+    <div id="prog-modal-body"></div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -1846,6 +2018,108 @@ const PROGRAMS = [
   }
 ];
 
+// =====================================================
+// ===== Program details (выжимки для модалки) =========
+// ===== Источник: регламент П АКК 002-207-22 ==========
+// =====================================================
+const PROGRAM_DETAILS = {
+  ken_dala_2: {
+    summary: 'Деньги на один сезон полевых работ — посевную и уборку урожая. Подходит растениеводам и перерабатывающим предприятиям.',
+    spend: [
+      'Семена, ГСМ, удобрения, средства защиты растений — всё для весенне-полевых и уборочных работ.',
+      'Сумма рассчитывается по нормативу затрат на 1 гектар вашей посевной площади.',
+      'Для переработчиков — авансовый закуп сельхозпродукции у поставщиков.'
+    ],
+    requirements: [
+      'Опыт в сельском хозяйстве от 3 лет. Если меньше — нужно ходатайство областного акимата.',
+      'Земля под посев в собственности или долгосрочной аренде (для переработчиков не требуется).',
+      'Отдельный расчётный счёт для зачисления и трат займа.',
+      'Нет просрочек по налогам и кредитам, нет отрицательного капитала.',
+      'Обеспечение: залог, гарантия учредителей или гарантия банка / фонда «Даму».'
+    ],
+    repayment: 'Срок — до 18 месяцев. Основной долг гасится двумя платежами: 50% до 5 декабря и 50% до 5 марта следующего года. Переработчики платят всю сумму в конце срока. Досрочное погашение возможно.',
+    note: 'Деньги нужно полностью использовать до 1 октября — за неосвоенный остаток с августа начисляется штраф. Под гарантию «Даму» можно взять не более 1,5 млрд ₸ (фонд покрывает 85% займа).'
+  },
+  agrobusiness: {
+    summary: 'Универсальная программа на технику, оборудование, стройку и оборотные средства. Подходит большинству действующих хозяйств — от растениеводства до переработки.',
+    spend: [
+      'Основные средства и строительно-монтажные работы: техника, оборудование, фермы, цеха.',
+      'Пополнение оборотных средств — но не больше половины суммы кредита.',
+      'Отдельные направления: молочные фермы, орошаемые овощи и сахарная свёкла, элеваторы.',
+      'Подходит и для покупки животных (МРС, лошади, верблюды), когда спецпрограммы не подходят.'
+    ],
+    requirements: [
+      'Проект должен окупаться в срок кредита, иметь рынок сбыта и проработанных поставщиков.',
+      'Обязательное страхование имущества и отдельный счёт для контроля расходов.',
+      'Разрешительные документы по вашему направлению деятельности.'
+    ],
+    repayment: 'Срок зависит от цели: техника и стройка — до 120 месяцев, пополнение оборотных средств — до 24–48 месяцев. Погашение — минимум раз в год. Возможен индивидуальный график и льготный период по решению кредитного комитета.',
+    note: 'Базовая ставка — НБ РК + 7,5% (около 21,5% на начало 2026 года). Дешевле — 5% за счёт облигационного займа. Не финансируются подакцизные товары, покупка готового бизнеса и долей, рефинансирование.'
+  },
+  igilik_bereke: {
+    summary: 'Покупка импортного племенного скота КРС. «Игілік» — для стада от 100 до 499 голов, «Береке» — от 500 голов. Для мясного и молочного животноводства.',
+    spend: [
+      'Покупка импортного племенного поголовья КРС.',
+      'Можно купить и племенных быков — из расчёта не больше 30 коров на одного быка.',
+      'Деньги перечисляются только безналично.'
+    ],
+    requirements: [
+      'Для «Береке» (от 500 голов) — опыт в сельском хозяйстве от 2 лет.',
+      'Учётный номер объекта производства и учёт поголовья в госсистемах (ИСЖ, ИБСПР).',
+      'Обязательное страхование купленного скота.',
+      'Отдельный счёт для контроля расходов, рынок сбыта, разрешительные документы.'
+    ],
+    repayment: 'Срок — до 84 месяцев для мясного направления. Молочное: до 84 месяцев при наличии инвестзатрат, до 60 — если просто обновляете стадо. График погашения зависит от направления.',
+    note: 'Финансируется только импортный племенной КРС — отечественный скот и другие виды животных по этой программе не проходят. Купленных коров нужно использовать по назначению минимум 4 года.'
+  },
+  isker: {
+    summary: 'Микрокредиты для начинающих фермеров, сельских предпринимателей и стартапов. Небольшие суммы и упрощённые требования — для тех, кто только начинает или расширяет небольшое дело.',
+    spend: [
+      'Животноводство: покупка скота, птицы, пчёл, рыбы и кормов.',
+      'Растениеводство и переработка: оборотные средства, основные средства.',
+      'Предпринимательство на селе и в городах: техника, оборудование, оборотные средства.'
+    ],
+    requirements: [
+      'Возраст — от 18 лет до пенсионного.',
+      'Сертификат об обучении основам предпринимательства («Бастау Бизнес» или аналог), полученный не раньше чем за 3 года. Не нужен, если расширяете действующий бизнес.',
+      'Для действующих предпринимателей — создание хотя бы одного нового рабочего места.'
+    ],
+    repayment: 'Срок — до 60 месяцев для большинства целей, до 84 — для животноводства. Погашение — минимум раз в год, возможен индивидуальный график.',
+    note: 'Лимит — 8 000 МРП (около 34,6 млн ₸). Нельзя тратить на потребительские цели, погашение прежних кредитов, покупку жилья и земли не под бизнес. Приоритет — у участников проекта «Бастау Бизнес».'
+  },
+  feedlot_poultry: {
+    summary: 'Финансирование откормочных площадок КРС и МРС, а также птицефабрик. Для действующих животноводов с готовой инфраструктурой, которым нужны оборотные средства на сезон откорма.',
+    spend: [
+      'Откорм КРС: покупка бычков (минимум 70% займа), корма, ГСМ, запчасти, бирки.',
+      'Откорм МРС: покупка баранчиков (минимум 70% займа), корма, ГСМ, запчасти.',
+      'Птицефабрики: только пополнение оборотных средств (не на стройку и оборудование).'
+    ],
+    requirements: [
+      'Готовая инфраструктура нужной мощности: откорм КРС — от 500 скотомест, МРС — от 1000; птицефабрика мясная — от 500 т мяса в год, яичная — от 5 млн яиц.',
+      'Учётный номер объекта и учёт поголовья в госсистемах.',
+      'Кормовая база: своя или арендованная земля либо договоры на закуп кормов, техника для кормления.',
+      'Обязательное страхование имущества и разрешительные документы.'
+    ],
+    repayment: 'Срок — до 12 месяцев: программа финансируется за счёт облигаций, поэтому срок короткий. Погашение — минимум раз в год по графику кредитного комитета.',
+    note: 'Покупаемые животные — по нормам: бычки 6–15 месяцев и 180–300 кг, баранчики 4–12 месяцев от 25 кг. По КРС есть обязательство продать минимум 25% откормленных бычков на отечественные мясокомбинаты.'
+  },
+  agrobusiness_2: {
+    summary: 'Льготная программа долгосрочных инвестиций — самый длинный срок среди программ АКК, до 15 лет. Для серьёзных проектов: фермы, переработка, кормопроизводство, инфраструктура.',
+    spend: [
+      'Инвестпроекты по приоритетным направлениям: молочные фермы от 1200 голов, переработка и производство продуктов питания, кормопроизводство, сельхозинфраструктура, упаковка.',
+      'Основные средства, строительно-монтажные работы, пополнение оборотных средств.',
+      'Деньги перечисляются только безналично.'
+    ],
+    requirements: [
+      'Проект должен окупаться в срок кредита, быть обеспечен сырьём и рынком сбыта.',
+      'Обязательное страхование имущества и отдельный счёт для контроля расходов.',
+      'Разрешительные документы по направлению деятельности.'
+    ],
+    repayment: 'Срок — до 180 месяцев (15 лет) на инвестиции, до 12 месяцев на пополнение оборотных средств. Погашение — минимум раз в год, возможен индивидуальный график.',
+    note: 'Ставка — 12,6%. Нельзя тратить на покупку готового бизнеса, доли в компаниях, погашение долгов, дивиденды, ценные бумаги и подакцизные товары. Купленное имущество нельзя оформлять на третьих лиц.'
+  }
+};
+
 const QUESTIONS = [
   { key: 'purpose', short: 'Цель', title: 'Что хотите профинансировать?', hint: 'Выберите основную цель кредита',
     options: [
@@ -1930,6 +2204,10 @@ const PURPOSE_TO_SECTOR = {
   livestock: 'animal',
   feedlot: 'poultry'
 };
+
+// Вопрос о регионе влияет на подбор только для этих целей (бонус «село / малый
+// город» есть только у Іскер). Для остальных целей шаг скрываем как лишний.
+const REGION_PURPOSES = ['feedlot', 'working', 'micro'];
 
 // =====================================================
 // ===== FAJR norms (упрощённые из FAJROptions) ========
@@ -2061,10 +2339,12 @@ function declension(n, one, few, many) {
 }
 function getQuestions() {
   const purpose = state.answers.purpose;
-  // Если отрасль однозначно вытекает из цели — скрываем вопрос про sector.
+  // Скрываем лишние вопросы: отрасль — если она вытекает из цели; регион —
+  // если для выбранной цели он не влияет на подбор.
   const base = QUESTIONS.filter(function(q) {
-    if (q.key !== 'sector') return true;
-    return !purpose || !PURPOSE_TO_SECTOR[purpose];
+    if (q.key === 'sector') return !purpose || !PURPOSE_TO_SECTOR[purpose];
+    if (q.key === 'location') return !purpose || REGION_PURPOSES.includes(purpose);
+    return true;
   });
   // Для покупки скота — добавляем вид животных и количество голов.
   if (purpose === 'livestock') {
@@ -2250,7 +2530,7 @@ function renderProgramsPreview() {
   const ordered = visible.filter(function(p) { return p.featured; })
     .concat(visible.filter(function(p) { return !p.featured; }));
   grid.innerHTML = ordered.map(function(p) {
-    return '<div class="prog-tile' + (p.indirectOnly ? ' indirect' : '') + (p.featured ? ' featured' : '') + '">' +
+    return '<div class="prog-tile' + (p.indirectOnly ? ' indirect' : '') + (p.featured ? ' featured' : '') + '" data-id="' + p.id + '" role="button" tabindex="0">' +
       (p.featured ? '<span class="prog-tile-flag"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Самая популярная программа</span>' : '') +
       '<span class="prog-tile-cat">' + p.category + '</span>' +
       (p.indirectOnly ? '<span class="prog-tile-badge">Только через КТ/МФО/БВУ</span>' : '') +
@@ -2259,14 +2539,67 @@ function renderProgramsPreview() {
       '<div class="prog-tile-row"><span>Ставка</span><span>' + fmtRate(p) + '</span></div>' +
       '<div class="prog-tile-row"><span>Сумма до</span><span>' + fmtAmount(p.maxAmount) + '</span></div>' +
       '<div class="prog-tile-row"><span>Срок до</span><span>' + p.maxTerm + ' мес.</span></div>' +
+      '<div class="prog-tile-more">Подробнее о программе →</div>' +
     '</div>';
   }).join('');
+  grid.querySelectorAll('.prog-tile').forEach(function(tile) {
+    const id = tile.getAttribute('data-id');
+    tile.addEventListener('click', function() { openProgramModal(id); });
+    tile.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProgramModal(id); }
+    });
+  });
 }
 
 function fmtRate(p) {
   if (p.rateRange) return p.rateRange;
   return 'от ' + String(p.rate).replace('.', ',') + '%';
 }
+
+// =====================================================
+// ===== Program detail modal ==========================
+// =====================================================
+function openProgramModal(id) {
+  const p = PROGRAMS.find(function(x) { return x.id === id; });
+  const d = PROGRAM_DETAILS[id];
+  if (!p || !d) return;
+  const li = function(arr) {
+    return arr.map(function(t) { return '<li>' + t + '</li>'; }).join('');
+  };
+  document.getElementById('prog-modal-body').innerHTML =
+    '<span class="pm-cat">' + p.category + '</span>' +
+    '<h2 class="pm-title" id="pm-title">' + p.title + '</h2>' +
+    '<p class="pm-sub">' + d.summary + '</p>' +
+    '<div class="pm-stats">' +
+      '<div><div class="pm-stat-l">Сумма до</div><div class="pm-stat-v">' + fmtAmount(p.maxAmount) + '</div></div>' +
+      '<div><div class="pm-stat-l">Ставка</div><div class="pm-stat-v">' + fmtRate(p) + '</div></div>' +
+      '<div><div class="pm-stat-l">Срок до</div><div class="pm-stat-v">' + p.maxTerm + ' мес.</div></div>' +
+    '</div>' +
+    '<div class="pm-section"><h4>На что можно потратить</h4><ul>' + li(d.spend) + '</ul></div>' +
+    '<div class="pm-section"><h4>Что нужно от вас</h4><ul>' + li(d.requirements) + '</ul></div>' +
+    '<div class="pm-section"><h4>Как погашать</h4><p>' + d.repayment + '</p></div>' +
+    (d.note ? '<div class="pm-note"><strong>Важно знать.</strong> ' + d.note + '</div>' : '') +
+    '<div class="pm-actions">' +
+      '<button class="btn-primary" onclick="closeProgramModal(); startQuiz();">Подобрать программу</button>' +
+      '<a class="btn-ghost" href="tel:1408">Позвонить — 1408</a>' +
+    '</div>';
+  const modal = document.getElementById('prog-modal');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  track('program_detail_open', { id: id });
+}
+
+function closeProgramModal() {
+  const modal = document.getElementById('prog-modal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeProgramModal();
+});
 
 // =====================================================
 // ===== Quiz ==========================================

@@ -45,12 +45,11 @@ test.describe('Квиз — основной флоу', () => {
     await expect(page.locator('.quiz-question')).toBeVisible();
   });
 
-  test('ВПРиУР → авто-отрасль растениеводство → 3+ → Село → 100–500 млн → топ Кең дала 2', async ({ page }) => {
+  test('ВПРиУР → авто-отрасль растениеводство → 3+ → 100–500 млн → топ Кең дала 2', async ({ page }) => {
     await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
     // Sector skip — сразу опыт
     await expect(page.locator('.quiz-question')).toContainText('лет ведёте');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
 
     await expect(page.locator('#results-section')).toBeVisible({ timeout: 5000 });
@@ -61,7 +60,6 @@ test.describe('Квиз — основной флоу', () => {
     await page.click('.quiz-opt:has-text("Покупка скота")');
     await expect(page.locator('.quiz-question')).toContainText('лет ведёте');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
     await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
@@ -74,7 +72,6 @@ test.describe('Квиз — основной флоу', () => {
   test('Племенной скот → КРС → импортный → 500+ голов → подбирает Береке', async ({ page }) => {
     await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("Более 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
     await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
@@ -87,7 +84,6 @@ test.describe('Квиз — основной флоу', () => {
   test('Племенной скот → КРС → отечественный → Игілік не подходит, fallback Агробизнес', async ({ page }) => {
     await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
     // Вопрос про импорт появляется только после выбора КРС.
@@ -104,7 +100,6 @@ test.describe('Квиз — основной флоу', () => {
   test('Племенной скот → лошади → Игілік не подходит, fallback Агробизнес', async ({ page }) => {
     await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="HORSE"]').click();
     await page.click('.quiz-opt:has-text("100 – 499 голов")');
@@ -143,7 +138,6 @@ test.describe('Квиз — основной флоу', () => {
     // sector НЕ скипается, потому что цель «инвестиции» — отрасль может быть любой
     await page.click('.quiz-opt:has-text("Переработка сельхозпродукции")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Областной центр")');
     await page.click('.quiz-opt:has-text("Более 500 млн")');
 
     await expect(page.locator('#results-section')).toBeVisible();
@@ -167,9 +161,10 @@ test.describe('Навигация по шагам квиза', () => {
   });
 
   test('пройденные шаги клибельны, будущие — заблокированы', async ({ page }) => {
-    await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
-    await page.click('.quiz-opt:has-text("Более 3 лет")');
-    // Сейчас шаг 3 (Регион). Шаги 1-2 — done, 3 — current, 4-5 — locked.
+    // Микрокредит — полный флоу из 5 шагов (отрасль и регион не скрываются).
+    await page.click('.quiz-opt:has-text("Микрокредит, стартап")');
+    await page.click('.quiz-opt:has-text("Услуги, торговля, прочее")');
+    // Сейчас шаг 3 (Опыт). Шаги 1-2 — done, 3 — current, 4-5 — locked.
     await expect(page.locator('.quiz-step.done')).toHaveCount(2);
     await expect(page.locator('.quiz-step.current')).toHaveCount(1);
     await expect(page.locator('.quiz-step.locked').first()).toBeDisabled();
@@ -178,8 +173,7 @@ test.describe('Навигация по шагам квиза', () => {
   test('клик по пройденному шагу переносит на него, ответы сохраняются', async ({ page }) => {
     await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
-    // Сейчас шаг 4 (Сумма). Прыгаем на шаг 1 (Цель).
+    // Сейчас шаг 3 (Сумма). Прыгаем на шаг 1 (Цель).
     await page.click('.quiz-step[data-goto="0"]');
     await expect(page.locator('.quiz-question')).toContainText('профинансировать');
     // Ответ «Опыт» сохранён — шаг помечен галочкой/done.
@@ -190,23 +184,25 @@ test.describe('Навигация по шагам квиза', () => {
   test('можно прыгнуть вперёд на уже отвеченный шаг', async ({ page }) => {
     await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
-    // Шаг 4 (Сумма). Прыгаем назад на шаг 1.
+    // Шаг 3 (Сумма). Прыгаем назад на шаг 1.
     await page.click('.quiz-step[data-goto="0"]');
     await expect(page.locator('.quiz-question')).toContainText('профинансировать');
-    // Прыгаем вперёд на шаг 4 (Сумма) — он доступен, т.к. 1-3 отвечены.
-    await page.click('.quiz-step[data-goto="3"]');
+    // Прыгаем вперёд на шаг 3 (Сумма) — он доступен, т.к. 1-2 отвечены.
+    await page.click('.quiz-step[data-goto="2"]');
     await expect(page.locator('.quiz-question')).toContainText('сумма нужна');
   });
 
   test('изменение цели сохраняет совместимые ответы (опыт, регион)', async ({ page }) => {
-    await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
+    // Микрокредит и «Оборотные средства» обе показывают вопрос о регионе —
+    // на смене цели между ними ответ про регион должен сохраниться.
+    await page.click('.quiz-opt:has-text("Микрокредит, стартап")');
+    await page.click('.quiz-opt:has-text("Услуги, торговля, прочее")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
-    // Шаг 4 (Сумма). Прыгаем на Цель и меняем её.
+    // Шаг 5 (Сумма). Прыгаем на Цель и меняем её.
     await page.click('.quiz-step[data-goto="0"]');
-    await page.click('.quiz-opt:has-text("Инвестиции, покупка основных средств")');
-    // После смены цели на «инвестиции» появляется вопрос об отрасли (шаг 2).
+    await page.click('.quiz-opt:has-text("Пополнение оборотных средств")');
+    // После смены цели снова показывается вопрос об отрасли.
     await expect(page.locator('.quiz-question')).toContainText('основная отрасль');
     // Опыт и регион должны остаться отвеченными (шаги с галочкой).
     await expect(page.locator('.quiz-step', { hasText: 'Опыт' })).toHaveClass(/done/);
@@ -220,7 +216,6 @@ test.describe('Калькулятор — расчёт графика', () => {
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
 
     await expect(page.locator('.pay-box-title')).toContainText('два платежа');
@@ -233,7 +228,6 @@ test.describe('Калькулятор — расчёт графика', () => {
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
     await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
@@ -262,7 +256,6 @@ test.describe('Калькулятор — расчёт графика', () => {
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Только открываюсь")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("До 20 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="MRS"]').click();
     await page.click('.quiz-opt:has-text("До 100 голов")');
@@ -292,7 +285,6 @@ test.describe('Стресс-тест (Fajr-lite)', () => {
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
     await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
@@ -310,7 +302,6 @@ test.describe('Стресс-тест (Fajr-lite)', () => {
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Покупка скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
     await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
@@ -425,7 +416,6 @@ test.describe('Объяснимость подбора — разбор проц
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
 
     const why = page.locator('.result-card').first().locator('.rc-why');
@@ -443,7 +433,6 @@ test.describe('Объяснимость подбора — разбор проц
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
     await page.click('.quiz-opt:has-text("1 – 3 года")');
-    await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
 
     const card = page.locator('.result-card').first();

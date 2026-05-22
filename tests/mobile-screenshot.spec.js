@@ -28,9 +28,9 @@ test('mobile viewport — result card (top)', async ({ page }) => {
   await page.click('button:has-text("Начать подбор")');
   await page.click('.quiz-opt:has-text("Покупка скота")');
   await page.click('.quiz-opt:has-text("Более 3 лет")');
-  await page.click('.quiz-opt:has-text("Село")');
   await page.click('.quiz-opt:has-text("100 – 500 млн")');
   await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+  await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
   await page.click('.quiz-opt:has-text("100 – 499 голов")');
   await page.waitForTimeout(500);
   // Скроллим к первой карточке
@@ -43,9 +43,9 @@ test('mobile viewport — result stats (label сверху, value снизу)', 
   await page.click('button:has-text("Начать подбор")');
   await page.click('.quiz-opt:has-text("Покупка скота")');
   await page.click('.quiz-opt:has-text("Более 3 лет")');
-  await page.click('.quiz-opt:has-text("Село")');
   await page.click('.quiz-opt:has-text("100 – 500 млн")');
   await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+  await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
   await page.click('.quiz-opt:has-text("100 – 499 голов")');
   await page.waitForTimeout(300);
   await page.locator('.result-card').first().locator('.rc-stats').scrollIntoViewIfNeeded();
