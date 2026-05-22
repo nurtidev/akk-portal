@@ -1,0 +1,2882 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>АКК — Подбор программы финансирования</title>
+<meta name="description" content="Демо онбординга: подбор кредитной программы Аграрной кредитной корпорации за несколько вопросов. Без БИН, без регистрации.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Tokens ===== */
+:root {
+  --bg: #F7F8F2;
+  --bg-tint: #ECF1E2;
+  --surface: #FFFFFF;
+  --surface-warm: #F9FAF3;
+  --primary: #15803D;
+  --primary-2: #166534;
+  --primary-soft: #DCFCE7;
+  --primary-tint: #F0FDF4;
+  --accent: #65A30D;
+  --accent-2: #4D7C0F;
+  --accent-soft: #ECFCCB;
+  --text: #14532D;
+  --text-2: #4A5550;
+  --text-3: #7B8580;
+  --border: #DAE0CD;
+  --border-soft: #E6EBD9;
+  --success: #15803D;
+  --success-soft: #DCFCE7;
+  --warning: #B45309;
+  --warning-soft: #FEF3C7;
+  --danger: #991B1B;
+  --danger-soft: #FEE2E2;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --shadow-sm: 0 1px 2px rgba(21,41,74,0.04), 0 0 0 0.5px rgba(21,41,74,0.06);
+  --shadow: 0 4px 16px rgba(21,41,74,0.06), 0 0 0 0.5px rgba(21,41,74,0.06);
+  --shadow-lg: 0 12px 48px rgba(21,41,74,0.10), 0 0 0 0.5px rgba(21,41,74,0.08);
+  --font-display: 'Bricolage Grotesque', 'Onest', system-ui, sans-serif;
+  --font-body: 'Onest', system-ui, sans-serif;
+}
+
+/* ===== Reset ===== */
+*,*::before,*::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+
+/* ===== Layout ===== */
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.container-narrow {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ===== Header ===== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(248, 244, 235, 0.85);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--border-soft);
+}
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+}
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
+}
+.logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.logo-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.logo-name span {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.site-nav a {
+  text-decoration: none;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 140ms;
+}
+.site-nav a:hover { color: var(--primary); }
+.site-cta-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 140ms;
+}
+.site-cta-phone:hover { background: var(--primary-2); }
+.site-cta-phone-short { display: none; }
+@media (max-width: 640px) {
+  .site-cta-phone-full { display: none; }
+  .site-cta-phone-short { display: inline; }
+  .site-cta-phone { padding: 8px 12px; }
+  .logo-name span { display: none; }
+  .logo-name { font-size: 14px; max-width: 140px; line-height: 1.2; }
+  html { scroll-padding-top: 80px; }
+}
+
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  padding: 80px 0 64px;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-bg::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, var(--accent-soft) 0%, transparent 70%);
+  opacity: 0.6;
+}
+.hero-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 80%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 80%);
+  opacity: 0.5;
+}
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: center;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+.hero-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-soft);
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 60px;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  margin: 0 0 20px;
+  color: var(--primary);
+}
+.hero h1 em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--accent-2);
+}
+.hero-lede {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--text-2);
+  margin: 0 0 32px;
+  max-width: 480px;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: var(--primary);
+  color: var(--surface);
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 140ms, transform 80ms;
+  font-family: inherit;
+}
+.btn-primary:hover { background: var(--primary-2); }
+.btn-primary:active { transform: translateY(1px); }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 140ms, border-color 140ms;
+}
+.btn-ghost:hover {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+  max-width: 540px;
+}
+.hero-stat-v {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.hero-stat-l {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.hero-visual {
+  position: relative;
+  height: 480px;
+}
+.hero-card {
+  position: absolute;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.hero-card-1 {
+  top: 0;
+  right: 40px;
+  width: 280px;
+  z-index: 2;
+  animation: floatA 8s ease-in-out infinite;
+}
+.hero-card-2 {
+  top: 140px;
+  left: 0;
+  width: 240px;
+  z-index: 1;
+  animation: floatB 9s ease-in-out infinite;
+}
+.hero-card-3 {
+  bottom: 0;
+  right: 0;
+  width: 260px;
+  z-index: 3;
+  animation: floatA 11s ease-in-out infinite;
+  animation-delay: -2s;
+}
+@keyframes floatA {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes floatB {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+.hcard-cat {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.hcard-match {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--success-soft);
+  color: var(--success);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  float: right;
+}
+.hcard-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 12px 0 4px;
+  color: var(--primary);
+}
+.hcard-meta {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.hcard-bar {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.hcard-bar-item {
+  flex: 1;
+}
+.hcard-bar-v {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.hcard-bar-l {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* ===== Programs preview ===== */
+.programs {
+  padding: 80px 0 40px;
+  background: var(--surface);
+  border-top: 1px solid var(--border-soft);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--primary);
+  margin: 0 0 12px;
+}
+.section-lede {
+  font-size: 16px;
+  color: var(--text-2);
+  margin: 0 0 40px;
+  max-width: 600px;
+}
+.prog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.prog-tile {
+  background: var(--surface-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: transform 200ms, box-shadow 200ms;
+}
+.prog-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.prog-tile-cat {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.prog-tile.indirect {
+  opacity: 0.85;
+  background: var(--surface);
+}
+.prog-tile-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 4px 10px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.prog-tile-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 14px 0 8px;
+  color: var(--primary);
+}
+.prog-tile-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.prog-tile-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.prog-tile-row span:last-child {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ===== Section pattern ===== */
+.section {
+  padding: 80px 0;
+  position: relative;
+}
+.section-header {
+  margin-bottom: 32px;
+}
+.section-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  color: var(--accent-2);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+/* ===== Quiz ===== */
+#quiz-section {
+  background: var(--surface);
+  border-top: 1px solid var(--border-soft);
+}
+.quiz-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.quiz-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  transition: background 140ms, border-color 140ms, color 140ms;
+}
+.quiz-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.quiz-step.done {
+  border-color: var(--primary-soft);
+  background: var(--primary-tint);
+  color: var(--primary);
+  cursor: pointer;
+}
+.quiz-step.done .quiz-step-num { background: var(--primary); }
+.quiz-step.done:hover { border-color: var(--primary); }
+.quiz-step.next {
+  cursor: pointer;
+  color: var(--text-2);
+}
+.quiz-step.next:hover { border-color: var(--accent); color: var(--accent-2); }
+.quiz-step.current {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-2);
+}
+.quiz-step.current .quiz-step-num { background: var(--accent); }
+.quiz-step.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.quiz-step[disabled] { pointer-events: none; }
+.quiz-step-label {
+  font-size: 12px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+.quiz-question {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--primary);
+  margin: 0 0 8px;
+}
+.quiz-hint {
+  font-size: 15px;
+  color: var(--text-2);
+  margin: 0 0 28px;
+}
+.quiz-options {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.quiz-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 18px 22px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 140ms, background 140ms, transform 80ms;
+  font-family: inherit;
+  color: var(--text);
+}
+.quiz-opt:hover {
+  border-color: var(--primary);
+  background: var(--primary-tint);
+}
+.quiz-opt:active {
+  transform: scale(0.995);
+}
+.quiz-opt.selected {
+  border: 2px solid var(--primary);
+  background: var(--primary-tint);
+  padding: 17px 21px;
+}
+.quiz-opt-label {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+.quiz-opt-desc {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.quiz-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 14px;
+  font-weight: 500;
+}
+.quiz-back:hover { color: var(--primary); }
+
+/* ===== Results ===== */
+#results-section {
+  background: var(--bg);
+}
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.results-cards {
+  display: grid;
+  gap: 20px;
+}
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  transition: box-shadow 200ms;
+}
+.result-card:hover {
+  box-shadow: var(--shadow);
+}
+.result-card.top {
+  border: 2px solid var(--primary);
+  padding: 27px;
+  background: var(--surface);
+  position: relative;
+}
+.result-card.top::before {
+  content: 'Лучшее совпадение';
+  position: absolute;
+  top: -11px;
+  left: 28px;
+  background: var(--primary);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.rc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.rc-cat {
+  display: inline-block;
+  padding: 5px 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.rc-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.rc-match.hi {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.rc-match.mid {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.rc-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+  margin: 0 0 8px;
+}
+.rc-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.55;
+  margin: 0 0 12px;
+}
+.rc-rate-note {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+  padding: 10px 12px;
+  background: var(--surface-warm);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--accent);
+  margin: 0 0 20px;
+}
+.rc-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.rc-stat {
+  text-align: center;
+}
+.rc-stat-v {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: -0.015em;
+}
+.rc-stat-l {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+/* Calculator inside card */
+.calc-row {
+  margin-bottom: 16px;
+}
+.calc-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.calc-label {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+.calc-hint {
+  font-size: 11px;
+  color: var(--text-3);
+}
+input[type=range] {
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(21,41,74,0.3);
+}
+input[type=range]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.calc-amount-out {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-top: 6px;
+  letter-spacing: -0.01em;
+}
+.term-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.term-btn {
+  padding: 8px 14px;
+  font-size: 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-2);
+  font-weight: 500;
+  transition: all 140ms;
+}
+.term-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.term-btn.active {
+  border: 1.5px solid var(--primary);
+  background: var(--primary-tint);
+  color: var(--primary);
+  padding: 7.5px 13.5px;
+}
+.term-locked {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--bg-tint);
+  color: var(--text-2);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.pay-box {
+  background: var(--primary);
+  color: var(--surface);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-top: 4px;
+}
+.pay-box-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  margin-bottom: 12px;
+}
+.pay-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+}
+.pay-row + .pay-row {
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.pay-row-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+.pay-row-sub {
+  font-size: 11px;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+.pay-row-v {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.pay-row-vsub {
+  font-size: 11px;
+  opacity: 0.7;
+  text-align: right;
+  margin-top: 2px;
+}
+.pay-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.pay-summary-block .pay-row-label { display: block; margin-bottom: 6px; }
+.pay-summary-block .pay-row-v { font-size: 22px; }
+
+.sched-note {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 12px;
+  line-height: 1.5;
+  display: flex;
+  gap: 6px;
+}
+
+.rc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.rc-org {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.rc-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: var(--surface);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 140ms;
+}
+.rc-apply:hover { background: var(--primary-2); }
+
+/* ===== Stress test (Fajr-lite) ===== */
+#stress-section {
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--bg) 100%);
+}
+.stress-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  box-shadow: var(--shadow);
+}
+.stress-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+.stress-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+  margin: 0 0 8px;
+}
+.stress-sub {
+  font-size: 15px;
+  color: var(--text-2);
+  margin: 0 0 28px;
+  line-height: 1.55;
+}
+.stress-inputs {
+  display: grid;
+  gap: 18px;
+}
+.stress-input-block label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.stress-input-block .input-hint {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+.text-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color 140ms;
+}
+.text-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.stress-result {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.stress-verdict {
+  padding: 18px 22px;
+  border-radius: var(--radius);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.stress-verdict.ok {
+  background: var(--success-soft);
+  border: 1px solid #BBF7D0;
+}
+.stress-verdict.warn {
+  background: var(--warning-soft);
+  border: 1px solid #FCD34D;
+}
+.stress-verdict.bad {
+  background: var(--danger-soft);
+  border: 1px solid #FECACA;
+}
+.stress-verdict-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+.stress-verdict.ok .stress-verdict-icon { color: var(--success); }
+.stress-verdict.warn .stress-verdict-icon { color: var(--warning); }
+.stress-verdict.bad .stress-verdict-icon { color: var(--danger); }
+.stress-verdict-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.stress-verdict-text {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.stress-breakdown {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.stress-metric {
+  padding: 14px 16px;
+  background: var(--bg-tint);
+  border-radius: 10px;
+}
+.stress-metric-l {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.stress-metric-v {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.stress-disclaimer {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 16px;
+  line-height: 1.55;
+}
+
+.stress-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* ===== Callback form ===== */
+#callback-section {
+  background: var(--surface);
+}
+.callback-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  box-shadow: var(--shadow);
+}
+.callback-summary {
+  background: var(--primary-tint);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.callback-summary-l {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.callback-summary-t {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--primary);
+}
+.callback-summary-s {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+.field {
+  margin-bottom: 20px;
+}
+.field label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 140ms;
+  font-family: inherit;
+}
+.chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.chip.on {
+  border: 2px solid var(--primary);
+  background: var(--primary-tint);
+  color: var(--primary);
+  padding: 7px 13px;
+}
+.btn-submit {
+  display: block;
+  width: 100%;
+  padding: 16px 24px;
+  background: var(--primary);
+  color: var(--surface);
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 140ms;
+  font-family: inherit;
+}
+.btn-submit:hover { background: var(--primary-2); }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.callback-hint {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.55;
+  padding: 12px 14px;
+  background: var(--surface-warm);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--accent);
+  margin: 0 0 16px;
+}
+.consent {
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+/* ===== Success ===== */
+#success-section {
+  background: var(--bg);
+  text-align: center;
+}
+.success-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 60px 40px;
+  box-shadow: var(--shadow);
+}
+.success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--success-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  color: var(--success);
+  font-size: 36px;
+  font-weight: 600;
+}
+.success-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--primary);
+  margin: 0 0 8px;
+}
+.success-num {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-bottom: 16px;
+}
+.success-num strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.success-text {
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto 16px;
+}
+.success-actions {
+  margin-top: 28px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ===== Footer ===== */
+.site-footer {
+  padding: 48px 0 36px;
+  background: var(--primary);
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+}
+.site-footer-inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 32px;
+}
+.site-footer h4 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--surface);
+  margin: 0 0 12px;
+}
+.site-footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.site-footer li {
+  margin-bottom: 8px;
+}
+.site-footer a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+}
+.site-footer a:hover { color: var(--accent); }
+.footer-disclaimer {
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ===== Analytics panel ===== */
+.analytics-panel {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: var(--primary);
+  color: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(21,41,74,0.4);
+  z-index: 100;
+  font-size: 12px;
+  overflow: hidden;
+  transition: max-height 300ms, opacity 200ms;
+  max-width: 360px;
+}
+.analytics-panel.collapsed {
+  max-height: 40px;
+}
+.analytics-panel-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 500;
+  background: rgba(0,0,0,0.15);
+  user-select: none;
+}
+.analytics-panel-toggle .badge-count {
+  background: var(--accent);
+  color: var(--primary);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 11px;
+  margin-left: 8px;
+}
+.analytics-panel-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.analytics-event {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.analytics-event:last-child { border-bottom: none; }
+.analytics-event-name {
+  font-weight: 600;
+  color: var(--accent);
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 11px;
+}
+.analytics-event-data {
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.6);
+  font-family: ui-monospace, 'SF Mono', monospace;
+}
+.analytics-event-time {
+  font-size: 9.5px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+}
+
+/* ===== Helpers ===== */
+.fade-in {
+  animation: fadeIn 360ms ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.muted-link {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  font-family: inherit;
+}
+.muted-link:hover { color: var(--primary); }
+
+[hidden] { display: none !important; }
+
+/* ===== Responsive ===== */
+@media (max-width: 980px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+  .hero-visual { height: 380px; }
+  .hero h1 { font-size: 44px; }
+  .prog-grid { grid-template-columns: repeat(2, 1fr); }
+  .site-footer-inner { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .hero { padding: 48px 0 32px; }
+  .hero h1 { font-size: 34px; }
+  .hero-lede { font-size: 16px; }
+  .hero-stats { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .section { padding: 56px 0; }
+  .programs { padding: 56px 0 32px; }
+  .section-title { font-size: 26px; }
+  .prog-grid { grid-template-columns: 1fr; }
+  .site-nav { display: none; }
+  .quiz-question { font-size: 24px; }
+  .quiz-opt { padding: 14px 16px; }
+  .pay-summary { grid-template-columns: 1fr; gap: 12px; }
+  .stress-breakdown { grid-template-columns: 1fr; }
+  .stress-wrap, .callback-wrap, .success-wrap { padding: 24px; }
+  .rc-stats { gap: 8px; }
+  .rc-stat-v { font-size: 18px; }
+  .hero-visual { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header class="site-header">
+  <div class="container">
+    <div class="site-header-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark">АКК</span>
+        <span class="logo-name">Аграрная кредитная корпорация<span>АО, 100% участие НИХ «Байтерек»</span></span>
+      </a>
+      <nav class="site-nav">
+        <a href="#programs">Программы</a>
+        <a href="#" onclick="startQuiz(); return false;">Подбор</a>
+        <a href="#how">Как это работает</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
+      <a href="tel:1408" class="site-cta-phone">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="site-cta-phone-full">1408 · Колл-центр</span>
+        <span class="site-cta-phone-short">1408</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-bg-grid"></div>
+  </div>
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <span class="hero-eyebrow">
+          <span class="hero-eyebrow-dot"></span>
+          Подбор за 30 секунд · без БИН · без регистрации
+        </span>
+        <h1>Финансирование <em>аграрного бизнеса</em><br>за несколько вопросов</h1>
+        <p class="hero-lede">
+          Все программы кредитования АКК — от микрокредита Іскер до инвестиционного займа Агробизнес 2.0 до 15 млрд ₸. Подбираем подходящую и рассчитываем платёж до подачи заявки.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="startQuiz()">
+            Начать подбор
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <a href="#programs" class="btn-ghost">Все программы</a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-v">от 5%</div>
+            <div class="hero-stat-l">Ставка по субсидированным программам</div>
+          </div>
+          <div>
+            <div class="hero-stat-v">7</div>
+            <div class="hero-stat-l">Программ под цели АПК</div>
+          </div>
+          <div>
+            <div class="hero-stat-v">15 млрд ₸</div>
+            <div class="hero-stat-l">Максимальная сумма</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card hero-card-1">
+          <div>
+            <span class="hcard-cat">ВПРиУР</span>
+            <span class="hcard-match">95% совпадение</span>
+          </div>
+          <div class="hcard-title">Кең дала 2</div>
+          <div class="hcard-meta">Финансирование посевной</div>
+          <div class="hcard-bar">
+            <div class="hcard-bar-item"><div class="hcard-bar-v">от 5%</div><div class="hcard-bar-l">ставка</div></div>
+            <div class="hcard-bar-item"><div class="hcard-bar-v">1,5 млрд</div><div class="hcard-bar-l">до</div></div>
+            <div class="hcard-bar-item"><div class="hcard-bar-v">18 мес</div><div class="hcard-bar-l">срок</div></div>
+          </div>
+        </div>
+        <div class="hero-card hero-card-2">
+          <div>
+            <span class="hcard-cat">Микро</span>
+            <span class="hcard-match">71% совпадение</span>
+          </div>
+          <div class="hcard-title">Іскер</div>
+          <div class="hcard-meta">Для начинающих фермеров</div>
+          <div class="hcard-bar">
+            <div class="hcard-bar-item"><div class="hcard-bar-v">от 6%</div><div class="hcard-bar-l">ставка</div></div>
+            <div class="hcard-bar-item"><div class="hcard-bar-v">20 млн</div><div class="hcard-bar-l">до</div></div>
+          </div>
+        </div>
+        <div class="hero-card hero-card-3">
+          <div>
+            <span class="hcard-cat">Скот</span>
+            <span class="hcard-match">88% совпадение</span>
+          </div>
+          <div class="hcard-title">Игілік и Береке</div>
+          <div class="hcard-meta">Племенной скот КРС от 100 голов</div>
+          <div class="hcard-bar">
+            <div class="hcard-bar-item"><div class="hcard-bar-v">6%</div><div class="hcard-bar-l">прямые</div></div>
+            <div class="hcard-bar-item"><div class="hcard-bar-v">5 млрд</div><div class="hcard-bar-l">до</div></div>
+            <div class="hcard-bar-item"><div class="hcard-bar-v">84 мес</div><div class="hcard-bar-l">срок</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Programs preview ===== -->
+<section id="programs" class="programs">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Все программы АКК</div>
+      <h2 class="section-title">Под разные цели АПК</h2>
+      <p class="section-lede">От посевной кампании до племенного животноводства, откорма и долгосрочных инвестиций. Подбор автоматически определяет, какие программы вам подходят, и рассчитывает примерный платёж.</p>
+    </div>
+    <div class="prog-grid" id="prog-grid"></div>
+  </div>
+</section>
+
+<!-- ===== Quiz ===== -->
+<section id="quiz-section" class="section" hidden>
+  <div class="container-narrow">
+    <div id="quiz-container"></div>
+  </div>
+</section>
+
+<!-- ===== Results ===== -->
+<section id="results-section" class="section" hidden>
+  <div class="container">
+    <div id="results-container"></div>
+  </div>
+</section>
+
+<!-- ===== Stress test (Fajr-lite) ===== -->
+<section id="stress-section" class="section" hidden>
+  <div class="container-narrow">
+    <div id="stress-container"></div>
+  </div>
+</section>
+
+<!-- ===== Callback ===== -->
+<section id="callback-section" class="section" hidden>
+  <div class="container-narrow">
+    <div id="callback-container"></div>
+  </div>
+</section>
+
+<!-- ===== Success ===== -->
+<section id="success-section" class="section" hidden>
+  <div class="container-narrow">
+    <div id="success-container"></div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="site-footer" id="contacts">
+  <div class="container">
+    <div class="site-footer-inner">
+      <div>
+        <h4>АО «Аграрная кредитная корпорация»</h4>
+        <p style="margin: 0 0 12px; max-width: 360px; line-height: 1.6;">
+          Финансовый институт развития сельского хозяйства Казахстана. Дочерняя организация НИХ «Байтерек».
+        </p>
+        <p style="margin: 0; font-size: 12px;">г. Астана, проспект Кабанбай Батыра, 17</p>
+      </div>
+      <div>
+        <h4>Поддержка</h4>
+        <ul>
+          <li><a href="tel:1408">1408 — Колл-центр</a></li>
+          <li><a href="mailto:info@agrocredit.kz">info@agrocredit.kz</a></li>
+          <li><a href="#">WhatsApp / Telegram</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Программы</h4>
+        <ul>
+          <li><a href="#">Кең дала</a></li>
+          <li><a href="#">Кең дала 2</a></li>
+          <li><a href="#">Агробизнес</a></li>
+          <li><a href="#">Агробизнес 2.0</a></li>
+          <li><a href="#">Игілік и Береке</a></li>
+          <li><a href="#">Откормплощадки и птицефабрики</a></li>
+          <li><a href="#">Іскер</a></li>
+          <!-- Игілік и Береке теперь одной программой, как на agrocredit.kz -->
+        </ul>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      <strong style="color: rgba(255,255,255,0.7);">Демо-прототип онбординга.</strong> Параметры программ соответствуют положению П АКК 002-207-22. Ставки приведены типовые для субсидированных программ (РБ/НФ РК/ПСС); финальная ставка зависит от источника средств, канала продаж и решения Кредитного комитета. Расчёт платежа и стресс-тест экономики — ориентировочные. Это не предложение публичной оферты.
+    </div>
+  </div>
+</footer>
+
+<!-- ===== Analytics panel ===== -->
+<div class="analytics-panel collapsed" id="analytics-panel">
+  <div class="analytics-panel-toggle" onclick="toggleAnalytics()">
+    <span>📊 События воронки <span class="badge-count" id="event-count">0</span></span>
+    <span id="analytics-arrow">▲</span>
+  </div>
+  <div class="analytics-panel-list" id="analytics-list"></div>
+</div>
+
+<script>
+'use strict';
+
+// =====================================================
+// ===== Programs data (from П АКК 002-207-22) =========
+// =====================================================
+const PROGRAMS = [
+  { id: 'ken_dala', title: 'Кең дала', category: 'ВПРиУР через КТ',
+    org: 'АО «Аграрная кредитная корпорация»',
+    description: 'Финансирование оборотных средств на весенне-полевые и уборочные работы. Программа ориентирована на финансовые институты — прямые заёмщики получают финансирование через кредитные товарищества, МФО, БВУ или РИЦ.',
+    rate: 1.5, rateNote: '1,5% годовых для финучреждений. Прямые заёмщики получают финансирование через КТ/МФО/БВУ/РИЦ — конечная ставка устанавливается посредником.',
+    maxAmount: 10000000000, maxTerm: 18, scheduleType: 'biannual_winter',
+    scheduleNote: 'Срок до 10 марта года, следующего за годом проведения финансируемых ВПРиУР.',
+    hard: [{ q: 'purpose', v: ['__never__'] }],
+    soft: [],
+    indirectOnly: true
+  },
+  { id: 'ken_dala_2', title: 'Кең дала 2', category: 'ВПРиУР',
+    org: 'АО «Аграрная кредитная корпорация»',
+    description: 'Финансирование весенне-полевых и уборочных работ под гарантию АО «ФРП «Даму». Погашение двумя платежами — после уборки урожая и в марте.',
+    rate: 5, rateNote: '5% годовых (ГЭСВ от 5%) для прямых заёмщиков, 1,5% для финучреждений. Лимит для прямого заёмщика — до 25% от собственного капитала Общества (но не более 1,5 млрд ₸ под гарантию Даму).',
+    maxAmount: 1500000000, maxTerm: 18, scheduleType: 'biannual_winter',
+    scheduleNote: 'Для прямых заёмщиков: 50% — до 05 декабря года финансирования, 50% — до 05 марта следующего года. Через КТ/МФО/РИЦ/СПК — 10/10.',
+    hard: [{ q: 'purpose', v: ['vprir'] }, { q: 'sector', v: ['plant', 'processing'] }],
+    soft: [
+      { q: 'experience', v: ['3plus'], w: 40 },
+      { q: 'experience', v: ['1-3'], w: 20 },
+      { q: 'sector', v: ['plant'], w: 25 },
+      { q: 'amount', v: ['20-100m', '100-500m', '500m-plus'], w: 35 }
+    ]
+  },
+  { id: 'agrobusiness', title: 'Агробизнес', category: 'Инвестиции',
+    org: 'АО «Аграрная кредитная корпорация»',
+    description: 'Универсальная программа на основные средства, СМР и пополнение оборотных средств. Финансирование за счёт собственных и привлечённых средств АКК.',
+    rate: 21.5, rateRange: 'НБРК+7,5%',
+    rateNote: 'Базовая ставка НБ РК + 7,5% годовых для прямых заёмщиков (≈21,5% на 01.2026, собственные/привлечённые средства АКК). Альтернативно — 5% годовых за счёт облигационного займа. ОС/СМР — до 120 мес, ПОС — до 48 мес, облигационный заём — до 12 мес. Универсальная программа: подходит и для покупки биоактивов (МРС, лошади, верблюды и др.), когда специализированные программы (Игілік/Береке) не подходят.',
+    maxAmount: 15000000000, maxTerm: 120, scheduleType: 'annual',
+    scheduleNote: 'Погашение не реже одного раза в год. Срок зависит от цели: ОС/СМР по РБ — до 144 мес, ОС/СМР по СС/ПС/ЭПВ/ДКЗ — до 120 мес, ПОС — 24 мес (возобновляемая КЛ) или 48 мес (невозобновляемая), ПОС по ПСС — до 12 мес.',
+    termByPurpose: { investments: 120, working: 48 },
+    hard: [{ q: 'purpose', v: ['investments', 'working', 'livestock'] }, { q: 'sector', v: ['plant', 'animal', 'poultry', 'processing'] }],
+    soft: [
+      { q: 'experience', v: ['3plus'], w: 35 },
+      { q: 'experience', v: ['1-3'], w: 20 },
+      { q: 'amount', v: ['100-500m', '500m-plus'], w: 30 },
+      { q: 'amount', v: ['20-100m'], w: 20 },
+      { q: 'sector', v: ['processing', 'animal'], w: 15 },
+      // Меньший вес, если выбрана покупка скота — для КРС лучше Игілік/Береке, но для остальных видов Агробизнес — fallback.
+      { q: 'animalType', v: ['MRS', 'HORSE', 'CAMEL'], w: 20 }
+    ]
+  },
+  { id: 'igilik_bereke', title: 'Игілік и Береке', category: 'Племенной скот КРС',
+    org: 'АО «Аграрная кредитная корпорация»',
+    description: 'Покупка импортного племенного поголовья КРС. Игілік — от 100 до 499 голов, Береке — от 500 голов (требуется опыт от 2 лет). Мясное и молочное направления.',
+    rate: 6, rateNote: '6% годовых (ГЭСВ от 6%) для прямых заёмщиков, 3,5% для КТ (маржа до 2,5%), 3% для БВУ (маржа до 3%). Субсидированная ставка по средствам республиканского бюджета. Только КРС.',
+    maxAmount: 5000000000, maxTerm: 84, scheduleType: 'annual',
+    scheduleNote: 'Мясное направление — до 84 мес. Молочное: до 84 мес при наличии инвестиционных затрат, иначе до 60 мес. График — по Приложению №3.',
+    hard: [
+      { q: 'purpose', v: ['livestock'] },
+      { q: 'sector', v: ['animal'] },
+      { q: 'animalType', v: ['KRS'] },
+      { q: 'heads', v: ['100-499', '500plus'] }
+    ],
+    soft: [
+      { q: 'experience', v: ['3plus'], w: 50 },
+      { q: 'experience', v: ['1-3'], w: 25 },
+      { q: 'amount', v: ['100-500m', '500m-plus'], w: 35 },
+      { q: 'amount', v: ['20-100m'], w: 20 },
+      { q: 'animalType', v: ['KRS'], w: 20 }
+    ],
+    hasStressTest: true
+  },
+  { id: 'isker', title: 'Іскер', category: 'Микрокредит',
+    org: 'АО «Аграрная кредитная корпорация»',
+    description: 'Микрокредиты для начинающих фермеров, сельских предпринимателей и стартапов. До 8 000 МРП (~34,6 млн ₸ на 2026), упрощённые требования к опыту.',
+    rate: 6, rateNote: '6% годовых (ГЭСВ от 6%) для прямых заёмщиков, 4% — для членов малообеспеченных и/или многодетных семей. Лимит — 8 000 МРП (≈ 34,6 млн ₸ при МРП на 2026 году 4 325 ₸). Срок: до 60 мес для большинства целей, до 84 мес — для животноводства.',
+    maxAmount: 34600000, maxTerm: 84, scheduleType: 'annual',
+    termByPurpose: { vprir: 60, feedlot: 60, investments: 60, working: 60, micro: 60 },
+    scheduleNote: 'Погашение не реже одного раза в год. Возможен индивидуальный график для микрокредитования.',
+    hard: [{ q: 'amount', v: ['under-20m', '20-100m'] }],
+    soft: [
+      { q: 'amount', v: ['under-20m'], w: 35 },
+      { q: 'amount', v: ['20-100m'], w: 15 },
+      { q: 'purpose', v: ['micro', 'vprir', 'livestock'], w: 30 },
+      { q: 'location', v: ['village', 'small-town'], w: 25 },
+      { q: 'experience', v: ['startup', 'under-1', '1-3'], w: 25 },
+      { q: 'sector', v: ['animal', 'plant', 'services'], w: 20 },
+      { q: 'animalType', v: ['MRS', 'HORSE', 'CAMEL'], w: 20 }
+    ]
+  },
+  { id: 'feedlot_poultry', title: 'Откормплощадки и птицефабрики', category: 'ПСС / Откорм',
+    org: 'Программа «Агробизнес 2.0», направление 2',
+    description: 'Финансирование откормочных площадок КРС и МРС, а также птицефабрик мясного и яичного направления. Источник — привлечённые субсидируемые средства (ПСС).',
+    rate: 5, rateNote: '5% годовых (ГЭСВ от 5%) для прямых заёмщиков, 1,5% для финучреждений. Субсидированная ставка по ПСС.',
+    maxAmount: 15000000000, maxTerm: 36, scheduleType: 'annual',
+    scheduleNote: 'Кредитная линия до 36 месяцев; срок отдельного транша до 12 месяцев. Погашение по графику Кредитного комитета — не позднее срока обращения облигаций/срока привлечения ПСС.',
+    hard: [{ q: 'purpose', v: ['feedlot'] }],
+    soft: [
+      { q: 'experience', v: ['3plus'], w: 40 },
+      { q: 'experience', v: ['1-3'], w: 20 },
+      { q: 'sector', v: ['poultry', 'animal'], w: 25 },
+      { q: 'amount', v: ['100-500m', '500m-plus'], w: 30 },
+      { q: 'amount', v: ['20-100m'], w: 20 }
+    ]
+  },
+  { id: 'agrobusiness_2', title: 'Агробизнес 2.0', category: 'Льготные инвестиции',
+    org: 'АО «Аграрная кредитная корпорация»',
+    description: 'Льготное долгосрочное кредитование инвестиционных проектов сельхозпроизводителей. Самый длинный срок среди программ АКК — до 15 лет.',
+    rate: 12.6, rateNote: '12,6% годовых (ГЭСВ от 12,6%) для прямых заёмщиков. Инвестиционные цели — до 180 мес, пополнение оборотных средств — до 48 мес.',
+    maxAmount: 15000000000, maxTerm: 180, scheduleType: 'annual',
+    scheduleNote: 'Погашение не реже одного раза в год по графику бизнес-плана. Возможен льготный период по решению Кредитного комитета.',
+    termByPurpose: { investments: 180, working: 48 },
+    hard: [{ q: 'purpose', v: ['investments', 'working'] }],
+    soft: [
+      { q: 'experience', v: ['3plus'], w: 45 },
+      { q: 'experience', v: ['1-3'], w: 20 },
+      { q: 'amount', v: ['500m-plus'], w: 35 },
+      { q: 'amount', v: ['100-500m'], w: 25 },
+      { q: 'sector', v: ['processing', 'animal', 'plant'], w: 20 }
+    ]
+  }
+];
+
+const QUESTIONS = [
+  { key: 'purpose', short: 'Цель', title: 'Что хотите профинансировать?', hint: 'Выберите основную цель кредита',
+    options: [
+      { value: 'vprir', label: 'Весенне-полевые и уборочные работы', desc: 'ВПРиУР: семена, ГСМ, удобрения, средства защиты' },
+      { value: 'livestock', label: 'Покупка племенного скота', desc: 'КРС, МРС, лошади, верблюды' },
+      { value: 'feedlot', label: 'Откорм или птицеводство', desc: 'Откормочные площадки, птицефабрики' },
+      { value: 'investments', label: 'Инвестиции, покупка основных средств', desc: 'Оборудование, техника, СМР, расширение' },
+      { value: 'working', label: 'Пополнение оборотных средств', desc: 'ПОС: сырьё, переработка, межсезонье' },
+      { value: 'micro', label: 'Микрокредит, стартап', desc: 'Небольшая сумма до 35 млн ₸' }
+    ]
+  },
+  { key: 'sector', short: 'Отрасль', title: 'Ваша основная отрасль?',
+    options: [
+      { value: 'plant', label: 'Растениеводство' },
+      { value: 'animal', label: 'Животноводство' },
+      { value: 'poultry', label: 'Птицеводство или откорм' },
+      { value: 'processing', label: 'Переработка сельхозпродукции' },
+      { value: 'services', label: 'Услуги, торговля, прочее' }
+    ]
+  },
+  { key: 'experience', short: 'Опыт', title: 'Сколько лет ведёте деятельность?',
+    options: [
+      { value: 'startup', label: 'Только открываюсь' },
+      { value: 'under-1', label: 'До 1 года' },
+      { value: '1-3', label: '1 – 3 года' },
+      { value: '3plus', label: 'Более 3 лет' }
+    ]
+  },
+  { key: 'location', short: 'Регион', title: 'Где находитесь?',
+    options: [
+      { value: 'village', label: 'Село' },
+      { value: 'small-town', label: 'Малый город (до 50 тыс. жителей)' },
+      { value: 'regional-center', label: 'Областной центр' },
+      { value: 'metro', label: 'Алматы, Астана, Шымкент, Актау, Атырау' }
+    ]
+  },
+  { key: 'amount', short: 'Сумма', title: 'Какая сумма нужна?',
+    options: [
+      { value: 'under-20m', label: 'До 20 млн ₸' },
+      { value: '20-100m', label: '20 – 100 млн ₸' },
+      { value: '100-500m', label: '100 – 500 млн ₸' },
+      { value: '500m-plus', label: 'Более 500 млн ₸' }
+    ]
+  }
+];
+
+const ANIMAL_TYPE_Q = {
+  key: 'animalType', short: 'Вид', title: 'Какой вид животных планируете приобрести?',
+  hint: 'Влияет на подбор программы и нормативы стресс-теста',
+  options: [
+    { value: 'KRS', label: 'КРС', desc: 'Крупный рогатый скот — мясное или молочное направление' },
+    { value: 'MRS', label: 'МРС', desc: 'Мелкий рогатый скот — овцы, козы' },
+    { value: 'HORSE', label: 'Лошади', desc: 'Коневодство' },
+    { value: 'CAMEL', label: 'Верблюды', desc: 'Верблюдоводство' }
+  ]
+};
+
+const HEADS_Q = {
+  key: 'heads', short: 'Головы', title: 'Сколько голов планируете приобрести?',
+  options: [
+    { value: 'under-100', label: 'До 100 голов' },
+    { value: '100-499', label: '100 – 499 голов' },
+    { value: '500plus', label: '500 голов и более' }
+  ]
+};
+
+// purpose → автоматически определяемая отрасль (sector). Если совпадает — вопрос про sector скрываем.
+const PURPOSE_TO_SECTOR = {
+  vprir: 'plant',
+  livestock: 'animal',
+  feedlot: 'poultry'
+};
+
+// =====================================================
+// ===== FAJR norms (упрощённые из FAJROptions) ========
+// =====================================================
+const FAJR_NORMS = {
+  KRS: {
+    label: 'КРС (мясное/молочное)',
+    cowShare: 0.5,             // доля коров (для расчёта молока)
+    milkPerDay: 8,             // литров/день
+    lactationDays: 305,        // дней лактации
+    milkPricePerL: 90,         // ₸/литр
+    avgWeightSale: 400,        // кг при реализации
+    meatPricePerKg: 1500,      // ₸/кг
+    saleShare: 0.15,           // годовая доля выбраковки/реализации
+    yearlyFeedCost: 350000,    // ₸ за голову в год (упрощённо)
+    yearlyVetCost: 3000,       // ₸ за голову
+    yearlyOther: 100000,       // прочие расходы на голову
+    pastureHaPerHead: 1.5,     // га пастбищ на голову
+    minBarnSqmPerHead: 6       // м² помещений на голову
+  },
+  MRS: {
+    label: 'МРС (овцы, козы)',
+    cowShare: 0,
+    milkPerDay: 0,
+    lactationDays: 0,
+    milkPricePerL: 0,
+    avgWeightSale: 45,
+    meatPricePerKg: 2200,
+    saleShare: 0.25,
+    yearlyFeedCost: 45000,
+    yearlyVetCost: 800,
+    yearlyOther: 15000,
+    pastureHaPerHead: 0.3,
+    minBarnSqmPerHead: 1.5
+  },
+  HORSE: {
+    label: 'Лошади',
+    cowShare: 0,
+    milkPerDay: 0,
+    lactationDays: 0,
+    milkPricePerL: 0,
+    avgWeightSale: 380,
+    meatPricePerKg: 2500,
+    saleShare: 0.12,
+    yearlyFeedCost: 280000,
+    yearlyVetCost: 4000,
+    yearlyOther: 80000,
+    pastureHaPerHead: 3,
+    minBarnSqmPerHead: 8
+  },
+  CAMEL: {
+    label: 'Верблюды',
+    cowShare: 0,
+    milkPerDay: 0,
+    lactationDays: 0,
+    milkPricePerL: 0,
+    avgWeightSale: 450,
+    meatPricePerKg: 2200,
+    saleShare: 0.10,
+    yearlyFeedCost: 220000,
+    yearlyVetCost: 4500,
+    yearlyOther: 90000,
+    pastureHaPerHead: 5,
+    minBarnSqmPerHead: 10
+  }
+};
+
+// =====================================================
+// ===== State =========================================
+// =====================================================
+const state = {
+  screen: 'landing',           // landing | quiz | results | stress | callback | success
+  step: 0,
+  answers: { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, heads: null },
+  selectedProgram: null,
+  calc: {},
+  stress: { animalType: 'KRS', existingHerd: '', plannedHerd: '', pasturesHa: '', barnSqm: '', existingDebtsMonthly: '', annualRevenue: '', result: null },
+  callback: { name: '', phone: '', channel: 'call' },
+  leadNumber: null
+};
+
+// =====================================================
+// ===== Analytics =====================================
+// =====================================================
+const analyticsEvents = [];
+function track(name, payload) {
+  payload = payload || {};
+  const event = { name: name, payload: payload, at: new Date() };
+  analyticsEvents.unshift(event);
+  if (analyticsEvents.length > 50) analyticsEvents.pop();
+  console.log('[АКК]', name, payload);
+  renderAnalytics();
+}
+function renderAnalytics() {
+  document.getElementById('event-count').textContent = analyticsEvents.length;
+  const list = document.getElementById('analytics-list');
+  list.innerHTML = analyticsEvents.slice(0, 30).map(function(e) {
+    const dataStr = Object.keys(e.payload).length > 0
+      ? JSON.stringify(e.payload).slice(0, 80)
+      : '';
+    const time = e.at.toLocaleTimeString('ru-RU', { hour12: false });
+    return '<div class="analytics-event"><div class="analytics-event-name">' + e.name + '</div>' +
+      (dataStr ? '<div class="analytics-event-data">' + dataStr + '</div>' : '') +
+      '<div class="analytics-event-time">' + time + '</div></div>';
+  }).join('');
+}
+function toggleAnalytics() {
+  const panel = document.getElementById('analytics-panel');
+  panel.classList.toggle('collapsed');
+  document.getElementById('analytics-arrow').textContent = panel.classList.contains('collapsed') ? '▲' : '▼';
+}
+
+// =====================================================
+// ===== Helpers =======================================
+// =====================================================
+function fmtAmount(v) {
+  if (v >= 1e9) return (Math.round(v / 1e8) / 10).toLocaleString('ru-RU') + ' млрд ₸';
+  if (v >= 1e6) return Math.round(v / 1e6).toLocaleString('ru-RU') + ' млн ₸';
+  if (v >= 1e3) return Math.round(v / 1e3).toLocaleString('ru-RU') + ' тыс ₸';
+  return Math.round(v).toLocaleString('ru-RU') + ' ₸';
+}
+function declension(n, one, few, many) {
+  const m = Math.abs(n) % 100;
+  if (m >= 11 && m <= 14) return many;
+  const r = m % 10;
+  if (r === 1) return one;
+  if (r >= 2 && r <= 4) return few;
+  return many;
+}
+function getQuestions() {
+  const purpose = state.answers.purpose;
+  // Если отрасль однозначно вытекает из цели — скрываем вопрос про sector.
+  const base = QUESTIONS.filter(function(q) {
+    if (q.key !== 'sector') return true;
+    return !purpose || !PURPOSE_TO_SECTOR[purpose];
+  });
+  // Для покупки племенного скота — добавляем вид животных и количество голов.
+  if (purpose === 'livestock') {
+    return base.concat([ANIMAL_TYPE_Q, HEADS_Q]);
+  }
+  return base;
+}
+function scoreProgram(prog, answers) {
+  for (let i = 0; i < prog.hard.length; i++) {
+    if (!prog.hard[i].v.includes(answers[prog.hard[i].q])) return null;
+  }
+  return Math.min(100, prog.soft.reduce(function(s, r) {
+    return s + (r.v.includes(answers[r.q]) ? r.w : 0);
+  }, 0));
+}
+function pickInitialTerm(maxT) {
+  const opts = [12, 24, 36, 48, 60, 84];
+  for (let i = opts.length - 1; i >= 0; i--) {
+    if (opts[i] <= maxT) return opts[i];
+  }
+  return maxT;
+}
+
+function effectiveMaxTerm(p) {
+  if (p.termByPurpose && state.answers.purpose && p.termByPurpose[state.answers.purpose]) {
+    return Math.min(p.maxTerm, p.termByPurpose[state.answers.purpose]);
+  }
+  return p.maxTerm;
+}
+
+function calculateSchedule(program, amount, termMonths) {
+  const rate = program.rate;
+  if (program.scheduleType === 'biannual_winter') {
+    const r = rate / 100 / 12;
+    const half = amount / 2;
+    const monthsToDec = 8;
+    const monthsDecToMar = 3;
+    const intDec = amount * r * monthsToDec;
+    const intMar = half * r * monthsDecToMar;
+    return {
+      type: 'biannual',
+      payments: [
+        { label: '05 декабря', amount: half + intDec, interest: intDec, note: 'после уборки урожая' },
+        { label: '05 марта', amount: half + intMar, interest: intMar, note: 'окончательный расчёт' }
+      ],
+      total: amount + intDec + intMar,
+      overpay: intDec + intMar
+    };
+  }
+  const years = Math.max(1, Math.round(termMonths / 12));
+  const annualPrincipal = amount / years;
+  let totalInterest = 0;
+  let remaining = amount;
+  const yearly = [];
+  for (let y = 1; y <= years; y++) {
+    const yearInterest = remaining * rate / 100;
+    totalInterest += yearInterest;
+    yearly.push({
+      year: y,
+      principal: annualPrincipal,
+      interest: yearInterest,
+      payment: annualPrincipal + yearInterest
+    });
+    remaining -= annualPrincipal;
+  }
+  return {
+    type: 'annual',
+    years: years,
+    yearly: yearly,
+    firstYearPayment: yearly[0].payment,
+    lastYearPayment: yearly[yearly.length - 1].payment,
+    avgPayment: (amount + totalInterest) / years,
+    total: amount + totalInterest,
+    overpay: totalInterest
+  };
+}
+
+function scoredPrograms() {
+  return PROGRAMS
+    .map(function(p) { return { program: p, score: scoreProgram(p, state.answers) }; })
+    .filter(function(x) { return x.score !== null && x.score >= 20; })
+    .sort(function(a, b) { return b.score - a.score; });
+}
+
+// =====================================================
+// ===== Section management ============================
+// =====================================================
+function showSection(id) {
+  const sections = ['quiz-section', 'results-section', 'stress-section', 'callback-section', 'success-section'];
+  sections.forEach(function(s) {
+    const el = document.getElementById(s);
+    if (el) el.hidden = (s !== id);
+  });
+  if (id) {
+    setTimeout(function() {
+      const el = document.getElementById(id);
+      if (el) {
+        const top = el.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }
+    }, 50);
+  }
+}
+
+// =====================================================
+// ===== Programs preview ==============================
+// =====================================================
+function renderProgramsPreview() {
+  const grid = document.getElementById('prog-grid');
+  grid.innerHTML = PROGRAMS.map(function(p) {
+    return '<div class="prog-tile' + (p.indirectOnly ? ' indirect' : '') + '">' +
+      '<span class="prog-tile-cat">' + p.category + '</span>' +
+      (p.indirectOnly ? '<span class="prog-tile-badge">Только через КТ/МФО/БВУ</span>' : '') +
+      '<h3 class="prog-tile-title">' + p.title + '</h3>' +
+      '<p class="prog-tile-desc">' + p.description + '</p>' +
+      '<div class="prog-tile-row"><span>Ставка</span><span>' + fmtRate(p) + '</span></div>' +
+      '<div class="prog-tile-row"><span>Сумма до</span><span>' + fmtAmount(p.maxAmount) + '</span></div>' +
+      '<div class="prog-tile-row"><span>Срок до</span><span>' + p.maxTerm + ' мес.</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+function fmtRate(p) {
+  if (p.rateRange) return p.rateRange;
+  return 'от ' + String(p.rate).replace('.', ',') + '%';
+}
+
+// =====================================================
+// ===== Quiz ==========================================
+// =====================================================
+function startQuiz() {
+  state.screen = 'quiz';
+  state.step = 0;
+  state.answers = { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, heads: null };
+  track('quiz_started');
+  renderQuiz();
+  showSection('quiz-section');
+}
+
+// Таймер «задержки перед переходом» после выбора ответа.
+// Храним, чтобы отменить, если пользователь успел кликнуть по другому шагу.
+let quizAdvanceTimer = null;
+
+// Максимальный шаг, на который пользователь уже может перейти:
+// первый неотвеченный вопрос (на шаг K можно попасть, только ответив на 0..K-1).
+function maxReachableStep() {
+  const qs = getQuestions();
+  for (let i = 0; i < qs.length; i++) {
+    if (state.answers[qs[i].key] == null) return i;
+  }
+  return qs.length - 1;
+}
+
+function renderQuiz() {
+  // Отменяем отложенный переход — навигация перерисовкой имеет приоритет.
+  clearTimeout(quizAdvanceTimer);
+  const qs = getQuestions();
+  if (state.step >= qs.length) {
+    return showResults();
+  }
+  const q = qs[state.step];
+  const reachable = maxReachableStep();
+  const container = document.getElementById('quiz-container');
+  container.innerHTML =
+    '<div class="quiz-step-label">Шаг ' + (state.step + 1) + ' из ' + qs.length + '</div>' +
+    '<div class="quiz-steps">' +
+      qs.map(function(question, i) {
+        const answered = state.answers[question.key] != null;
+        const isCurrent = i === state.step;
+        const canGoto = i <= reachable && !isCurrent;
+        let cls = 'quiz-step';
+        if (isCurrent) cls += ' current';
+        else if (answered) cls += ' done';
+        else if (i <= reachable) cls += ' next';
+        else cls += ' locked';
+        return '<button class="' + cls + '" ' +
+          (canGoto ? 'data-goto="' + i + '"' : 'disabled') + '>' +
+          '<span class="quiz-step-num">' + (answered && !isCurrent ? '✓' : (i + 1)) + '</span>' +
+          '<span class="quiz-step-name">' + question.short + '</span>' +
+        '</button>';
+      }).join('') +
+    '</div>' +
+    '<h2 class="quiz-question">' + q.title + '</h2>' +
+    (q.hint ? '<p class="quiz-hint">' + q.hint + '</p>' : '') +
+    '<div class="quiz-options fade-in">' +
+      q.options.map(function(o) {
+        const selected = state.answers[q.key] === o.value;
+        return '<button class="quiz-opt ' + (selected ? 'selected' : '') + '" data-key="' + q.key + '" data-value="' + o.value + '">' +
+          '<div class="quiz-opt-label">' + o.label + '</div>' +
+          (o.desc ? '<div class="quiz-opt-desc">' + o.desc + '</div>' : '') +
+        '</button>';
+      }).join('') +
+    '</div>' +
+    (state.step > 0 ? '<button class="quiz-back" onclick="prevStep()">← Назад</button>' : '');
+
+  container.querySelectorAll('[data-goto]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      const target = Number(el.getAttribute('data-goto'));
+      track('quiz_step_jump', { from_step: state.step + 1, to_step: target + 1 });
+      state.step = target;
+      renderQuiz();
+    });
+  });
+
+  container.querySelectorAll('.quiz-opt').forEach(function(el) {
+    el.addEventListener('click', function() {
+      const k = el.getAttribute('data-key');
+      const v = el.getAttribute('data-value');
+      state.answers[k] = v;
+      // Авто-проставление отрасли, если выбранная цель её однозначно определяет.
+      if (k === 'purpose' && PURPOSE_TO_SECTOR[v]) {
+        state.answers.sector = PURPOSE_TO_SECTOR[v];
+      }
+      // Если выбран вид животных — пробросим его в стресс-тест.
+      if (k === 'animalType') {
+        state.stress.animalType = v;
+      }
+      track('quiz_answer', { question: k, answer: v, step: state.step + 1 });
+      clearTimeout(quizAdvanceTimer);
+      quizAdvanceTimer = setTimeout(function() {
+        state.step += 1;
+        if (state.step >= getQuestions().length) {
+          track('quiz_completed', { answers: state.answers });
+          showResults();
+        } else {
+          renderQuiz();
+        }
+      }, 180);
+    });
+  });
+}
+
+function prevStep() {
+  if (state.step > 0) {
+    state.step -= 1;
+    renderQuiz();
+  }
+}
+
+// =====================================================
+// ===== Results =======================================
+// =====================================================
+function showResults() {
+  state.screen = 'results';
+  const scored = scoredPrograms();
+  track('results_viewed', {
+    count: scored.length,
+    top: scored[0] ? scored[0].program.id : null,
+    top_score: scored[0] ? scored[0].score : null
+  });
+  renderResults();
+  showSection('results-section');
+}
+
+function renderResults() {
+  const scored = scoredPrograms();
+  const container = document.getElementById('results-container');
+  if (scored.length === 0) {
+    container.innerHTML =
+      '<div class="results-header"><div>' +
+        '<div class="section-eyebrow">Подбор программ</div>' +
+        '<h2 class="section-title">Подходящих программ не нашлось</h2>' +
+        '<p class="section-lede">Возможно, ваш сценарий требует индивидуальной консультации — оставьте контакты, и менеджер АКК подберёт программу под ваш проект.</p>' +
+      '</div></div>' +
+      '<div style="display: flex; gap: 12px; flex-wrap: wrap;">' +
+        '<button class="btn-primary" onclick="requestConsultation()">Получить консультацию менеджера</button>' +
+        '<button class="btn-ghost" onclick="startQuiz()">Изменить ответы</button>' +
+      '</div>';
+    return;
+  }
+  container.innerHTML =
+    '<div class="results-header">' +
+      '<div>' +
+        '<div class="section-eyebrow">Подбор программ</div>' +
+        '<h2 class="section-title">Найдено ' + scored.length + ' ' +
+          declension(scored.length, 'подходящая программа', 'подходящие программы', 'подходящих программ') + '</h2>' +
+        '<p class="section-lede">Отсортированы по совпадению с вашими ответами. Поиграйте с калькулятором — рассчитаем платёж по реальной схеме программы.</p>' +
+      '</div>' +
+      '<button class="muted-link" onclick="startQuiz()">← Изменить ответы</button>' +
+    '</div>' +
+    '<div class="results-cards">' +
+      scored.map(function(x, i) { return renderResultCard(x.program, x.score, i === 0); }).join('') +
+    '</div>';
+
+  attachResultHandlers();
+}
+
+function renderResultCard(p, score, isTop) {
+  const effMaxTerm = effectiveMaxTerm(p);
+  if (!state.calc[p.id]) {
+    state.calc[p.id] = {
+      amount: Math.round(p.maxAmount / 2),
+      term: p.scheduleType === 'biannual_winter' ? effMaxTerm : pickInitialTerm(effMaxTerm)
+    };
+  }
+  const c = state.calc[p.id];
+  if (c.term > effMaxTerm) c.term = pickInitialTerm(effMaxTerm);
+  const sch = calculateSchedule(p, c.amount, c.term);
+  const isBi = p.scheduleType === 'biannual_winter';
+  const terms = [12, 24, 36, 48, 60, 84, 120, 144].filter(function(t) { return t <= effMaxTerm; });
+
+  let payHtml = '';
+  if (sch.type === 'biannual') {
+    payHtml = '<div class="pay-box">' +
+      '<div class="pay-box-title">График погашения — два платежа</div>' +
+      sch.payments.map(function(pp) {
+        return '<div class="pay-row">' +
+          '<div><div class="pay-row-label">' + pp.label + '</div>' +
+          '<div class="pay-row-sub">' + pp.note + '</div></div>' +
+          '<div><div class="pay-row-v">' + fmtAmount(Math.round(pp.amount)) + '</div>' +
+          '<div class="pay-row-vsub">из них ' + fmtAmount(Math.round(pp.interest)) + ' проценты</div></div>' +
+        '</div>';
+      }).join('') +
+      '<div class="pay-row">' +
+        '<div class="pay-row-label" style="opacity: 0.85;">Общая переплата</div>' +
+        '<div class="pay-row-v">' + fmtAmount(Math.round(sch.overpay)) + '</div>' +
+      '</div></div>';
+  } else {
+    payHtml = '<div class="pay-box">' +
+      '<div class="pay-box-title">Годовой график · ' + sch.years + ' ' + declension(sch.years, 'год', 'года', 'лет') + '</div>' +
+      '<div class="pay-summary">' +
+        '<div class="pay-summary-block">' +
+          '<div class="pay-row-label">Платёж в первый год</div>' +
+          '<div class="pay-row-v">' + fmtAmount(Math.round(sch.firstYearPayment)) + '</div>' +
+          '<div class="pay-row-sub">в последний год — ' + fmtAmount(Math.round(sch.lastYearPayment)) + '</div>' +
+        '</div>' +
+        '<div class="pay-summary-block">' +
+          '<div class="pay-row-label">Общая переплата</div>' +
+          '<div class="pay-row-v">' + fmtAmount(Math.round(sch.overpay)) + '</div>' +
+          '<div class="pay-row-sub">за ' + sch.years + ' ' + declension(sch.years, 'год', 'года', 'лет') + '</div>' +
+        '</div>' +
+      '</div></div>';
+  }
+
+  return '<div class="result-card ' + (isTop ? 'top' : '') + '" data-card="' + p.id + '">' +
+    '<div class="rc-head">' +
+      '<span class="rc-cat">' + p.category + '</span>' +
+      '<span class="rc-match ' + (score >= 70 ? 'hi' : 'mid') + '">' + score + '% совпадение</span>' +
+    '</div>' +
+    '<h3 class="rc-title">' + p.title + '</h3>' +
+    '<p class="rc-desc">' + p.description + '</p>' +
+    (p.rateNote ? '<div class="rc-rate-note">' + p.rateNote + '</div>' : '') +
+    '<div class="rc-stats">' +
+      '<div class="rc-stat"><div class="rc-stat-l">ставка</div><div class="rc-stat-v">' + fmtRate(p) + '</div></div>' +
+      '<div class="rc-stat"><div class="rc-stat-l">сумма до</div><div class="rc-stat-v">' + fmtAmount(p.maxAmount) + '</div></div>' +
+      '<div class="rc-stat"><div class="rc-stat-l">срок до</div><div class="rc-stat-v">' + effMaxTerm + ' мес</div></div>' +
+    '</div>' +
+    '<div class="calc-row">' +
+      '<div class="calc-row-head">' +
+        '<label class="calc-label">Сумма займа</label>' +
+        '<span class="calc-hint">макс. ' + fmtAmount(p.maxAmount) + '</span>' +
+      '</div>' +
+      '<input type="range" min="100000" max="' + p.maxAmount + '" step="' + Math.max(Math.round(p.maxAmount / 100), 10000) + '" value="' + c.amount + '" data-prog="' + p.id + '" data-field="amount" />' +
+      '<div class="calc-amount-out">' + fmtAmount(c.amount) + '</div>' +
+    '</div>' +
+    (isBi ?
+      '<div class="calc-row"><span class="term-locked">Срок фиксирован: до 18 месяцев с момента выдачи</span></div>' :
+      '<div class="calc-row">' +
+        '<div class="calc-row-head"><label class="calc-label">Срок</label></div>' +
+        '<div class="term-btns">' +
+          terms.map(function(t) {
+            return '<button class="term-btn ' + (t === c.term ? 'active' : '') + '" data-prog="' + p.id + '" data-term="' + t + '">' + t + ' мес</button>';
+          }).join('') +
+        '</div>' +
+      '</div>'
+    ) +
+    '<div class="pay-host">' + payHtml + '</div>' +
+    '<div class="sched-note">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' +
+      '<span>' + p.scheduleNote + '</span>' +
+    '</div>' +
+    '<div class="rc-footer">' +
+      '<span class="rc-org">' + p.org + '</span>' +
+      '<button class="rc-apply" data-action="apply" data-prog="' + p.id + '">Подать заявку →</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function attachResultHandlers() {
+  document.querySelectorAll('.result-card input[type="range"]').forEach(function(el) {
+    el.addEventListener('input', function() {
+      const id = el.getAttribute('data-prog');
+      state.calc[id].amount = Number(el.value);
+      updateCalc(id);
+    });
+    let lastTracked = 0;
+    el.addEventListener('change', function() {
+      const now = Date.now();
+      if (now - lastTracked > 500) {
+        track('calculator_amount', { program: el.getAttribute('data-prog'), amount: state.calc[el.getAttribute('data-prog')].amount });
+        lastTracked = now;
+      }
+    });
+  });
+  document.querySelectorAll('.result-card [data-term]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      const id = el.getAttribute('data-prog');
+      const t = Number(el.getAttribute('data-term'));
+      state.calc[id].term = t;
+      updateCalc(id);
+      track('calculator_term', { program: id, term: t });
+    });
+  });
+  document.querySelectorAll('.result-card [data-action="apply"]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      const id = el.getAttribute('data-prog');
+      state.selectedProgram = id;
+      const prog = PROGRAMS.find(function(p) { return p.id === id; });
+      track('apply_clicked', { program: id, score: scoreProgram(prog, state.answers), amount: state.calc[id].amount });
+      if (prog.hasStressTest) {
+        showStress();
+      } else {
+        showCallback();
+      }
+    });
+  });
+}
+
+function updateCalc(progId) {
+  const p = PROGRAMS.find(function(x) { return x.id === progId; });
+  const c = state.calc[progId];
+  const sch = calculateSchedule(p, c.amount, c.term);
+  const card = document.querySelector('[data-card="' + progId + '"]');
+  if (!card) return;
+  card.querySelector('.calc-amount-out').textContent = fmtAmount(c.amount);
+  const payHost = card.querySelector('.pay-host');
+
+  let payHtml = '';
+  if (sch.type === 'biannual') {
+    payHtml = '<div class="pay-box">' +
+      '<div class="pay-box-title">График погашения — два платежа</div>' +
+      sch.payments.map(function(pp) {
+        return '<div class="pay-row">' +
+          '<div><div class="pay-row-label">' + pp.label + '</div>' +
+          '<div class="pay-row-sub">' + pp.note + '</div></div>' +
+          '<div><div class="pay-row-v">' + fmtAmount(Math.round(pp.amount)) + '</div>' +
+          '<div class="pay-row-vsub">из них ' + fmtAmount(Math.round(pp.interest)) + ' проценты</div></div>' +
+        '</div>';
+      }).join('') +
+      '<div class="pay-row">' +
+        '<div class="pay-row-label" style="opacity: 0.85;">Общая переплата</div>' +
+        '<div class="pay-row-v">' + fmtAmount(Math.round(sch.overpay)) + '</div>' +
+      '</div></div>';
+  } else {
+    payHtml = '<div class="pay-box">' +
+      '<div class="pay-box-title">Годовой график · ' + sch.years + ' ' + declension(sch.years, 'год', 'года', 'лет') + '</div>' +
+      '<div class="pay-summary">' +
+        '<div class="pay-summary-block">' +
+          '<div class="pay-row-label">Платёж в первый год</div>' +
+          '<div class="pay-row-v">' + fmtAmount(Math.round(sch.firstYearPayment)) + '</div>' +
+          '<div class="pay-row-sub">в последний год — ' + fmtAmount(Math.round(sch.lastYearPayment)) + '</div>' +
+        '</div>' +
+        '<div class="pay-summary-block">' +
+          '<div class="pay-row-label">Общая переплата</div>' +
+          '<div class="pay-row-v">' + fmtAmount(Math.round(sch.overpay)) + '</div>' +
+          '<div class="pay-row-sub">за ' + sch.years + ' ' + declension(sch.years, 'год', 'года', 'лет') + '</div>' +
+        '</div>' +
+      '</div></div>';
+  }
+  payHost.innerHTML = payHtml;
+  card.querySelectorAll('.term-btn').forEach(function(b) {
+    const t = Number(b.getAttribute('data-term'));
+    b.classList.toggle('active', t === c.term);
+  });
+}
+
+// =====================================================
+// ===== Stress test (Fajr-lite) =======================
+// =====================================================
+function showStress() {
+  state.screen = 'stress';
+  track('stress_test_opened', { program: state.selectedProgram });
+  renderStress();
+  showSection('stress-section');
+}
+
+function calculateStress() {
+  const p = PROGRAMS.find(function(x) { return x.id === state.selectedProgram; });
+  const c = state.calc[p.id];
+  const sch = calculateSchedule(p, c.amount, c.term);
+
+  const animalType = state.stress.animalType || 'KRS';
+  const norms = FAJR_NORMS[animalType] || FAJR_NORMS.KRS;
+
+  const existing = Number(state.stress.existingHerd) || 0;
+  const planned = Number(state.stress.plannedHerd) || 0;
+  const pastures = Number(state.stress.pasturesHa) || 0;
+  const barn = Number(state.stress.barnSqm) || 0;
+  const existingDebtsMonthly = Number(state.stress.existingDebtsMonthly) * 1000 || 0;
+  const annualRevenue = Number(state.stress.annualRevenue) * 1e6 || 0;
+
+  const totalHerd = existing + planned;
+
+  // Доход от молока (только КРС: ~50% маточного поголовья дают молоко)
+  const cowCount = Math.round(totalHerd * norms.cowShare);
+  const milkRevenue = cowCount * norms.milkPerDay * norms.lactationDays * norms.milkPricePerL;
+
+  // Доход от мяса (годовая выбраковка/реализация)
+  const meatRevenue = Math.round(totalHerd * norms.saleShare) * norms.avgWeightSale * norms.meatPricePerKg;
+
+  const expectedIncome = milkRevenue + meatRevenue + annualRevenue;
+  const yearlyCosts = totalHerd * (norms.yearlyFeedCost + norms.yearlyVetCost + norms.yearlyOther);
+  const netIncome = expectedIncome - yearlyCosts;
+
+  // Платёж по новому кредиту + существующие обязательства (упрощение из ПКБ)
+  const yearlyPayment = sch.firstYearPayment;
+  const existingDebtsYearly = existingDebtsMonthly * 12;
+  const totalYearlyPayment = yearlyPayment + existingDebtsYearly;
+
+  const ratio = netIncome > 0 ? (totalYearlyPayment / netIncome) * 100 : 999;
+
+  // Требования по пастбищам и помещениям
+  const pastureNeeded = totalHerd * norms.pastureHaPerHead;
+  const pastureOk = pastures >= pastureNeeded;
+  const barnNeeded = totalHerd * norms.minBarnSqmPerHead;
+  const barnOk = barn >= barnNeeded;
+
+  let verdict;
+  if (!pastureOk) {
+    verdict = {
+      level: 'warn',
+      icon: '!',
+      title: 'Недостаточно пастбищ',
+      text: 'Для стада ' + totalHerd + ' голов (' + norms.label + ') нужно минимум ' +
+        pastureNeeded.toFixed(0) + ' га пастбищ (норматив ' + norms.pastureHaPerHead +
+        ' га/голову). У вас ' + pastures + ' га. Менеджер уточнит варианты — аренда у соседних хозяйств, договоры о совместной деятельности.'
+    };
+  } else if (!barnOk) {
+    verdict = {
+      level: 'warn',
+      icon: '!',
+      title: 'Недостаточно помещений',
+      text: 'Для стада ' + totalHerd + ' голов нужно минимум ' + barnNeeded.toFixed(0) +
+        ' м² помещений (норматив ' + norms.minBarnSqmPerHead + ' м²/голову). У вас ' + barn +
+        ' м². Часть займа может пойти на СМР — обсудите с менеджером.'
+    };
+  } else if (ratio < 30) {
+    verdict = {
+      level: 'ok',
+      icon: '✓',
+      title: 'Платёж комфортный',
+      text: 'Совокупный годовой платёж' + (existingDebtsYearly > 0 ? ' (включая текущие обязательства)' : '') +
+        ' составляет около ' + ratio.toFixed(0) + '% от ожидаемого чистого дохода — это безопасный уровень. Скорее всего проект пройдёт финансовую экспертизу.'
+    };
+  } else if (ratio < 50) {
+    verdict = {
+      level: 'warn',
+      icon: '!',
+      title: 'Платёж напряжённый',
+      text: 'Совокупный годовой платёж — около ' + ratio.toFixed(0) + '% дохода. Это рабочий уровень, но менеджер попросит подтвердить резервы и обсудит график с льготным периодом. Может потребоваться более длинный срок.'
+    };
+  } else {
+    verdict = {
+      level: 'bad',
+      icon: '✕',
+      title: 'Платёж может быть тяжёлым',
+      text: 'Совокупный годовой платёж — около ' + ratio.toFixed(0) + '% дохода. Это высокая нагрузка. Рекомендуем рассмотреть программу с меньшей суммой или более длинным сроком, либо обсудить с менеджером возможность льготного периода.'
+    };
+  }
+
+  return {
+    verdict: verdict,
+    animalLabel: norms.label,
+    expectedIncome: expectedIncome,
+    yearlyCosts: yearlyCosts,
+    netIncome: netIncome,
+    yearlyPayment: yearlyPayment,
+    existingDebtsYearly: existingDebtsYearly,
+    totalYearlyPayment: totalYearlyPayment,
+    ratio: ratio,
+    pastureNeeded: pastureNeeded,
+    pastureOk: pastureOk,
+    barnNeeded: barnNeeded,
+    barnOk: barnOk,
+    totalHerd: totalHerd
+  };
+}
+
+function renderStress() {
+  const p = PROGRAMS.find(function(x) { return x.id === state.selectedProgram; });
+  const c = state.calc[p.id];
+  const sch = calculateSchedule(p, c.amount, c.term);
+
+  const container = document.getElementById('stress-container');
+  const result = state.stress.result;
+
+  container.innerHTML =
+    '<div class="stress-wrap fade-in">' +
+      '<span class="stress-eyebrow">' +
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' +
+        'Проверка экономики проекта' +
+      '</span>' +
+      '<h2 class="stress-title">Хватит ли дохода на платежи?</h2>' +
+      '<p class="stress-sub">Ответьте на несколько вопросов — прикинем экономику по средним нормативам АКК. Это <strong>не отказ и не одобрение</strong>, а быстрый ориентир перед подачей заявки.</p>' +
+
+      '<div class="stress-inputs">' +
+        '<div class="stress-input-block">' +
+          '<label>Вид животных</label>' +
+          '<select class="text-input" data-stress="animalType">' +
+            Object.keys(FAJR_NORMS).map(function(k) {
+              const sel = state.stress.animalType === k ? ' selected' : '';
+              return '<option value="' + k + '"' + sel + '>' + FAJR_NORMS[k].label + '</option>';
+            }).join('') +
+          '</select>' +
+          '<div class="input-hint">Нормативы пастбищ, помещений и доходов различаются по виду</div>' +
+        '</div>' +
+        '<div class="stress-input-block">' +
+          '<label>Сколько голов уже в хозяйстве?</label>' +
+          '<input class="text-input" type="number" min="0" placeholder="например, 50" value="' + state.stress.existingHerd + '" data-stress="existingHerd" />' +
+          '<div class="input-hint">Текущее поголовье (если нет — оставьте 0)</div>' +
+        '</div>' +
+        '<div class="stress-input-block">' +
+          '<label>Сколько голов планируете купить?</label>' +
+          '<input class="text-input" type="number" min="0" placeholder="например, 200" value="' + state.stress.plannedHerd + '" data-stress="plannedHerd" />' +
+          '<div class="input-hint">По программе ' + p.title + '</div>' +
+        '</div>' +
+        '<div class="stress-input-block">' +
+          '<label>Сколько у вас пастбищ, га?</label>' +
+          '<input class="text-input" type="number" min="0" placeholder="например, 300" value="' + state.stress.pasturesHa + '" data-stress="pasturesHa" />' +
+          '<div class="input-hint">В собственности или долгосрочной аренде</div>' +
+        '</div>' +
+        '<div class="stress-input-block">' +
+          '<label>Площадь помещений для животных, м²</label>' +
+          '<input class="text-input" type="number" min="0" placeholder="например, 1500" value="' + state.stress.barnSqm + '" data-stress="barnSqm" />' +
+          '<div class="input-hint">Коровники, загоны, овчарни — что есть в собственности</div>' +
+        '</div>' +
+        '<div class="stress-input-block">' +
+          '<label>Текущие платежи по кредитам, тыс ₸/мес</label>' +
+          '<input class="text-input" type="number" min="0" placeholder="например, 150" value="' + state.stress.existingDebtsMonthly + '" data-stress="existingDebtsMonthly" />' +
+          '<div class="input-hint">Менеджер уточнит точную цифру из ПКБ-отчёта. Можно оставить 0</div>' +
+        '</div>' +
+        '<div class="stress-input-block">' +
+          '<label>Дополнительный доход хозяйства, млн ₸/год</label>' +
+          '<input class="text-input" type="number" min="0" step="0.1" placeholder="например, 15" value="' + state.stress.annualRevenue + '" data-stress="annualRevenue" />' +
+          '<div class="input-hint">Например, выручка от растениеводства. Можно оставить 0</div>' +
+        '</div>' +
+      '</div>' +
+
+      (result ? renderStressResult(result, p, sch) : '') +
+
+      '<div class="stress-actions">' +
+        '<button class="btn-primary" onclick="runStress()">' +
+          (result ? 'Пересчитать' : 'Рассчитать') +
+          ' <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>' +
+        '</button>' +
+        '<button class="btn-ghost" onclick="skipStress()">Пропустить и подать заявку</button>' +
+      '</div>' +
+
+      '<p class="stress-disclaimer">Расчёт ориентировочный — используются средние нормативы АКК (для КРС: надой 8 л/день × 305 дней × 90 ₸; цена мяса 1500 ₸/кг; пастбища 1,5 га/голова, помещения 6 м²/голова; средние расходы 450 тыс ₸/год на голову). Для МРС, лошадей и верблюдов нормативы отличаются. Точная финансовая модель (Fajr) строится менеджером на этапе экспертизы по реальным данным заявки, ИСЖИБ и ПКБ.</p>' +
+
+    '</div>';
+
+  document.querySelectorAll('[data-stress]').forEach(function(el) {
+    el.addEventListener('input', function() {
+      state.stress[el.getAttribute('data-stress')] = el.value;
+    });
+  });
+}
+
+function renderStressResult(r, p, sch) {
+  const hasExisting = r.existingDebtsYearly > 0;
+  const paymentLabel = hasExisting ? 'Совокупный годовой платёж' : 'Годовой платёж по новому займу';
+  const paymentValue = hasExisting ? r.totalYearlyPayment : r.yearlyPayment;
+  return '<div class="stress-result fade-in">' +
+    '<div class="stress-verdict ' + r.verdict.level + '">' +
+      '<div class="stress-verdict-icon">' + r.verdict.icon + '</div>' +
+      '<div>' +
+        '<div class="stress-verdict-title">' + r.verdict.title + '</div>' +
+        '<div class="stress-verdict-text">' + r.verdict.text + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="stress-breakdown">' +
+      '<div class="stress-metric">' +
+        '<div class="stress-metric-l">Ожидаемый чистый доход<br><span style="font-size:11px;color:var(--text-3)">' + r.animalLabel + '</span></div>' +
+        '<div class="stress-metric-v">' + fmtAmount(Math.round(r.netIncome)) + '/год</div>' +
+      '</div>' +
+      '<div class="stress-metric">' +
+        '<div class="stress-metric-l">' + paymentLabel + (hasExisting ? '<br><span style="font-size:11px;color:var(--text-3)">включая ' + fmtAmount(Math.round(r.existingDebtsYearly)) + ' текущих</span>' : '') + '</div>' +
+        '<div class="stress-metric-v">' + fmtAmount(Math.round(paymentValue)) + '</div>' +
+      '</div>' +
+      '<div class="stress-metric">' +
+        '<div class="stress-metric-l">Платёж от дохода</div>' +
+        '<div class="stress-metric-v">' + (r.ratio < 999 ? r.ratio.toFixed(0) + '%' : '—') + '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function runStress() {
+  const result = calculateStress();
+  state.stress.result = result;
+  track('stress_test_completed', {
+    program: state.selectedProgram,
+    animal_type: state.stress.animalType,
+    ratio: Math.round(result.ratio),
+    verdict: result.verdict.level,
+    total_herd: result.totalHerd,
+    has_existing_debts: result.existingDebtsYearly > 0
+  });
+  renderStress();
+}
+
+function skipStress() {
+  track('stress_test_skipped', { program: state.selectedProgram });
+  showCallback();
+}
+
+// =====================================================
+// ===== Callback ======================================
+// =====================================================
+function showCallback() {
+  state.screen = 'callback';
+  track('callback_form_opened', { program: state.selectedProgram });
+  renderCallback();
+  showSection('callback-section');
+}
+
+function renderCallback() {
+  const p = PROGRAMS.find(function(x) { return x.id === state.selectedProgram; });
+  const c = state.calc[p.id];
+  const sch = calculateSchedule(p, c.amount, c.term);
+  let schSummary;
+  if (sch.type === 'biannual') {
+    schSummary = 'Декабрь ' + fmtAmount(Math.round(sch.payments[0].amount)) + ' + Март ' + fmtAmount(Math.round(sch.payments[1].amount));
+  } else {
+    schSummary = 'Около ' + fmtAmount(Math.round(sch.avgPayment)) + ' в год на ' + sch.years + ' ' + declension(sch.years, 'год', 'года', 'лет');
+  }
+  const stressBlock = state.stress.result ?
+    '<div style="background: ' + (state.stress.result.verdict.level === 'ok' ? 'var(--success-soft)' : state.stress.result.verdict.level === 'warn' ? 'var(--warning-soft)' : 'var(--danger-soft)') +
+    '; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: var(--text-2); line-height: 1.5;">' +
+    '<strong style="color: var(--text);">Стресс-тест:</strong> платёж ' + state.stress.result.ratio.toFixed(0) + '% от дохода — ' + state.stress.result.verdict.title.toLowerCase() + '. Менеджер увидит этот контекст до звонка.' +
+    '</div>' : '';
+
+  document.getElementById('callback-container').innerHTML =
+    '<button class="muted-link" onclick="backToResults()" style="margin-bottom: 16px;">← К программам</button>' +
+    '<div class="callback-wrap fade-in">' +
+      '<div class="section-eyebrow" style="margin-bottom: 8px;">Шаг подачи</div>' +
+      '<h2 class="stress-title">Оставьте контакты</h2>' +
+      '<p class="stress-sub">Менеджер свяжется с вами в ближайшее рабочее время. Звонок — бесплатный.</p>' +
+
+      '<div class="callback-summary">' +
+        '<div class="callback-summary-l">Выбранная программа</div>' +
+        '<div class="callback-summary-t">' + p.title + ' · ' + p.category + '</div>' +
+        '<div class="callback-summary-s">' + fmtAmount(c.amount) + ' · ' + schSummary + '</div>' +
+      '</div>' +
+
+      stressBlock +
+
+      '<div class="field">' +
+        '<label>Как к вам обращаться?</label>' +
+        '<input class="text-input" type="text" placeholder="Бауыржан" value="' + state.callback.name + '" data-cb="name" />' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label>Телефон</label>' +
+        '<input class="text-input" type="tel" inputmode="numeric" autocomplete="tel" placeholder="+7 (___) ___-__-__" value="' + formatPhone(state.callback.phone) + '" data-cb-phone maxlength="18" />' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label>Удобный канал связи</label>' +
+        '<div class="chips">' +
+          '<button class="chip ' + (state.callback.channel === 'call' ? 'on' : '') + '" data-cb-ch="call">📞 Звонок</button>' +
+          '<button class="chip ' + (state.callback.channel === 'whatsapp' ? 'on' : '') + '" data-cb-ch="whatsapp">💬 WhatsApp</button>' +
+          '<button class="chip ' + (state.callback.channel === 'telegram' ? 'on' : '') + '" data-cb-ch="telegram">✈️ Telegram</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<p class="callback-hint">Менеджер свяжется с вами в ближайшее рабочее время (пн–пт, 09:00–18:00 по Астане).</p>' +
+
+      '<button class="btn-submit" onclick="submitCallback()" id="submit-btn">Отправить заявку</button>' +
+      '<p class="consent">Нажимая «Отправить», вы соглашаетесь с обработкой персональных данных в соответствии с законодательством РК</p>' +
+    '</div>';
+
+  document.querySelectorAll('[data-cb]').forEach(function(el) {
+    el.addEventListener('input', function() { state.callback[el.getAttribute('data-cb')] = el.value; });
+  });
+  const phoneInput = document.querySelector('[data-cb-phone]');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function(e) {
+      const digits = onlyDigits(e.target.value).slice(0, 11);
+      state.callback.phone = digits;
+      const formatted = formatPhone(digits);
+      e.target.value = formatted;
+      // курсор в конец, чтобы не "прыгал" при бэкспейсах в середине
+      requestAnimationFrame(function() {
+        e.target.setSelectionRange(formatted.length, formatted.length);
+      });
+    });
+    phoneInput.addEventListener('keydown', function(e) {
+      // не даём вводить буквы
+      const allowed = /^[0-9]$/.test(e.key) ||
+        ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'].indexOf(e.key) !== -1 ||
+        (e.ctrlKey || e.metaKey);
+      if (!allowed) e.preventDefault();
+    });
+  }
+  document.querySelectorAll('[data-cb-ch]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      state.callback.channel = el.getAttribute('data-cb-ch');
+      renderCallback();
+    });
+  });
+}
+
+function onlyDigits(s) {
+  return String(s || '').replace(/\D/g, '');
+}
+
+function formatPhone(raw) {
+  let d = onlyDigits(raw);
+  if (!d) return '';
+  // нормализуем: казахстанские номера начинаются с 7
+  if (d.length && d[0] === '8') d = '7' + d.slice(1);
+  if (d[0] !== '7') d = '7' + d;
+  d = d.slice(0, 11);
+  const p1 = d.slice(1, 4);
+  const p2 = d.slice(4, 7);
+  const p3 = d.slice(7, 9);
+  const p4 = d.slice(9, 11);
+  let out = '+7';
+  if (p1.length) out += ' (' + p1;
+  if (p1.length === 3) out += ')';
+  if (p2.length) out += ' ' + p2;
+  if (p3.length) out += '-' + p3;
+  if (p4.length) out += '-' + p4;
+  return out;
+}
+
+function backToResults() {
+  showSection('results-section');
+}
+
+function submitCallback() {
+  const digits = onlyDigits(state.callback.phone);
+  if (!state.callback.name.trim() || digits.length !== 11) {
+    const btn = document.getElementById('submit-btn');
+    btn.style.background = 'var(--danger)';
+    btn.textContent = digits.length !== 11 ? 'Введите телефон полностью' : 'Заполните имя и телефон';
+    setTimeout(function() {
+      btn.style.background = '';
+      btn.textContent = 'Отправить заявку';
+    }, 1800);
+    track('callback_validation_failed');
+    return;
+  }
+  state.leadNumber = Math.floor(10000 + Math.random() * 90000);
+  track('callback_submitted', {
+    program: state.selectedProgram,
+    channel: state.callback.channel,
+    lead_id: state.leadNumber
+  });
+  showSuccess();
+}
+
+// =====================================================
+// ===== Success =======================================
+// =====================================================
+function showSuccess() {
+  state.screen = 'success';
+  track('success_shown', { lead_id: state.leadNumber });
+  renderSuccess();
+  showSection('success-section');
+}
+
+function renderSuccess() {
+  const p = PROGRAMS.find(function(x) { return x.id === state.selectedProgram; });
+  document.getElementById('success-container').innerHTML =
+    '<div class="success-wrap fade-in">' +
+      '<div class="success-icon">✓</div>' +
+      '<h2 class="success-title">Заявка принята</h2>' +
+      '<div class="success-num">Номер заявки: <strong>№' + state.leadNumber + '</strong></div>' +
+      '<p class="success-text">Менеджер АКК свяжется с вами в ближайшее рабочее время (пн–пт, 09:00–18:00) по программе <strong>' + p.title + '</strong>. SMS-подтверждение отправлено на ' + (formatPhone(state.callback.phone) || 'указанный номер') + '.</p>' +
+      '<p class="success-text" style="font-size: 13px; color: var(--text-3);">Если вопрос срочный — звоните 1408.</p>' +
+      '<div class="success-actions">' +
+        '<button class="btn-ghost" onclick="resetAll()">Подобрать другую программу</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function resetAll() {
+  state.screen = 'landing';
+  state.step = 0;
+  state.answers = { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, heads: null };
+  state.calc = {};
+  state.selectedProgram = null;
+  state.stress = { existingHerd: '', plannedHerd: '', pasturesHa: '', annualRevenue: '', result: null };
+  state.callback = { name: '', phone: '', channel: 'call' };
+  state.leadNumber = null;
+  showSection(null);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  track('flow_reset');
+}
+
+// =====================================================
+// ===== Init ==========================================
+// =====================================================
+window.startQuiz = startQuiz;
+window.prevStep = prevStep;
+window.toggleAnalytics = toggleAnalytics;
+window.runStress = runStress;
+window.skipStress = skipStress;
+window.backToResults = backToResults;
+window.submitCallback = submitCallback;
+window.showCallback = showCallback;
+window.resetAll = resetAll;
+
+renderProgramsPreview();
+track('page_loaded', { url: location.pathname });
+</script>
+
+</body>
+</html>
