@@ -359,3 +359,39 @@ test.describe('Форма обратной связи', () => {
     await expect(page.locator('#submit-btn')).toContainText(/Введите телефон/);
   });
 });
+
+test.describe('Тупик подбора — индивидуальная консультация', () => {
+  // Микрокредит обслуживает только Іскер (лимит 100 млн). Сумма свыше лимита →
+  // ни одна программа не проходит → экран «не нашлось». Лид не должен теряться.
+  async function reachDeadEnd(page) {
+    await page.goto('/');
+    await page.click('button:has-text("Начать подбор")');
+    await page.click('.quiz-opt:has-text("Микрокредит, стартап")');
+    await page.click('.quiz-opt:has-text("Услуги, торговля, прочее")');
+    await page.click('.quiz-opt:has-text("Только открываюсь")');
+    await page.click('.quiz-opt:has-text("Областной центр")');
+    await page.click('.quiz-opt:has-text("100 – 500 млн")');
+  }
+
+  test('экран «не нашлось» показывает кнопку консультации', async ({ page }) => {
+    await reachDeadEnd(page);
+    await expect(page.locator('#results-section')).toContainText('Подходящих программ не нашлось');
+    await expect(page.locator('button:has-text("Получить консультацию менеджера")')).toBeVisible();
+  });
+
+  test('консультация без программы → форма → отправка → «Заявка принята»', async ({ page }) => {
+    await reachDeadEnd(page);
+    await page.click('button:has-text("Получить консультацию менеджера")');
+
+    // Форма открывается без выбранной программы — обобщённый блок вместо названия.
+    await expect(page.locator('.callback-summary-t')).toContainText('Индивидуальная консультация');
+
+    await page.fill('input[data-cb="name"]', 'Бауыржан');
+    const phone = page.locator('input[data-cb-phone]');
+    await phone.focus();
+    await page.keyboard.type('77001234567', { delay: 15 });
+    await page.click('#submit-btn');
+
+    await expect(page.locator('.success-title')).toContainText('Заявка принята');
+  });
+});
