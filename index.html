@@ -454,6 +454,25 @@ a { color: inherit; }
   opacity: 0.85;
   background: var(--surface);
 }
+.prog-tile.featured {
+  border: 2px solid var(--primary);
+  padding: 23px;
+  background: var(--primary-tint);
+}
+.prog-tile-flag {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 12px;
+  padding: 5px 12px;
+  background: var(--primary);
+  color: var(--surface);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
 .prog-tile-badge {
   display: inline-block;
   margin-left: 6px;
@@ -920,6 +939,121 @@ input[type=range]::-moz-range-thumb {
   line-height: 1.5;
   display: flex;
   gap: 6px;
+}
+
+/* ===== Разбор процента совпадения на карточке ===== */
+.rc-why {
+  margin: 0 0 16px;
+}
+.rc-why > summary {
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 500;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
+}
+.rc-why > summary::-webkit-details-marker { display: none; }
+.rc-why > summary::before {
+  content: '▸';
+  font-size: 9px;
+  transition: transform 150ms;
+}
+.rc-why[open] > summary::before { transform: rotate(90deg); }
+.rc-why > summary:hover { color: var(--primary); }
+.rc-why-body {
+  margin-top: 8px;
+  padding: 12px 14px;
+  background: var(--surface-warm);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 6px;
+}
+.rc-why-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.rc-why-w {
+  color: var(--primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.rc-why-note {
+  font-size: 11px;
+  color: var(--text-3);
+  border-top: 1px solid var(--border-soft);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+/* ===== Блок «почему не подошли остальные программы» ===== */
+.why-not {
+  margin-top: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.why-not > summary {
+  cursor: pointer;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+.why-not > summary::-webkit-details-marker { display: none; }
+.why-not > summary::before {
+  content: '▸';
+  font-size: 10px;
+  color: var(--text-3);
+  transition: transform 150ms;
+}
+.why-not[open] > summary::before { transform: rotate(90deg); }
+.why-not > summary:hover { color: var(--primary); }
+.why-not-list {
+  padding: 0 20px 8px;
+}
+.why-not-item {
+  padding: 14px 0;
+  border-top: 1px solid var(--border-soft);
+}
+.why-not-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.why-not-fail {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.55;
+  padding: 8px 12px;
+  background: var(--danger-soft);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--danger);
+  margin-bottom: 6px;
+}
+.why-not-fail.weak {
+  background: var(--warning-soft);
+  border-left-color: var(--warning);
+}
+.why-not-fail b { color: var(--text); }
+.why-not-ok {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+  padding-left: 12px;
 }
 
 .rc-footer {
@@ -1511,14 +1645,14 @@ input[type=range]::-moz-range-thumb {
         </div>
         <div class="hero-card hero-card-2">
           <div>
-            <span class="hcard-cat">Микро</span>
-            <span class="hcard-match">71% совпадение</span>
+            <span class="hcard-cat">Инвестиции</span>
+            <span class="hcard-match">82% совпадение</span>
           </div>
-          <div class="hcard-title">Іскер</div>
-          <div class="hcard-meta">Для начинающих фермеров</div>
+          <div class="hcard-title">Агробизнес</div>
+          <div class="hcard-meta">Основные средства и СМР</div>
           <div class="hcard-bar">
-            <div class="hcard-bar-item"><div class="hcard-bar-v">от 6%</div><div class="hcard-bar-l">ставка</div></div>
-            <div class="hcard-bar-item"><div class="hcard-bar-v">20 млн</div><div class="hcard-bar-l">до</div></div>
+            <div class="hcard-bar-item"><div class="hcard-bar-v">от 5%</div><div class="hcard-bar-l">ставка</div></div>
+            <div class="hcard-bar-item"><div class="hcard-bar-v">15 млрд</div><div class="hcard-bar-l">до</div></div>
           </div>
         </div>
         <div class="hero-card hero-card-3">
@@ -1663,7 +1797,8 @@ const PROGRAMS = [
       { q: 'experience', v: ['1-3'], w: 20 },
       { q: 'sector', v: ['plant'], w: 25 },
       { q: 'amount', v: ['20-100m', '100-500m', '500m-plus'], w: 35 }
-    ]
+    ],
+    featured: true
   },
   { id: 'agrobusiness', title: 'Агробизнес', category: 'Инвестиции',
     org: 'АО «Аграрная кредитная корпорация»',
@@ -1694,6 +1829,7 @@ const PROGRAMS = [
       { q: 'purpose', v: ['livestock'] },
       { q: 'sector', v: ['animal'] },
       { q: 'animalType', v: ['KRS'] },
+      { q: 'cattleOrigin', v: ['imported'] },
       { q: 'heads', v: ['100-499', '500plus'] }
     ],
     soft: [
@@ -1813,6 +1949,18 @@ const ANIMAL_TYPE_Q = {
   ]
 };
 
+// Импортное / отечественное поголовье. Спрашивается только для КРС:
+// по регламенту П АКК 002-207-22 (стр. 28) Игілік и Береке финансируют
+// исключительно приобретение импортного племенного поголовья.
+const CATTLE_ORIGIN_Q = {
+  key: 'cattleOrigin', short: 'Импорт', title: 'Импортное или отечественное племенное поголовье?',
+  hint: 'Игілік и Береке по регламенту финансируют только приобретение импортного племенного поголовья КРС',
+  options: [
+    { value: 'imported', label: 'Импортное племенное поголовье', desc: 'Завоз скота из-за рубежа — подпадает под условия Игілік / Береке' },
+    { value: 'domestic', label: 'Отечественный скот или обновление стада', desc: 'Покупка внутри Казахстана — подойдёт универсальная программа' }
+  ]
+};
+
 const HEADS_Q = {
   key: 'heads', short: 'Головы', title: 'Сколько голов планируете приобрести?',
   options: [
@@ -1901,7 +2049,7 @@ const FAJR_NORMS = {
 const state = {
   screen: 'landing',           // landing | quiz | results | stress | callback | success
   step: 0,
-  answers: { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, heads: null },
+  answers: { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, cattleOrigin: null, heads: null },
   selectedProgram: null,
   calc: {},
   stress: { animalType: 'KRS', existingHerd: '', plannedHerd: '', pasturesHa: '', barnSqm: '', existingDebtsMonthly: '', annualRevenue: '', result: null },
@@ -1966,17 +2114,75 @@ function getQuestions() {
   });
   // Для покупки племенного скота — добавляем вид животных и количество голов.
   if (purpose === 'livestock') {
-    return base.concat([ANIMAL_TYPE_Q, HEADS_Q]);
+    const livestockQs = [ANIMAL_TYPE_Q];
+    // Импорт/отечественный спрашиваем только для КРС — это условие именно Игілік/Береке.
+    if (state.answers.animalType === 'KRS') livestockQs.push(CATTLE_ORIGIN_Q);
+    livestockQs.push(HEADS_Q);
+    return base.concat(livestockQs);
   }
   return base;
 }
-function scoreProgram(prog, answers) {
-  for (let i = 0; i < prog.hard.length; i++) {
-    if (!prog.hard[i].v.includes(answers[prog.hard[i].q])) return null;
+// Все вопросы квиза в одном списке — для человекочитаемых пояснений подбора.
+const ALL_QUESTIONS = QUESTIONS.concat([ANIMAL_TYPE_Q, CATTLE_ORIGIN_Q, HEADS_Q]);
+function questionByKey(key) {
+  for (let i = 0; i < ALL_QUESTIONS.length; i++) {
+    if (ALL_QUESTIONS[i].key === key) return ALL_QUESTIONS[i];
   }
-  return Math.min(100, prog.soft.reduce(function(s, r) {
-    return s + (r.v.includes(answers[r.q]) ? r.w : 0);
-  }, 0));
+  return null;
+}
+// Подпись варианта ответа («livestock» → «Покупка племенного скота»).
+function optionLabel(key, value) {
+  const q = questionByKey(key);
+  if (!q) return value;
+  for (let i = 0; i < q.options.length; i++) {
+    if (q.options[i].value === value) return q.options[i].label;
+  }
+  return value;
+}
+// Короткое имя вопроса для бейджей («animalType» → «Вид»).
+function questionShort(key) {
+  const q = questionByKey(key);
+  return q ? q.short : key;
+}
+
+// Полный разбор программы: проходит ли по жёстким условиям + из чего сложился процент.
+function explainProgram(prog, answers) {
+  // Жёсткие условия — каждое либо выполнено, либо нет.
+  const hardChecks = prog.hard.map(function(rule) {
+    const have = answers[rule.q];
+    return {
+      q: rule.q,
+      short: questionShort(rule.q),
+      need: rule.v.map(function(v) { return optionLabel(rule.q, v); }),
+      have: have != null ? optionLabel(rule.q, have) : null,
+      met: rule.v.includes(have)
+    };
+  });
+  const passedHard = hardChecks.every(function(c) { return c.met; });
+  // Мягкие веса — что именно дало баллы.
+  const softMatched = [];
+  prog.soft.forEach(function(rule) {
+    if (rule.v.includes(answers[rule.q])) {
+      softMatched.push({
+        q: rule.q,
+        short: questionShort(rule.q),
+        label: optionLabel(rule.q, answers[rule.q]),
+        w: rule.w
+      });
+    }
+  });
+  const rawScore = softMatched.reduce(function(s, m) { return s + m.w; }, 0);
+  return {
+    passedHard: passedHard,
+    hardChecks: hardChecks,
+    softMatched: softMatched,
+    rawScore: rawScore,
+    score: passedHard ? Math.min(100, rawScore) : null
+  };
+}
+
+function scoreProgram(prog, answers) {
+  return explainProgram(prog, answers).score;
 }
 function pickInitialTerm(maxT) {
   const opts = [12, 24, 36, 48, 60, 84];
@@ -2047,6 +2253,16 @@ function scoredPrograms() {
     .sort(function(a, b) { return b.score - a.score; });
 }
 
+// Программы, которые НЕ попали в результаты — с разбором причины.
+// indirectOnly (Кең дала) исключаем: она намеренно не подбирается, только в обзорной сетке.
+function rejectedPrograms() {
+  const shown = {};
+  scoredPrograms().forEach(function(x) { shown[x.program.id] = true; });
+  return PROGRAMS
+    .filter(function(p) { return !p.indirectOnly && !shown[p.id]; })
+    .map(function(p) { return { program: p, explain: explainProgram(p, state.answers) }; });
+}
+
 // =====================================================
 // ===== Section management ============================
 // =====================================================
@@ -2072,8 +2288,11 @@ function showSection(id) {
 // =====================================================
 function renderProgramsPreview() {
   const grid = document.getElementById('prog-grid');
-  grid.innerHTML = PROGRAMS.map(function(p) {
-    return '<div class="prog-tile' + (p.indirectOnly ? ' indirect' : '') + '">' +
+  const ordered = PROGRAMS.filter(function(p) { return p.featured; })
+    .concat(PROGRAMS.filter(function(p) { return !p.featured; }));
+  grid.innerHTML = ordered.map(function(p) {
+    return '<div class="prog-tile' + (p.indirectOnly ? ' indirect' : '') + (p.featured ? ' featured' : '') + '">' +
+      (p.featured ? '<span class="prog-tile-flag"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Самая популярная программа</span>' : '') +
       '<span class="prog-tile-cat">' + p.category + '</span>' +
       (p.indirectOnly ? '<span class="prog-tile-badge">Только через КТ/МФО/БВУ</span>' : '') +
       '<h3 class="prog-tile-title">' + p.title + '</h3>' +
@@ -2096,7 +2315,7 @@ function fmtRate(p) {
 function startQuiz() {
   state.screen = 'quiz';
   state.step = 0;
-  state.answers = { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, heads: null };
+  state.answers = { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, cattleOrigin: null, heads: null };
   track('quiz_started');
   renderQuiz();
   showSection('quiz-section');
@@ -2230,7 +2449,8 @@ function renderResults() {
       '<div style="display: flex; gap: 12px; flex-wrap: wrap;">' +
         '<button class="btn-primary" onclick="requestConsultation()">Получить консультацию менеджера</button>' +
         '<button class="btn-ghost" onclick="startQuiz()">Изменить ответы</button>' +
-      '</div>';
+      '</div>' +
+      renderRejectedBlock();
     return;
   }
   container.innerHTML =
@@ -2245,13 +2465,75 @@ function renderResults() {
     '</div>' +
     '<div class="results-cards">' +
       scored.map(function(x, i) { return renderResultCard(x.program, x.score, i === 0); }).join('') +
-    '</div>';
+    '</div>' +
+    renderRejectedBlock();
 
   attachResultHandlers();
 }
 
+// Блок «почему не подошли»: отсеянные программы с конкретной невыполненной причиной.
+function renderRejectedBlock() {
+  const rejected = rejectedPrograms();
+  if (rejected.length === 0) return '';
+  const anyShown = scoredPrograms().length > 0;
+  const summary = anyShown
+    ? 'Почему не подошли остальные программы (' + rejected.length + ')'
+    : 'Почему ни одна программа не подошла (' + rejected.length + ')';
+  return '<details class="why-not"' + (anyShown ? '' : ' open') + '>' +
+    '<summary>' + summary + '</summary>' +
+    '<div class="why-not-list">' +
+      rejected.map(function(r) {
+        const ex = r.explain;
+        let body;
+        if (!ex.passedHard) {
+          const failed = ex.hardChecks.filter(function(c) { return !c.met; });
+          const passed = ex.hardChecks.filter(function(c) { return c.met; });
+          body = failed.map(function(c) {
+            return '<div class="why-not-fail">✗ <b>' + c.short + ':</b> подходит ' +
+              c.need.map(function(n) { return '«' + n + '»'; }).join(' или ') +
+              ', у вас ' + (c.have ? '«' + c.have + '»' : 'нет ответа') + '</div>';
+          }).join('');
+          if (passed.length > 0) {
+            body += '<div class="why-not-ok">✓ Уже выполнено: ' +
+              passed.map(function(c) { return c.short.toLowerCase(); }).join(', ') + '</div>';
+          }
+        } else {
+          body = '<div class="why-not-fail weak">Все условия выполнены, но программа слабо подходит вашему профилю — ' +
+            ex.score + '% совпадения при пороге показа 20%. Уточните детали у менеджера.</div>';
+        }
+        return '<div class="why-not-item">' +
+          '<div class="why-not-name">' + r.program.title + '</div>' + body +
+        '</div>';
+      }).join('') +
+    '</div>' +
+  '</details>';
+}
+
+// Раскрывающийся разбор процента совпадения — из каких факторов он сложился.
+function renderWhyMatch(explain, score) {
+  let rows;
+  if (explain.softMatched.length > 0) {
+    rows = explain.softMatched.map(function(m) {
+      return '<div class="rc-why-row"><span>' + m.short + ': ' + m.label + '</span>' +
+        '<span class="rc-why-w">+' + m.w + '</span></div>';
+    }).join('');
+    if (explain.rawScore > 100) {
+      rows += '<div class="rc-why-note">Сумма факторов — ' + explain.rawScore +
+        ', поэтому итог ограничен 100%.</div>';
+    }
+  } else {
+    rows = '<div class="rc-why-row"><span>Совпадений по профилю нет — программа подобрана ' +
+      'по жёстким условиям (цель, отрасль и т. д.).</span></div>';
+  }
+  return '<details class="rc-why">' +
+    '<summary>Почему ' + score + '% совпадения</summary>' +
+    '<div class="rc-why-body">' + rows + '</div>' +
+  '</details>';
+}
+
 function renderResultCard(p, score, isTop) {
   const effMaxTerm = effectiveMaxTerm(p);
+  const explain = explainProgram(p, state.answers);
   if (!state.calc[p.id]) {
     state.calc[p.id] = {
       amount: Math.round(p.maxAmount / 2),
@@ -2304,6 +2586,7 @@ function renderResultCard(p, score, isTop) {
     '</div>' +
     '<h3 class="rc-title">' + p.title + '</h3>' +
     '<p class="rc-desc">' + p.description + '</p>' +
+    renderWhyMatch(explain, score) +
     (p.rateNote ? '<div class="rc-rate-note">' + p.rateNote + '</div>' : '') +
     '<div class="rc-stats">' +
       '<div class="rc-stat"><div class="rc-stat-l">ставка</div><div class="rc-stat-v">' + fmtRate(p) + '</div></div>' +
@@ -2866,7 +3149,7 @@ function renderSuccess() {
 function resetAll() {
   state.screen = 'landing';
   state.step = 0;
-  state.answers = { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, heads: null };
+  state.answers = { purpose: null, sector: null, experience: null, location: null, amount: null, animalType: null, cattleOrigin: null, heads: null };
   state.calc = {};
   state.selectedProgram = null;
   state.stress = { existingHerd: '', plannedHerd: '', pasturesHa: '', annualRevenue: '', result: null };

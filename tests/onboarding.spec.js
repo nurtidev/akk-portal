@@ -56,29 +56,48 @@ test.describe('Квиз — основной флоу', () => {
     await expect(page.locator('.rc-title').first()).toContainText('Кең дала 2');
   });
 
-  test('Племенной скот → КРС → 100–499 голов → подбирает Игілік', async ({ page }) => {
+  test('Племенной скот → КРС → импортный → 100–499 голов → подбирает Игілік', async ({ page }) => {
     await page.click('.quiz-opt:has-text("Покупка племенного скота")');
     await expect(page.locator('.quiz-question')).toContainText('лет ведёте');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+    await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
     await page.click('.quiz-opt:has-text("100 – 499 голов")');
 
     await expect(page.locator('#results-section')).toBeVisible();
     await expect(page.locator('.rc-title').first()).toContainText(/Игілік|Береке/);
   });
 
-  test('Племенной скот → КРС → 500+ голов → подбирает Береке', async ({ page }) => {
+  test('Племенной скот → КРС → импортный → 500+ голов → подбирает Береке', async ({ page }) => {
     await page.click('.quiz-opt:has-text("Покупка племенного скота")');
     await page.click('.quiz-opt:has-text("Более 3 лет")');
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("Более 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+    await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
     await page.click('.quiz-opt:has-text("500 голов и более")');
 
     await expect(page.locator('#results-section')).toBeVisible();
     await expect(page.locator('.rc-title').first()).toContainText(/Игілік|Береке/);
+  });
+
+  test('Племенной скот → КРС → отечественный → Игілік не подходит, fallback Агробизнес', async ({ page }) => {
+    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Более 3 лет")');
+    await page.click('.quiz-opt:has-text("Село")');
+    await page.click('.quiz-opt:has-text("100 – 500 млн")');
+    await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+    // Вопрос про импорт появляется только после выбора КРС.
+    await expect(page.locator('.quiz-question')).toContainText(/импортное|отечественное/i);
+    await page.click('.quiz-opt:has-text("Отечественный скот")');
+    await page.click('.quiz-opt:has-text("100 – 499 голов")');
+
+    await expect(page.locator('#results-section')).toBeVisible();
+    const titles = await page.locator('.rc-title').allTextContents();
+    expect(titles).not.toContain('Игілік и Береке');
+    expect(titles.some(t => /Агробизнес/.test(t))).toBe(true);
   });
 
   test('Племенной скот → лошади → Игілік не подходит, fallback Агробизнес', async ({ page }) => {
@@ -216,6 +235,7 @@ test.describe('Калькулятор — расчёт графика', () => {
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+    await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
     await page.click('.quiz-opt:has-text("100 – 499 голов")');
 
     const card = page.locator('.result-card').filter({ hasText: /Игілік|Береке/ }).first();
@@ -274,6 +294,7 @@ test.describe('Стресс-тест (Fajr-lite)', () => {
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+    await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
     await page.click('.quiz-opt:has-text("100 – 499 голов")');
 
     const card = page.locator('.result-card').filter({ hasText: /Игілік|Береке/ }).first();
@@ -291,6 +312,7 @@ test.describe('Стресс-тест (Fajr-lite)', () => {
     await page.click('.quiz-opt:has-text("Село")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
     await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+    await page.click('.quiz-opt:has-text("Импортное племенное поголовье")');
     await page.click('.quiz-opt:has-text("100 – 499 голов")');
 
     await page.locator('.result-card').filter({ hasText: /Игілік|Береке/ }).first()
@@ -393,5 +415,57 @@ test.describe('Тупик подбора — индивидуальная кон
     await page.click('#submit-btn');
 
     await expect(page.locator('.success-title')).toContainText('Заявка принята');
+  });
+});
+
+test.describe('Объяснимость подбора — почему подхожу / не подхожу', () => {
+  test('карточка показывает раскрывающийся разбор процента совпадения', async ({ page }) => {
+    await page.goto('/');
+    await page.click('button:has-text("Начать подбор")');
+    await page.click('.quiz-opt:has-text("Весенне-полевые и уборочные работы")');
+    await page.click('.quiz-opt:has-text("Более 3 лет")');
+    await page.click('.quiz-opt:has-text("Село")');
+    await page.click('.quiz-opt:has-text("100 – 500 млн")');
+
+    const why = page.locator('.result-card').first().locator('.rc-why');
+    await expect(why.locator('summary')).toContainText(/Почему \d+% совпадения/);
+    // По умолчанию свёрнут — строки разбора скрыты, после клика видны.
+    await expect(why.locator('.rc-why-row').first()).toBeHidden();
+    await why.locator('summary').click();
+    await expect(why.locator('.rc-why-row').first()).toBeVisible();
+  });
+
+  test('блок «почему не подошли» объясняет отсев Игілік по импортному поголовью', async ({ page }) => {
+    await page.goto('/');
+    await page.click('button:has-text("Начать подбор")');
+    await page.click('.quiz-opt:has-text("Покупка племенного скота")');
+    await page.click('.quiz-opt:has-text("Более 3 лет")');
+    await page.click('.quiz-opt:has-text("Село")');
+    await page.click('.quiz-opt:has-text("100 – 500 млн")');
+    await page.locator('.quiz-opt[data-key="animalType"][data-value="KRS"]').click();
+    await page.click('.quiz-opt:has-text("Отечественный скот")');
+    await page.click('.quiz-opt:has-text("100 – 499 голов")');
+
+    const whyNot = page.locator('.why-not');
+    await expect(whyNot.locator('> summary')).toContainText('Почему не подошли');
+    await whyNot.locator('> summary').click();
+    const igilikItem = whyNot.locator('.why-not-item').filter({ hasText: 'Игілік и Береке' });
+    await expect(igilikItem).toBeVisible();
+    await expect(igilikItem.locator('.why-not-fail')).toContainText(/импортн/i);
+  });
+
+  test('на тупиковом сценарии блок причин раскрыт и перечисляет все 6 программ', async ({ page }) => {
+    await page.goto('/');
+    await page.click('button:has-text("Начать подбор")');
+    await page.click('.quiz-opt:has-text("Микрокредит, стартап")');
+    await page.click('.quiz-opt:has-text("Услуги, торговля, прочее")');
+    await page.click('.quiz-opt:has-text("Только открываюсь")');
+    await page.click('.quiz-opt:has-text("Областной центр")');
+    await page.click('.quiz-opt:has-text("100 – 500 млн")');
+
+    const whyNot = page.locator('.why-not');
+    await expect(whyNot).toHaveJSProperty('open', true);
+    await expect(whyNot.locator('> summary')).toContainText('Почему ни одна программа не подошла');
+    await expect(whyNot.locator('.why-not-item')).toHaveCount(6);
   });
 });
