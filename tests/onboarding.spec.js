@@ -273,9 +273,29 @@ test.describe('Калькулятор — расчёт графика', () => {
     await page.click('.quiz-opt:has-text("Областной центр")');
     await page.click('.quiz-opt:has-text("100 – 500 млн")');
 
-    const card = page.locator('.result-card').filter({ hasText: 'Агробизнес' }).first();
+    // Точный заголовок: именно «Агробизнес», не «Агробизнес 2.0»
+    // (у 2.0 ПОС ограничен 12 мес по регламенту, у Агробизнеса — 48 мес).
+    const card = page.locator('.result-card').filter({
+      has: page.locator('.rc-title', { hasText: /^Агробизнес$/ })
+    });
     const termValue = await card.locator('.rc-stat-v').filter({ hasText: /мес/ }).textContent();
     expect(termValue).toMatch(/48 мес/);
+  });
+
+  test('для Агробизнес 2.0 с целью ПОС срок ограничен 12 мес (по регламенту)', async ({ page }) => {
+    await page.goto('/');
+    await page.click('button:has-text("Начать подбор")');
+    await page.click('.quiz-opt:has-text("Пополнение оборотных средств")');
+    await page.click('.quiz-opt:has-text("Переработка сельхозпродукции")');
+    await page.click('.quiz-opt:has-text("Более 3 лет")');
+    await page.click('.quiz-opt:has-text("Областной центр")');
+    await page.click('.quiz-opt:has-text("100 – 500 млн")');
+
+    const card = page.locator('.result-card').filter({
+      has: page.locator('.rc-title', { hasText: /^Агробизнес 2\.0$/ })
+    });
+    const termValue = await card.locator('.rc-stat-v').filter({ hasText: /мес/ }).textContent();
+    expect(termValue).toMatch(/12 мес/);
   });
 });
 
