@@ -2,6 +2,8 @@ FROM nginx:alpine
 
 # Копируем статику
 COPY index.html /usr/share/nginx/html/index.html
+# Фото программ для карточек (если папка пустая — карточки покажут иконку-заглушку)
+COPY img/ /usr/share/nginx/html/img/
 
 # Шаблон конфига — Railway передаст $PORT в env
 COPY <<'EOF' /etc/nginx/templates/default.conf.template
