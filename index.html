@@ -1088,6 +1088,44 @@ input[type=range]::-moz-range-thumb {
   margin-top: 6px;
   letter-spacing: -0.01em;
 }
+/* Ручной ввод суммы */
+.calc-amount-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 140ms, box-shadow 140ms;
+}
+.calc-amount-field:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.calc-amount-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+  -moz-appearance: textfield;
+}
+.calc-amount-cur {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+/* Бренд-иконки в чипах канала связи */
+.chip svg { width: 16px; height: 16px; flex-shrink: 0; }
 .term-btns {
   display: flex;
   flex-wrap: wrap;
@@ -2672,6 +2710,25 @@ function fmtAmount(v) {
   if (v >= 1e3) return Math.round(v / 1e3).toLocaleString('ru-RU') + ' тыс ₸';
   return Math.round(v).toLocaleString('ru-RU') + ' ₸';
 }
+// Полное число с разделителями групп («20 000 000») — для поля ручного ввода
+function fmtNum(v) {
+  return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+// Стартовая сумма калькулятора = из ответа клиента в квизе (а не половина максимума),
+// зажатая в допустимый диапазон программы [100 000; maxAmount].
+function defaultCalcAmount(p) {
+  const MAP = {
+    'under-20m': 20000000,
+    '20-100m': 60000000,
+    '100-500m': 300000000,
+    '500m-plus': 1000000000
+  };
+  let v = state.answers ? MAP[state.answers.amount] : undefined;
+  if (v == null) v = Math.round(p.maxAmount / 2);
+  if (v > p.maxAmount) v = p.maxAmount;
+  if (v < 100000) v = 100000;
+  return v;
+}
 function declension(n, one, few, many) {
   const m = Math.abs(n) % 100;
   if (m >= 11 && m <= 14) return many;
@@ -3150,7 +3207,7 @@ function renderResultCard(p, score, isTop) {
   const explain = explainProgram(p, state.answers);
   if (!state.calc[p.id]) {
     state.calc[p.id] = {
-      amount: Math.round(p.maxAmount / 2),
+      amount: defaultCalcAmount(p),
       term: p.scheduleType === 'biannual_winter' ? effMaxTerm : pickInitialTerm(effMaxTerm)
     };
   }
@@ -3209,8 +3266,11 @@ function renderResultCard(p, score, isTop) {
         '<label class="calc-label">Сумма займа</label>' +
         '<span class="calc-hint">макс. ' + fmtAmount(p.maxAmount) + '</span>' +
       '</div>' +
+      '<div class="calc-amount-field">' +
+        '<input type="text" inputmode="numeric" class="calc-amount-input" value="' + fmtNum(c.amount) + '" data-prog="' + p.id + '" aria-label="Сумма займа в тенге" />' +
+        '<span class="calc-amount-cur">₸</span>' +
+      '</div>' +
       '<input type="range" min="100000" max="' + p.maxAmount + '" step="' + Math.max(Math.round(p.maxAmount / 100), 10000) + '" value="' + c.amount + '" data-prog="' + p.id + '" data-field="amount" />' +
-      '<div class="calc-amount-out">' + fmtAmount(c.amount) + '</div>' +
     '</div>' +
     (isBi ?
       '<div class="calc-row"><span class="term-locked">Срок фиксирован: до 18 месяцев с момента выдачи</span></div>' :
@@ -3251,6 +3311,31 @@ function attachResultHandlers() {
       }
     });
   });
+  // Ручной ввод суммы: парсим цифры, зажимаем по максимуму, синхронизируем ползунок и график
+  document.querySelectorAll('.result-card .calc-amount-input').forEach(function(el) {
+    el.addEventListener('input', function(e) {
+      const id = el.getAttribute('data-prog');
+      const p = PROGRAMS.find(function(x) { return x.id === id; });
+      let n = Number((e.target.value.match(/\d/g) || []).join('')) || 0;
+      if (n > p.maxAmount) n = p.maxAmount;
+      state.calc[id].amount = n;
+      const slider = document.querySelector('.result-card input[type="range"][data-prog="' + id + '"]');
+      if (slider) slider.value = Math.max(n, 100000);
+      const formatted = fmtNum(n);
+      e.target.value = formatted;
+      requestAnimationFrame(function() { e.target.setSelectionRange(formatted.length, formatted.length); });
+      updateCalc(id, true);
+    });
+    el.addEventListener('blur', function() {
+      const id = el.getAttribute('data-prog');
+      if (state.calc[id].amount < 100000) state.calc[id].amount = 100000;
+      el.value = fmtNum(state.calc[id].amount);
+      const slider = document.querySelector('.result-card input[type="range"][data-prog="' + id + '"]');
+      if (slider) slider.value = state.calc[id].amount;
+      updateCalc(id, true);
+      track('calculator_amount', { program: id, amount: state.calc[id].amount });
+    });
+  });
   document.querySelectorAll('.result-card [data-term]').forEach(function(el) {
     el.addEventListener('click', function() {
       const id = el.getAttribute('data-prog');
@@ -3275,13 +3360,18 @@ function attachResultHandlers() {
   });
 }
 
-function updateCalc(progId) {
+function updateCalc(progId, skipAmountField) {
   const p = PROGRAMS.find(function(x) { return x.id === progId; });
   const c = state.calc[progId];
   const sch = calculateSchedule(p, c.amount, c.term);
   const card = document.querySelector('[data-card="' + progId + '"]');
   if (!card) return;
-  card.querySelector('.calc-amount-out').textContent = fmtAmount(c.amount);
+  // Поле ручного ввода не перезаписываем, когда обновление пришло из самого ввода
+  // (иначе сбивается курсор); при движении ползунка — синхронизируем.
+  if (!skipAmountField) {
+    const amtField = card.querySelector('.calc-amount-input');
+    if (amtField) amtField.value = fmtNum(c.amount);
+  }
   const payHost = card.querySelector('.pay-host');
 
   let payHtml = '';
@@ -3638,9 +3728,9 @@ function renderCallback() {
       '<div class="field">' +
         '<label>Удобный канал связи</label>' +
         '<div class="chips">' +
-          '<button class="chip ' + (state.callback.channel === 'call' ? 'on' : '') + '" data-cb-ch="call">📞 Звонок</button>' +
-          '<button class="chip ' + (state.callback.channel === 'whatsapp' ? 'on' : '') + '" data-cb-ch="whatsapp">💬 WhatsApp</button>' +
-          '<button class="chip ' + (state.callback.channel === 'telegram' ? 'on' : '') + '" data-cb-ch="telegram">✈️ Telegram</button>' +
+          '<button class="chip ' + (state.callback.channel === 'call' ? 'on' : '') + '" data-cb-ch="call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Звонок</button>' +
+          '<button class="chip ' + (state.callback.channel === 'whatsapp' ? 'on' : '') + '" data-cb-ch="whatsapp"><svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg> WhatsApp</button>' +
+          '<button class="chip ' + (state.callback.channel === 'telegram' ? 'on' : '') + '" data-cb-ch="telegram"><svg viewBox="0 0 24 24" fill="#229ED9" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.061 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg> Telegram</button>' +
         '</div>' +
       '</div>' +
 
