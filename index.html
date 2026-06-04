@@ -1887,6 +1887,128 @@ input[type=range]::-moz-range-thumb {
   justify-content: center;
 }
 .prog-modal-close:hover { background: var(--border); }
+
+/* ===== Аутентификация (мок) ===== */
+.btn-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 140ms, color 140ms, background 140ms;
+}
+.btn-login:hover { border-color: var(--primary); color: var(--primary); }
+.btn-login svg { width: 16px; height: 16px; }
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px 0 6px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 190px;
+}
+.user-chip:hover { border-color: var(--primary); }
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.user-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) { .user-chip-name, .btn-login-text { display: none; } .btn-login { padding: 0 11px; } }
+
+/* Контент модалки авторизации */
+.auth-grid { display: grid; grid-template-columns: 1fr 0.82fr; gap: 26px; align-items: stretch; }
+.demo-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--gold-text); background: var(--accent-soft);
+  border: 1px solid var(--gold); border-radius: 6px; padding: 2px 7px; margin-bottom: 12px;
+}
+.auth-head { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--primary); margin: 0 0 6px; letter-spacing: -0.02em; }
+.auth-sub { font-size: 13px; color: var(--text-2); line-height: 1.5; margin: 0 0 18px; }
+.auth-sub a, .auth-switch a { color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.auth-field { margin-bottom: 14px; }
+.auth-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
+.auth-input-wrap { position: relative; display: flex; align-items: center; }
+.auth-input {
+  width: 100%; height: 46px; padding: 0 14px;
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); font-size: 15px; font-family: inherit;
+  transition: border-color 140ms, box-shadow 140ms;
+}
+.auth-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.auth-input.has-icon { padding-left: 40px; }
+.auth-input-ic { position: absolute; left: 13px; color: var(--text-3); pointer-events: none; display: inline-flex; }
+.auth-input-ic svg { width: 17px; height: 17px; }
+.auth-eye { position: absolute; right: 8px; width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: var(--text-3); display: inline-flex; align-items: center; justify-content: center; }
+.auth-eye:hover { color: var(--primary); background: var(--bg-tint); }
+.auth-err { font-size: 12px; color: var(--danger); margin-top: 6px; min-height: 0; }
+.auth-forgot { display: block; text-align: right; font-size: 12px; color: var(--text-3); margin: -4px 0 16px; cursor: pointer; }
+.auth-forgot:hover { color: var(--primary); }
+.auth-actions { display: flex; gap: 10px; margin-bottom: 12px; }
+.auth-btn { flex: 1; height: 46px; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: inherit; border: 1.5px solid transparent; transition: background 140ms, border-color 140ms, color 140ms; }
+.auth-btn-primary { background: var(--primary); color: var(--on-primary); }
+.auth-btn-primary:hover { background: var(--primary-2); }
+.auth-btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--text); }
+.auth-btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+.btn-egov {
+  width: 100%; height: 48px; border: none; border-radius: var(--radius);
+  background: #3b5bdb; color: #fff; font-size: 14px; font-weight: 700; font-family: inherit;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  transition: background 140ms;
+}
+.btn-egov:hover { background: #364fc7; }
+.btn-egov svg { width: 18px; height: 18px; }
+.auth-aside {
+  position: relative; overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(150deg, var(--primary) 0%, var(--primary-2) 100%);
+  color: #fff; padding: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 14px;
+}
+.auth-aside .ornament-tile-gold { opacity: 0.12; }
+.auth-qr { position: relative; z-index: 1; width: 116px; height: 116px; background: #fff; border-radius: 12px; padding: 8px; }
+.auth-aside-text { position: relative; z-index: 1; font-size: 13px; line-height: 1.5; font-weight: 500; }
+.auth-aside-text strong { display: block; font-family: var(--font-display); font-size: 15px; margin-bottom: 4px; }
+.auth-switch { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+/* eGov / cabinet view */
+.egov-screen { text-align: center; padding: 8px 0; }
+.egov-bar { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; color: #3b5bdb; margin-bottom: 16px; }
+.egov-qr { width: 150px; height: 150px; margin: 0 auto 16px; background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 10px; }
+.egov-hint { font-size: 13px; color: var(--text-2); line-height: 1.5; max-width: 340px; margin: 0 auto 18px; }
+.egov-dots { display: inline-flex; gap: 6px; margin-bottom: 16px; }
+.egov-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: egovPulse 1.2s ease-in-out infinite; }
+.egov-dots span:nth-child(2) { animation-delay: 0.2s; }
+.egov-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes egovPulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+.cab-list { margin: 16px 0 20px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.cab-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; font-size: 14px; border-bottom: 1px solid var(--border); }
+.cab-row:last-child { border-bottom: none; }
+.cab-row span:first-child { color: var(--text-3); }
+.cab-row span:last-child { color: var(--text); font-weight: 600; }
+@media (max-width: 560px) {
+  .auth-grid { grid-template-columns: 1fr; }
+  .auth-aside { display: none; }
+}
 .pm-cat {
   display: inline-block;
   padding: 4px 10px;
@@ -2031,6 +2153,7 @@ function toggleTheme() {
         <a href="#contacts">Контакты</a>
       </nav>
       <div class="header-actions">
+        <div id="auth-slot"></div>
         <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тёмную тему">
           <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -2218,6 +2341,15 @@ function toggleTheme() {
   <div class="prog-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="pm-title">
     <button class="prog-modal-close" onclick="closeProgramModal()" aria-label="Закрыть">✕</button>
     <div id="prog-modal-body"></div>
+  </div>
+</div>
+
+<!-- ===== Модалка авторизации (мок) ===== -->
+<div class="prog-modal" id="auth-modal" aria-hidden="true">
+  <div class="prog-modal-backdrop" onclick="closeAuth()"></div>
+  <div class="prog-modal-dialog" role="dialog" aria-modal="true" aria-label="Авторизация">
+    <button class="prog-modal-close" onclick="closeAuth()" aria-label="Закрыть">✕</button>
+    <div id="auth-body"></div>
   </div>
 </div>
 
@@ -2663,7 +2795,8 @@ const state = {
   calc: {},
   stress: { animalType: 'KRS', existingHerd: '', plannedHerd: '', pasturesHa: '', barnSqm: '', existingDebtsMonthly: '', annualRevenue: '', result: null },
   callback: { name: '', phone: '', channel: 'call' },
-  leadNumber: null
+  leadNumber: null,
+  user: null                    // мок-сессия: { name, iin, phone, via }
 };
 
 // =====================================================
@@ -3033,8 +3166,221 @@ function closeProgramModal() {
 }
 
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeProgramModal();
+  if (e.key === 'Escape') { closeProgramModal(); closeAuth(); }
 });
+
+// =====================================================
+// ===== Аутентификация (МОК — без реального OAuth) =====
+// Повторяет паттерн agronesie.kz: ИИН+пароль + «Войти через eGov».
+// Все провайдеры симулированы; помечено «демо».
+// =====================================================
+const AUTH_ICONS = {
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>'
+};
+function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function initials(name) {
+  const p = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return ((p[0] || '').charAt(0) + (p[1] || '').charAt(0)).toUpperCase() || 'К';
+}
+function maskIin(iin) {
+  const s = String(iin || '');
+  return s.length === 12 ? s.slice(0, 4) + ' •••• ' + s.slice(-2) : s;
+}
+function loadUser() {
+  try { const raw = localStorage.getItem('akk-user'); if (raw) state.user = JSON.parse(raw); } catch (e) {}
+}
+function saveUser() {
+  try { state.user ? localStorage.setItem('akk-user', JSON.stringify(state.user)) : localStorage.removeItem('akk-user'); } catch (e) {}
+}
+function renderAuthSlot() {
+  const slot = document.getElementById('auth-slot');
+  if (!slot) return;
+  if (state.user) {
+    slot.innerHTML = '<button class="user-chip" onclick="openAuth(\'cabinet\')" aria-label="Личный кабинет">' +
+      '<span class="user-avatar">' + escHtml(initials(state.user.name)) + '</span>' +
+      '<span class="user-chip-name">' + escHtml((state.user.name || 'Кабинет').split(' ')[0]) + '</span>' +
+      '</button>';
+  } else {
+    slot.innerHTML = '<button class="btn-login" onclick="openAuth(\'login\')">' +
+      AUTH_ICONS.user + '<span class="btn-login-text">Войти</span></button>';
+  }
+}
+// Декоративный «QR» (псевдо-модули) — это не настоящий код, только визуал
+function fakeQrSvg(size) {
+  let cells = '';
+  const n = 11, seed = [1,0,1,1,0,1,0,0,1,0,1,1,1,0,0,1,0,1,1,0,1,0];
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    if (((x * 3 + y * 7 + seed[(x + y) % seed.length]) % 3) === 0) cells += '<rect x="' + x + '" y="' + y + '" width="1" height="1"/>';
+  }
+  const fp = '<rect x="0" y="0" width="3" height="3" fill="none" stroke="#14211b" stroke-width="0.6"/><rect x="8" y="0" width="3" height="3" fill="none" stroke="#14211b" stroke-width="0.6"/><rect x="0" y="8" width="3" height="3" fill="none" stroke="#14211b" stroke-width="0.6"/>';
+  return '<svg width="' + size + '" height="' + size + '" viewBox="-0.5 -0.5 12 12" fill="#14211b" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + cells + fp + '</svg>';
+}
+
+function openAuth(view) {
+  renderAuth(view || 'login');
+  const m = document.getElementById('auth-modal');
+  m.classList.add('open');
+  m.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+function closeAuth() {
+  const m = document.getElementById('auth-modal');
+  if (!m) return;
+  m.classList.remove('open');
+  m.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function renderAuth(view) {
+  const body = document.getElementById('auth-body');
+  if (view === 'cabinet' && state.user) { body.innerHTML = cabinetHtml(); attachCabinet(); return; }
+  if (view === 'egov') { body.innerHTML = egovHtml(); attachEgov(); return; }
+  if (view === 'register') { body.innerHTML = registerHtml(); attachRegister(); return; }
+  body.innerHTML = loginHtml(); attachLogin();
+}
+
+function asideHtml() {
+  return '<div class="auth-aside">' +
+    '<div class="ornament-tile-gold" aria-hidden="true"></div>' +
+    '<div class="auth-qr">' + fakeQrSvg(100) + '</div>' +
+    '<div class="auth-aside-text"><strong>Вход через eGov Mobile</strong>Отсканируйте QR-код в приложении eGov Mobile и войдите в личный кабинет. Развиваем агробизнес вместе!</div>' +
+    '</div>';
+}
+function loginHtml() {
+  return '<span class="demo-badge">Демо · вход симулирован</span>' +
+    '<div class="auth-grid"><div>' +
+      '<h2 class="auth-head">Авторизация</h2>' +
+      '<p class="auth-sub">Для подачи заявки войдите в личный кабинет. Если вы не зарегистрированы — <a onclick="renderAuth(\'register\')">пройдите регистрацию</a>.</p>' +
+      '<div class="auth-field"><label>ИИН</label>' +
+        '<div class="auth-input-wrap"><span class="auth-input-ic">' + AUTH_ICONS.user + '</span>' +
+        '<input class="auth-input has-icon" id="auth-iin" inputmode="numeric" maxlength="12" placeholder="Введите ИИН (12 цифр)" /></div></div>' +
+      '<div class="auth-field"><label>Пароль</label>' +
+        '<div class="auth-input-wrap"><span class="auth-input-ic">' + AUTH_ICONS.lock + '</span>' +
+        '<input class="auth-input has-icon" id="auth-pass" type="password" placeholder="Введите пароль" />' +
+        '<button class="auth-eye" type="button" id="auth-eye" aria-label="Показать пароль">' + AUTH_ICONS.eye + '</button></div></div>' +
+      '<div class="auth-err" id="auth-err"></div>' +
+      '<span class="auth-forgot" onclick="alert(\'Демо: восстановление пароля недоступно в прототипе.\')">Забыли пароль?</span>' +
+      '<div class="auth-actions">' +
+        '<button class="auth-btn auth-btn-primary" id="auth-login-btn">Войти</button>' +
+        '<button class="auth-btn auth-btn-ghost" onclick="renderAuth(\'register\')">Регистрация</button>' +
+      '</div>' +
+      '<button class="btn-egov" onclick="renderAuth(\'egov\')">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M12 4.5c-3.6 0-6.6 2.7-6.6 6.3 0 2.5 1.5 4.6 3.7 5.6l-.5 2.6 2.6-1.4c.27.03.54.05.8.05 3.6 0 6.6-2.7 6.6-6.3S15.6 4.5 12 4.5z" fill="#3b5bdb"/></svg>' +
+        'Войти через eGov</button>' +
+    '</div>' + asideHtml() + '</div>';
+}
+function registerHtml() {
+  return '<span class="demo-badge">Демо · регистрация симулирована</span>' +
+    '<div class="auth-grid"><div>' +
+      '<h2 class="auth-head">Регистрация</h2>' +
+      '<p class="auth-sub">Создайте личный кабинет, чтобы подать заявку. Уже есть аккаунт? <a onclick="renderAuth(\'login\')">Войти</a>.</p>' +
+      '<div class="auth-field"><label>ФИО</label>' +
+        '<div class="auth-input-wrap"><span class="auth-input-ic">' + AUTH_ICONS.user + '</span>' +
+        '<input class="auth-input has-icon" id="reg-name" placeholder="Бауыржан Сапаров" /></div></div>' +
+      '<div class="auth-field"><label>ИИН</label>' +
+        '<input class="auth-input" id="reg-iin" inputmode="numeric" maxlength="12" placeholder="Введите ИИН (12 цифр)" /></div>' +
+      '<div class="auth-field"><label>Телефон</label>' +
+        '<input class="auth-input" id="reg-phone" type="tel" inputmode="numeric" maxlength="18" placeholder="+7 (___) ___-__-__" /></div>' +
+      '<div class="auth-err" id="auth-err"></div>' +
+      '<div class="auth-actions">' +
+        '<button class="auth-btn auth-btn-primary" id="reg-btn">Зарегистрироваться</button>' +
+        '<button class="auth-btn auth-btn-ghost" onclick="renderAuth(\'login\')">Назад</button>' +
+      '</div>' +
+    '</div>' + asideHtml() + '</div>';
+}
+function egovHtml() {
+  return '<span class="demo-badge">Демо · вход через eGov симулирован</span>' +
+    '<div class="egov-screen">' +
+      '<div class="egov-bar"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#3b5bdb"/><path d="M12 5.5c-3.6 0-6.6 2.7-6.6 6.3 0 2.5 1.5 4.6 3.7 5.6l-.5 2.6 2.6-1.4c.27.03.54.05.8.05 3.6 0 6.6-2.7 6.6-6.3S15.6 5.5 12 5.5z" fill="#fff"/></svg> eGov Mobile</div>' +
+      '<div class="egov-qr">' + fakeQrSvg(130) + '</div>' +
+      '<p class="egov-hint">Отсканируйте QR-код в приложении <strong>eGov Mobile</strong> и подтвердите вход. Данные (ФИО, ИИН, телефон) подтянутся автоматически.</p>' +
+      '<div class="egov-dots"><span></span><span></span><span></span></div>' +
+      '<div class="auth-actions" style="max-width:340px;margin:0 auto;">' +
+        '<button class="auth-btn auth-btn-primary" id="egov-confirm">Подтвердить вход (демо)</button>' +
+        '<button class="auth-btn auth-btn-ghost" onclick="renderAuth(\'login\')">Назад</button>' +
+      '</div>' +
+    '</div>';
+}
+function cabinetHtml() {
+  const u = state.user || {};
+  const lead = state.leadNumber ? ('Заявка № ' + state.leadNumber) : 'пока нет';
+  return '<h2 class="auth-head">Личный кабинет</h2>' +
+    '<p class="auth-sub">Вы вошли' + (u.via === 'egov' ? ' через eGov' : '') + '. <span class="demo-badge" style="margin:0;">демо</span></p>' +
+    '<div class="cab-list">' +
+      '<div class="cab-row"><span>ФИО</span><span>' + escHtml(u.name || '—') + '</span></div>' +
+      '<div class="cab-row"><span>ИИН</span><span>' + escHtml(maskIin(u.iin)) + '</span></div>' +
+      '<div class="cab-row"><span>Телефон</span><span>' + escHtml(u.phone ? formatPhone(onlyDigits(u.phone)) : '—') + '</span></div>' +
+      '<div class="cab-row"><span>Мои заявки</span><span>' + escHtml(lead) + '</span></div>' +
+    '</div>' +
+    '<div class="auth-actions">' +
+      '<button class="auth-btn auth-btn-primary" onclick="closeAuth(); startQuiz();">Подобрать программу</button>' +
+      '<button class="auth-btn auth-btn-ghost" id="logout-btn">Выйти</button>' +
+    '</div>';
+}
+
+// Завершение входа: сохраняем сессию, предзаполняем заявку, обновляем UI
+function finishLogin(user) {
+  state.user = user;
+  saveUser();
+  if (user.name && !state.callback.name) state.callback.name = user.name;
+  if (user.phone) state.callback.phone = onlyDigits(user.phone);
+  renderAuthSlot();
+  track('login', { via: user.via });
+  closeAuth();
+}
+function attachLogin() {
+  const eye = document.getElementById('auth-eye');
+  if (eye) eye.addEventListener('click', function () {
+    const p = document.getElementById('auth-pass');
+    p.type = p.type === 'password' ? 'text' : 'password';
+  });
+  const iin = document.getElementById('auth-iin');
+  if (iin) iin.addEventListener('input', function () { iin.value = onlyDigits(iin.value).slice(0, 12); });
+  const btn = document.getElementById('auth-login-btn');
+  if (btn) btn.addEventListener('click', function () {
+    const err = document.getElementById('auth-err');
+    const iinV = onlyDigits(document.getElementById('auth-iin').value);
+    const pass = document.getElementById('auth-pass').value;
+    if (iinV.length !== 12) { err.textContent = 'ИИН должен состоять из 12 цифр.'; return; }
+    if (!pass) { err.textContent = 'Введите пароль.'; return; }
+    // Мок: «находим» профиль по ИИН
+    finishLogin({ name: 'Бауыржан Сапаров', iin: iinV, phone: '77012345678', via: 'iin' });
+  });
+}
+function attachRegister() {
+  const phone = document.getElementById('reg-phone');
+  if (phone) phone.addEventListener('input', function (e) {
+    const d = onlyDigits(e.target.value).slice(0, 11);
+    e.target.value = formatPhone(d);
+  });
+  const iin = document.getElementById('reg-iin');
+  if (iin) iin.addEventListener('input', function () { iin.value = onlyDigits(iin.value).slice(0, 12); });
+  const btn = document.getElementById('reg-btn');
+  if (btn) btn.addEventListener('click', function () {
+    const err = document.getElementById('auth-err');
+    const name = document.getElementById('reg-name').value.trim();
+    const iinV = onlyDigits(document.getElementById('reg-iin').value);
+    const phoneV = onlyDigits(document.getElementById('reg-phone').value);
+    if (!name) { err.textContent = 'Введите ФИО.'; return; }
+    if (iinV.length !== 12) { err.textContent = 'ИИН должен состоять из 12 цифр.'; return; }
+    if (phoneV.length !== 11) { err.textContent = 'Введите корректный номер телефона.'; return; }
+    finishLogin({ name: name, iin: iinV, phone: phoneV, via: 'register' });
+  });
+}
+function attachEgov() {
+  const btn = document.getElementById('egov-confirm');
+  if (btn) btn.addEventListener('click', function () {
+    finishLogin({ name: 'Бауыржан Сапаров', iin: '950101350123', phone: '77012345678', via: 'egov' });
+  });
+}
+function attachCabinet() {
+  const btn = document.getElementById('logout-btn');
+  if (btn) btn.addEventListener('click', function () {
+    state.user = null; saveUser(); renderAuthSlot(); closeAuth(); track('logout', {});
+  });
+}
 
 // =====================================================
 // ===== Quiz ==========================================
@@ -3745,6 +4091,8 @@ function renderCallback() {
       '<h2 class="stress-title">Оставьте контакты</h2>' +
       '<p class="stress-sub">Менеджер свяжется с вами в ближайшее рабочее время. Звонок — бесплатный.</p>' +
 
+      (state.user ? '<div style="display:flex;align-items:center;gap:10px;background:var(--primary-soft);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:13px;color:var(--primary);"><span class="user-avatar" style="width:26px;height:26px;">' + escHtml(initials(state.user.name)) + '</span><span>Вы вошли как <strong>' + escHtml(state.user.name) + '</strong> · данные подставлены автоматически</span></div>' : '') +
+
       summaryBlock +
 
       stressBlock +
@@ -3908,7 +4256,12 @@ window.submitCallback = submitCallback;
 window.showCallback = showCallback;
 window.requestConsultation = requestConsultation;
 window.resetAll = resetAll;
+window.openAuth = openAuth;
+window.closeAuth = closeAuth;
+window.renderAuth = renderAuth;
 
+loadUser();
+renderAuthSlot();
 renderProgramsPreview();
 track('page_loaded', { url: location.pathname });
 
