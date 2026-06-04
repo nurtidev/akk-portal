@@ -1006,6 +1006,57 @@ a { color: inherit; }
   border-left: 2px solid var(--accent);
   margin: 0 0 20px;
 }
+/* ===== Глоссарий: термин с всплывающей подсказкой ===== */
+.gl {
+  position: relative;
+  border-bottom: 1px dotted currentColor;
+  cursor: help;
+  outline: none;
+}
+.gl::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 8px;
+  width: max-content;
+  max-width: 240px;
+  white-space: normal;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #fff;
+  background: #14211b;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 40;
+  pointer-events: none;
+}
+.gl::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  bottom: 100%;
+  margin-bottom: 3px;
+  border: 5px solid transparent;
+  border-top-color: #14211b;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.14s ease;
+  z-index: 41;
+}
+.gl:hover::after, .gl:focus-visible::after,
+.gl:hover::before, .gl:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
 .rc-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2232,7 +2283,7 @@ function toggleTheme() {
 // ===== Programs data (from П АКК 002-207-22) =========
 // =====================================================
 const PROGRAMS = [
-  { id: 'ken_dala', title: 'Кең дала', category: 'ВПРиУР через КТ', hidden: true,
+  { id: 'ken_dala', title: 'Кең дала', category: 'Посевная · через КТ', hidden: true,
     org: 'АО «Аграрная кредитная корпорация»',
     description: 'Финансирование оборотных средств на весенне-полевые и уборочные работы. Программа ориентирована на финансовые институты — прямые заёмщики получают финансирование через кредитные товарищества, МФО, БВУ или РИЦ.',
     rate: 1.5, rateNote: '1,5% годовых для финучреждений. Прямые заёмщики получают финансирование через КТ/МФО/БВУ/РИЦ — конечная ставка устанавливается посредником.',
@@ -2242,7 +2293,7 @@ const PROGRAMS = [
     soft: [],
     indirectOnly: true
   },
-  { id: 'ken_dala_2', title: 'Кең дала 2', category: 'ВПРиУР',
+  { id: 'ken_dala_2', title: 'Кең дала 2', category: 'Посевная и уборка',
     org: 'АО «Аграрная кредитная корпорация»',
     description: 'Финансирование весенне-полевых и уборочных работ под гарантию АО «ФРП «Даму». Погашение двумя платежами — после уборки урожая и в марте.',
     rate: 5, rateNote: '5% годовых (ГЭСВ от 5%) для прямых заёмщиков, 1,5% для финучреждений. Сумма рассчитывается по нормативу затрат на 1 га посевной площади, но не более 1,5 млрд ₸ под гарантию Даму (покрытие 85% суммы займа).',
@@ -2260,7 +2311,7 @@ const PROGRAMS = [
   { id: 'agrobusiness', title: 'Агробизнес', category: 'Инвестиции',
     org: 'АО «Аграрная кредитная корпорация»',
     description: 'Универсальная программа на основные средства, СМР и пополнение оборотных средств. Финансирование за счёт собственных и привлечённых средств АКК.',
-    rate: 21.5, rateRange: 'НБРК+7,5%',
+    rate: 21.5, rateRange: 'НБРК+7,5%', rateTip: 'Базовая ставка Нацбанка (НБ РК) + 7,5%. Итог зависит от ставки Нацбанка — на начало 2026 это около 21,5%. Дешевле — 5% за счёт облигационного займа.',
     rateNote: 'Базовая ставка НБ РК + 7,5% годовых для прямых заёмщиков (≈21,5% на 01.2026, собственные/привлечённые средства АКК). Альтернативно — 5% годовых за счёт облигационного займа. ОС/СМР — до 144 мес (по РБ), ПОС — до 48 мес, облигационный заём — до 12 мес. Универсальная программа: подходит и для покупки биоактивов (МРС, лошади, верблюды и др.), когда специализированные программы (Игілік/Береке) не подходят.',
     maxAmount: 15000000000, maxTerm: 144, scheduleType: 'annual',
     scheduleNote: 'Погашение не реже одного раза в год. Срок зависит от цели: ОС/СМР по РБ — до 144 мес, ОС/СМР по СС/ПС/ЭПВ/ДКЗ — до 120 мес, ПОС — 24 мес (возобновляемая КЛ) или 48 мес (невозобновляемая), ПОС по ПСС — до 12 мес.',
@@ -2316,7 +2367,7 @@ const PROGRAMS = [
       { q: 'animalType', v: ['MRS', 'HORSE', 'CAMEL'], w: 20 }
     ]
   },
-  { id: 'feedlot_poultry', title: 'Откормплощадки и птицефабрики', category: 'ПСС / Откорм',
+  { id: 'feedlot_poultry', title: 'Откормплощадки и птицефабрики', category: 'Откорм и птицефабрики',
     org: 'Программа «Агробизнес животноводство», направление 2',
     description: 'Финансирование откормочных площадок КРС и МРС, а также птицефабрик мясного и яичного направления. Источник — привлечённые субсидируемые средства (ПСС).',
     rate: 5, rateNote: '5% годовых (ГЭСВ от 5%) для прямых заёмщиков, 1,5% для финучреждений. Субсидированная ставка по ПСС.',
@@ -2953,8 +3004,46 @@ function renderProgramsPreview() {
 }
 
 function fmtRate(p) {
-  if (p.rateRange) return p.rateRange;
+  if (p.rateRange) {
+    const tip = p.rateTip || p.rateRange;
+    return '<span class="gl" tabindex="0" data-tip="' + escAttr(tip) + '">≈ ' + String(p.rate).replace('.', ',') + '%</span>';
+  }
   return 'от ' + String(p.rate).replace('.', ',') + '%';
+}
+
+// ===== Глоссарий: всплывающие расшифровки аббревиатур =====
+// Точные термины из регламента оставляем, но по наведению/тапу показываем
+// человеческое объяснение — понятно фермеру, не теряя точности для методологов.
+const GLOSSARY = {
+  'ОС/СМР': 'Основные средства и строительно-монтажные работы',
+  'СС/ПС': 'Собственные и привлечённые средства Общества',
+  'НФ РК': 'Национальный фонд Республики Казахстан',
+  'НБ РК': 'Национальный банк Республики Казахстан',
+  'НБРК': 'Национальный банк Республики Казахстан',
+  'ВПРиУР': 'Весенне-полевые и уборочные работы',
+  'ГЭСВ': 'Годовая эффективная ставка вознаграждения — реальная стоимость кредита со всеми платежами',
+  'ПСС': 'Привлечённые субсидируемые средства',
+  'ПОС': 'Пополнение оборотных средств',
+  'МФО': 'Микрофинансовая организация',
+  'БВУ': 'Банк второго уровня',
+  'РИЦ': 'Региональный инвестиционный центр',
+  'СПК': 'Социально-предпринимательская корпорация',
+  'ДКЗ': 'Программа «Дорожная карта бизнеса»',
+  'ЭПВ': 'Программа «Экономика простых вещей»',
+  'МРП': 'Месячный расчётный показатель (в 2026 году — 4 325 ₸)',
+  'Даму': 'АО «ФРП «Даму» — фонд, который даёт гарантию по кредиту',
+  'КТ': 'Кредитное товарищество',
+  'РБ': 'Республиканский бюджет'
+};
+function escAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+function applyGlossary(text) {
+  if (!text) return text;
+  // длинные термины первыми, чтобы не разрезать составные (ОС/СМР, НБ РК и т.п.)
+  const terms = Object.keys(GLOSSARY).sort(function(a, b) { return b.length - a.length; });
+  const re = new RegExp('(' + terms.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&'); }).join('|') + ')', 'g');
+  return text.replace(re, function(m) {
+    return '<span class="gl" tabindex="0" data-tip="' + escAttr(GLOSSARY[m]) + '">' + m + '</span>';
+  });
 }
 
 // =====================================================
@@ -3255,7 +3344,7 @@ function renderResultCard(p, score, isTop) {
     '<h3 class="rc-title">' + p.title + '</h3>' +
     '<p class="rc-desc">' + p.description + '</p>' +
     renderWhyMatch(explain, score) +
-    (p.rateNote ? '<div class="rc-rate-note">' + p.rateNote + '</div>' : '') +
+    (p.rateNote ? '<div class="rc-rate-note">' + applyGlossary(p.rateNote) + '</div>' : '') +
     '<div class="rc-stats">' +
       '<div class="rc-stat"><div class="rc-stat-l">ставка</div><div class="rc-stat-v">' + fmtRate(p) + '</div></div>' +
       '<div class="rc-stat"><div class="rc-stat-l">сумма до</div><div class="rc-stat-v">' + fmtAmount(p.maxAmount) + '</div></div>' +
@@ -3286,7 +3375,7 @@ function renderResultCard(p, score, isTop) {
     '<div class="pay-host">' + payHtml + '</div>' +
     '<div class="sched-note">' +
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' +
-      '<span>' + p.scheduleNote + '</span>' +
+      '<span>' + applyGlossary(p.scheduleNote) + '</span>' +
     '</div>' +
     '<div class="rc-footer">' +
       '<span class="rc-org">' + p.org + '</span>' +
