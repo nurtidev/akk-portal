@@ -426,10 +426,15 @@
 
   function setHidden(id, h) { var el = document.getElementById(id); if (el) el.hidden = !!h; }
 
+  // Скрыть все «оверлейные» секции (кабинет, страница заявки, визард/флоу).
+  function hideOverlaySections() {
+    setHidden('cabinet-section', true);
+    setHidden('application-section', true);
+    FLOW_IDS.forEach(function (id) { setHidden(id, true); });
+  }
   // Лендинг (главная) ⇄ страница кабинета.
   function showLanding() {
-    setHidden('cabinet-section', true);
-    FLOW_IDS.forEach(function (id) { setHidden(id, true); });
+    hideOverlaySections();
     LANDING_IDS.forEach(function (id) { setHidden(id, false); });
   }
   window.exitCabinet = function () {
@@ -437,6 +442,40 @@
     showLanding();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Навигация из шапки: выйти из кабинета/заявки/визарда → лендинг → к нужной секции.
+  window.akkGoLanding = function (target) {
+    showLanding();
+    closeAuthDropdown();
+    var el = target ? document.getElementById(target) : null;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  // Вешаем обработчики на логотип и пункты шапки (якоря на скрытые секции лендинга).
+  function wireHeaderNav() {
+    var logo = document.querySelector('.logo');
+    if (logo && !logo.__akkWired) {
+      logo.__akkWired = true;
+      logo.addEventListener('click', function (e) { e.preventDefault(); window.akkGoLanding('main'); });
+    }
+    document.querySelectorAll('a[href="#programs"]').forEach(function (a) {
+      if (a.__akkWired) return; a.__akkWired = true;
+      a.addEventListener('click', function (e) { e.preventDefault(); window.akkGoLanding('programs'); });
+    });
+    document.querySelectorAll('a[href="#contacts"]').forEach(function (a) {
+      if (a.__akkWired) return; a.__akkWired = true;
+      a.addEventListener('click', function (e) { e.preventDefault(); window.akkGoLanding('contacts'); });
+    });
+  }
+  // «Подбор» (startQuiz) из любого места — сперва вернуть лендинг, затем квиз.
+  var origStartQuiz = window.startQuiz;
+  if (typeof origStartQuiz === 'function') {
+    window.startQuiz = function () {
+      hideOverlaySections();
+      LANDING_IDS.forEach(function (id) { setHidden(id, false); });
+      return origStartQuiz.apply(window, arguments);
+    };
+  }
 
   // Открыть кабинет на нужной вкладке.
   window.openCabinet = function (tab) {
@@ -1597,6 +1636,7 @@
     // поэтому у уже залогиненной сессии оставался старый чип без дропдауна.
     // Перерисовываем шапку новой версией, если пользователь авторизован.
     if (state.user) { try { window.renderAuthSlot(); } catch (e) {} }
+    try { wireHeaderNav(); } catch (e) {}
   })();
 
   log('integration loaded; AUTH =', AUTH, '; CREDIT =', CREDIT);
