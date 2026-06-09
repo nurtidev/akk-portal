@@ -19,7 +19,9 @@ type Config struct {
 	JWTIssuer string
 	AccessTTL time.Duration
 
-	// SMS (KazInfoTeh iSMS). Пустой SMSURL → mock-режим (код пишется в лог).
+	// SMS (KazInfoTeh). Пустой SMSURL → mock-режим (код пишется в лог).
+	// SMSProvider: "kazinfoteh_get" (старый GET/XML, боевой) | "kazinfoteh_json" (новый JSON).
+	SMSProvider   string
 	SMSURL        string
 	SMSLogin      string
 	SMSPassword   string
@@ -45,10 +47,11 @@ func Load() Config {
 		JWTIssuer: env("JWT_ISSUER", "akk-railway"),
 		AccessTTL: time.Duration(envInt("ACCESS_TTL_SECONDS", 86400)) * time.Second,
 
+		SMSProvider:   env("SMS_PROVIDER", "kazinfoteh_get"),
 		SMSURL:        env("SMS_URL", ""),
 		SMSLogin:      env("SMS_LOGIN", ""),
 		SMSPassword:   env("SMS_PASSWORD", ""),
-		SMSOriginator: env("SMS_ORIGINATOR", "AgroCredit"),
+		SMSOriginator: env("SMS_ORIGINATOR", "AKK"),
 
 		OTPTTL:       time.Duration(envInt("OTP_TTL_SECONDS", 300)) * time.Second,
 		OTPRateLimit: time.Duration(envInt("OTP_RATE_LIMIT_SECONDS", 60)) * time.Second,

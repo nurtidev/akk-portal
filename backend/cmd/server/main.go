@@ -35,7 +35,7 @@ func main() {
 	}
 	defer db.Close()
 
-	sender := sms.New(cfg.SMSURL, cfg.SMSLogin, cfg.SMSPassword, cfg.SMSOriginator, logger)
+	sender := sms.New(cfg.SMSProvider, cfg.SMSURL, cfg.SMSLogin, cfg.SMSPassword, cfg.SMSOriginator, logger)
 	otp := auth.NewOTP(db, sender, cfg.OTPTTL, cfg.OTPRateLimit, cfg.OTPMaxPerHr)
 	issuer := auth.NewIssuer(cfg.JWTSecret, cfg.JWTIssuer, cfg.AccessTTL)
 

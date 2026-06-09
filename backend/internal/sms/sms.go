@@ -1,6 +1,9 @@
-// Package sms отправляет SMS через KazInfoTeh iSMS — боевой провайдер AgroCredit.
-// Логика и формат запроса перенесены из credit-backend/pkg/smsclient/kazinfoteh.go.
-// При пустом URL работает mock-режим: код только пишется в лог (для локальной отладки).
+// Package sms отправляет SMS. Поддерживает два провайдера KazInfoTeh:
+//   - "kazinfoteh_get"  — старый GET/XML API (http://kazinfoteh.org:9507/api), которым
+//                          реально слались боевые SMS AgroCredit (см. .NET backend
+//                          Agro.Integration.Logic/OutService/KazInfoTeh/KazInfoTehLogic.cs).
+//   - "kazinfoteh_json" — новый JSON API (so.kazinfoteh.org/api/sms/send), Basic Auth.
+// Пустой SMS_URL → mock (код пишется в лог).
 package sms
 
 import (
@@ -11,6 +14,8 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -20,23 +25,24 @@ type Sender interface {
 	Send(ctx context.Context, phone, message string) error
 }
 
-// New возвращает боевой клиент KazInfoTeh либо mock, если url пустой.
-func New(url, login, password, originator string, logger *slog.Logger) Sender {
+// New возвращает клиент по провайдеру. Пустой url → mock.
+func New(provider, smsURL, login, password, originator string, logger *slog.Logger) Sender {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	if strings.TrimSpace(url) == "" {
+	if strings.TrimSpace(smsURL) == "" {
 		logger.Warn("sms: URL пуст — включён MOCK-режим (код пишется в лог, реальная отправка отключена)")
 		return &mockSender{logger: logger}
 	}
-	logger.Info("sms: KazInfoTeh (iSMS) сконфигурирован", "url", url, "from", originator)
-	return &kazInfoTeh{
-		url:        url,
-		login:      login,
-		password:   password,
-		from:       originator,
-		httpClient: &http.Client{Timeout: 15 * time.Second},
-		logger:     logger,
+	switch strings.ToLower(strings.TrimSpace(provider)) {
+	case "kazinfoteh_json", "json":
+		logger.Info("sms: KazInfoTeh JSON API", "url", smsURL, "from", originator)
+		return &kazJSON{url: smsURL, login: login, password: password, from: originator,
+			httpClient: &http.Client{Timeout: 15 * time.Second}, logger: logger}
+	default: // kazinfoteh_get и всё прочее → старый проверенный GET/XML API
+		logger.Info("sms: KazInfoTeh GET/XML API", "url", smsURL, "from", originator)
+		return &kazGet{url: smsURL, login: login, password: password, from: originator,
+			httpClient: &http.Client{Timeout: 20 * time.Second}, logger: logger}
 	}
 }
 
@@ -49,9 +55,14 @@ func (m *mockSender) Send(_ context.Context, phone, message string) error {
 	return nil
 }
 
-// --- KazInfoTeh iSMS -----------------------------------------------------
+// --- KazInfoTeh GET/XML (старый боевой API) -------------------------------
+//
+// Повторяет .NET Agro.Integration.Logic KazInfoTehLogic.CallServiceSendSMS:
+//   GET {url}?action=sendmessage&username=..&password=..&recipient=<phone>
+//       &messagetype=SMS:TEXT&originator=<from>&messagedata=<text>&continueurl=https://online.fagri.kz
+//   Ответ — XML <acceptreport><statuscode>..</statuscode><statusmessage>..</statusmessage></acceptreport>
 
-type kazInfoTeh struct {
+type kazGet struct {
 	url        string
 	login      string
 	password   string
@@ -60,33 +71,92 @@ type kazInfoTeh struct {
 	logger     *slog.Logger
 }
 
-type kazRequest struct {
+var (
+	reStatusCode = regexp.MustCompile(`(?is)<statuscode>\s*(.*?)\s*</statuscode>`)
+	reStatusMsg  = regexp.MustCompile(`(?is)<statusmessage>\s*(.*?)\s*</statusmessage>`)
+)
+
+func (c *kazGet) Send(ctx context.Context, phone, message string) error {
+	const op = "sms.KazInfoTeh.GET.Send"
+	// recipient — 11 цифр без "+" (как 77073763125 в .NET).
+	recipient := strings.TrimPrefix(normalizePhone(phone), "+")
+	if recipient == "" {
+		return fmt.Errorf("%s: пустой номер", op)
+	}
+
+	q := url.Values{}
+	q.Set("action", "sendmessage")
+	q.Set("username", c.login)
+	q.Set("password", c.password)
+	q.Set("recipient", recipient)
+	q.Set("messagetype", "SMS:TEXT")
+	q.Set("originator", c.from)
+	q.Set("messagedata", message)
+	q.Set("continueurl", "https://online.fagri.kz")
+	full := c.url + "?" + q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, full, nil)
+	if err != nil {
+		return fmt.Errorf("%s: create request: %w", op, err)
+	}
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("%s: send: %w", op, err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("%s: HTTP %d: %s", op, resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+
+	// Зеркалим .NET: HTTP 200 = принято. statuscode/statusmessage логируем для диагностики.
+	code, msg := "", ""
+	if m := reStatusCode.FindSubmatch(body); len(m) == 2 {
+		code = string(m[1])
+	}
+	if m := reStatusMsg.FindSubmatch(body); len(m) == 2 {
+		msg = string(m[1])
+	}
+	c.logger.InfoContext(ctx, "sms: KazInfoTeh GET принят",
+		"phone", maskPhone(recipient), "statuscode", code, "statusmessage", msg)
+	return nil
+}
+
+// --- KazInfoTeh JSON (новый API) -----------------------------------------
+
+type kazJSON struct {
+	url        string
+	login      string
+	password   string
+	from       string
+	httpClient *http.Client
+	logger     *slog.Logger
+}
+
+type kazJSONReq struct {
 	To   string `json:"to"`
 	From string `json:"from"`
 	Text string `json:"text"`
 }
 
-type kazResponse struct {
+type kazJSONResp struct {
 	MessageID    string `json:"message_id"`
 	Status       string `json:"status"`
 	Err          any    `json:"err"`
 	ErrorMessage string `json:"error_message"`
 }
 
-// Send доставляет SMS через KazInfoTeh iSMS.
-// iSMS ждёт получателя без "+" (подтверждено живой отправкой в credit-backend).
-func (c *kazInfoTeh) Send(ctx context.Context, phone, message string) error {
-	const op = "sms.KazInfoTeh.Send"
-	phone = strings.TrimPrefix(normalizePhone(phone), "+")
-	if phone == "" {
+func (c *kazJSON) Send(ctx context.Context, phone, message string) error {
+	const op = "sms.KazInfoTeh.JSON.Send"
+	to := strings.TrimPrefix(normalizePhone(phone), "+")
+	if to == "" {
 		return fmt.Errorf("%s: пустой номер", op)
 	}
-
-	payload, err := json.Marshal(kazRequest{To: phone, From: c.from, Text: message})
+	payload, err := json.Marshal(kazJSONReq{To: to, From: c.from, Text: message})
 	if err != nil {
 		return fmt.Errorf("%s: marshal: %w", op, err)
 	}
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewReader(payload))
 	if err != nil {
 		return fmt.Errorf("%s: create request: %w", op, err)
@@ -99,9 +169,8 @@ func (c *kazInfoTeh) Send(ctx context.Context, phone, message string) error {
 		return fmt.Errorf("%s: send: %w", op, err)
 	}
 	defer resp.Body.Close()
-
 	body, _ := io.ReadAll(resp.Body)
-	var parsed kazResponse
+	var parsed kazJSONResp
 	_ = json.Unmarshal(body, &parsed)
 
 	if resp.StatusCode != http.StatusOK {
@@ -114,13 +183,13 @@ func (c *kazInfoTeh) Send(ctx context.Context, phone, message string) error {
 	if parsed.Err != nil {
 		return fmt.Errorf("%s: provider error: %v", op, parsed.Err)
 	}
-
-	c.logger.InfoContext(ctx, "sms: KazInfoTeh отправлен",
-		"phone", maskPhone(phone), "message_id", parsed.MessageID, "status", parsed.Status)
+	c.logger.InfoContext(ctx, "sms: KazInfoTeh JSON отправлен",
+		"phone", maskPhone(to), "message_id", parsed.MessageID, "status", parsed.Status)
 	return nil
 }
 
-// normalizePhone оставляет только цифры и ведущий "+", приводя к виду +7XXXXXXXXXX.
+// --- helpers -------------------------------------------------------------
+
 func normalizePhone(phone string) string {
 	var b strings.Builder
 	for i, r := range phone {
@@ -133,7 +202,6 @@ func normalizePhone(phone string) string {
 	return b.String()
 }
 
-// maskPhone скрывает середину номера в логах (PII).
 func maskPhone(phone string) string {
 	d := strings.TrimPrefix(normalizePhone(phone), "+")
 	if len(d) <= 3 {
