@@ -443,7 +443,7 @@
         var dotColor = (done || cur) ? '#fff' : '#9aa6a0';
         var textColor = cur ? 'var(--primary,#2b8a3e)' : (done ? 'var(--text,#14211b)' : '#9aa6a0');
         var icon = done ? '✓' : (cur ? '●' : '');
-        return '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:' + textColor + ';font-weight:' + (cur ? '700' : '400') + ';">' +
+        return '<div class="' + (cur ? 'stage-current' : 'stage-row') + '" style="display:flex;align-items:center;gap:8px;font-size:12px;color:' + textColor + ';font-weight:' + (cur ? '700' : '400') + ';">' +
           '<span style="flex:0 0 16px;width:16px;height:16px;border-radius:50%;background:' + bg + ';color:' + dotColor + ';font-size:9px;line-height:16px;text-align:center;">' + icon + '</span>' +
           '<span>' + s + '</span>' +
           (cur ? '<span style="margin-left:auto;font-size:10px;">текущий этап</span>' : '') +
@@ -524,7 +524,7 @@
                 '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;color:var(--danger,#d6336c);" onclick="akkAdvanceApp(\'' + a.uid + '\', \'rejected\', this)">Отклонить</button>';
             }
 
-            return '<div style="border:1px solid #e3e8e5;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
+            return '<div class="app-card" data-app-number="' + escHtml(a.number) + '" style="border:1px solid #e3e8e5;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
               '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">' +
                 '<strong style="font-size:14px;">№ ' + escHtml(a.number) + '</strong>' +
                 '<span style="font-weight:600;">' + escHtml(fmtMoney(a.amount)) + '</span>' +

@@ -25,18 +25,16 @@ test('прямой выбор программы → заявка → кабин
   // Успех с реальным номером.
   await expect(page.getByText(/AKK-\d{4}-\d{6}/)).toBeVisible({ timeout: 8000 });
 
-  // Кабинет: заявка + лента статусов. Свежая заявка стоит на первом этапе «Регистрация заявки».
+  // Кабинет: заявка + лента статусов. Скоуп на первую (свежую) карточку — у демо-клиента
+  // eGov может быть много заявок от прошлых прогонов, поэтому работаем строго с .first().
   await page.getByText('Открыть личный кабинет', { exact: false }).click();
   await expect(page.locator('#cab-apps')).toContainText('AKK-', { timeout: 5000 });
-  await expect(page.locator('#cab-apps')).toContainText('Регистрация заявки');
-  // Текущий этап свежей заявки — «Регистрация заявки» (строка с маркером «текущий этап»).
-  await expect(
-    page.locator('#cab-apps div', { hasText: 'текущий этап' }).last()
-  ).toContainText('Регистрация заявки');
+  const card = page.locator('.app-card').first();
+  // Свежая заявка стоит на первом этапе «Регистрация заявки».
+  await expect(card.locator('.stage-current')).toContainText('Регистрация заявки');
 
   // Демо-управление: «Продвинуть этап» двигает текущий этап на «Новая заявка».
-  await page.getByRole('button', { name: 'Продвинуть этап →' }).first().click();
-  await expect(
-    page.locator('#cab-apps div', { hasText: 'текущий этап' }).last()
-  ).toContainText('Новая заявка', { timeout: 5000 });
+  await card.getByRole('button', { name: 'Продвинуть этап →' }).click();
+  await expect(page.locator('.app-card').first().locator('.stage-current'))
+    .toContainText('Новая заявка', { timeout: 5000 });
 });
