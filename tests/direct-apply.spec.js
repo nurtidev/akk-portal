@@ -1,42 +1,50 @@
-// Прямой выбор программы с главной → подача заявки → кабинет с лентой статусов.
+// Прямой выбор программы с главной → визард подачи заявки → трекер заявки.
 const { test, expect } = require('@playwright/test');
 const BASE = process.env.BASE_URL || 'http://localhost:8090';
 
-test('прямой выбор программы → заявка → кабинет с движением заявки', async ({ page }) => {
+test('прямой выбор программы → визард заявки → трекер', async ({ page }) => {
   await page.goto(BASE);
   await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
   await page.goto(BASE);
 
-  // Быстрый вход через eGov (получаем токен).
+  // Вход через eGov (подача требует авторизации, как в банке).
   await page.locator('.btn-login').first().click();
   await page.locator('#sso-egov').click();
   await expect(page.locator('.user-chip')).toBeVisible({ timeout: 8000 });
 
-  // Выбрать первую программу прямо с главной → модалка → подать заявку (без квиза).
+  // Выбрать первую программу прямо с главной → модалка → подать заявку.
   await page.locator('.prog-tile').first().click();
   await page.locator('#prog-modal .pm-actions button.btn-primary').click();
 
-  // Форма контактов: профиль уже подставлен и показан подтверждением.
-  // Раскрываем поля кнопкой «Изменить» и правим контакты, затем отправляем.
-  await expect(page.locator('#submit-btn')).toBeVisible({ timeout: 5000 });
-  await page.locator('#callback-container').getByRole('button', { name: 'Изменить' }).click();
-  await page.locator('[data-cb="name"]').fill('Бауыржан Сапаров');
-  await page.locator('[data-cb-phone]').fill('77011234567');
-  await page.locator('#submit-btn').click();
+  // Визард, шаг «Параметры».
+  await expect(page.getByText('Заявка на кредит')).toBeVisible({ timeout: 5000 });
+  await page.locator('#wiz-amount').fill('5000000');
+  await page.locator('#wiz-purpose').fill('Покупка скота');
+  await page.locator('#wiz-next').click();
 
-  // Успех с реальным номером.
-  await expect(page.getByText(/AKK-\d{4}-\d{6}/)).toBeVisible({ timeout: 8000 });
+  // Шаг «Заявитель» — данные из госбаз, продолжаем.
+  await expect(page.getByText('подтверждены через eGov', { exact: false })).toBeVisible({ timeout: 4000 });
+  await page.locator('#wiz-next').click();
 
-  // Кабинет: заявка + лента статусов. Скоуп на первую (свежую) карточку — у демо-клиента
-  // eGov может быть много заявок от прошлых прогонов, поэтому работаем строго с .first().
-  await page.getByText('Открыть личный кабинет', { exact: false }).click();
-  await expect(page.locator('#cab-apps')).toContainText('AKK-', { timeout: 5000 });
-  const card = page.locator('.app-card').first();
-  // Свежая заявка стоит на первом этапе «Регистрация заявки».
-  await expect(card.locator('.stage-current')).toContainText('Регистрация заявки');
+  // Шаг «Согласия» — без галочек дальше нельзя.
+  await page.locator('#wiz-next').click();
+  await expect(page.locator('#wiz-err')).toContainText('согласия');
+  await page.locator('#wiz-c-pd').check();
+  await page.locator('#wiz-c-pkb').check();
+  await page.locator('#wiz-c-gov').check();
+  await page.locator('#wiz-next').click();
 
-  // Демо-управление: «Продвинуть этап» двигает текущий этап на «Новая заявка».
-  await card.getByRole('button', { name: 'Продвинуть этап →' }).click();
-  await expect(page.locator('.app-card').first().locator('.stage-current'))
-    .toContainText('Новая заявка', { timeout: 5000 });
+  // Шаг «Подтверждение по SMS» — код подставляется (демо).
+  await page.getByText('Отправить код по SMS', { exact: false }).click();
+  await page.locator('#wiz-otp').waitFor({ timeout: 4000 });
+  await page.locator('#wiz-next').click();
+
+  // Шаг «Готово» — номер заявки.
+  await expect(page.getByText('Заявка подана', { exact: false })).toBeVisible({ timeout: 6000 });
+  await expect(page.getByText(/AKK-\d{4}-\d{6}/)).toBeVisible();
+
+  // Открыть заявку → страница-трекер с движением.
+  await page.getByText('Открыть заявку', { exact: false }).click();
+  await expect(page.locator('#application-container .appx-header')).toBeVisible({ timeout: 6000 });
+  await expect(page.locator('#application-container')).toContainText('Движение заявки');
 });

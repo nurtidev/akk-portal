@@ -342,16 +342,17 @@ test.describe('Стресс-тест (Fajr-lite)', () => {
 });
 
 test.describe('Форма обратной связи', () => {
+  // Форма обратной связи теперь живёт на пути «консультации без программы»
+  // (подача по программе ушла в визард). Идём в тупик подбора → консультация.
   async function goToCallback(page) {
     await page.goto('/');
     await page.click('button:has-text("Начать подбор")');
     await page.click('.quiz-opt:has-text("Микрокредит, стартап")');
     await page.click('.quiz-opt:has-text("Услуги, торговля, прочее")');
     await page.click('.quiz-opt:has-text("Только открываюсь")');
-    await page.click('.quiz-opt:has-text("Село")');
-    await page.click('.quiz-opt:has-text("До 20 млн")');
-    await page.locator('.result-card').filter({ hasText: 'Іскер' }).first()
-      .locator('button:has-text("Подать заявку")').click();
+    await page.click('.quiz-opt:has-text("Областной центр")');
+    await page.click('.quiz-opt:has-text("100 – 500 млн")');
+    await page.click('button:has-text("Получить консультацию менеджера")');
   }
 
   test('блок «удобное время» убран, есть подсказка про рабочее время', async ({ page }) => {
@@ -414,12 +415,22 @@ test.describe('Тупик подбора — индивидуальная кон
   });
 
   test('консультация без программы → форма → отправка → «Заявка принята»', async ({ page }) => {
+    // В backend-режиме отправка требует авторизации — входим через eGov.
+    await page.goto('/');
+    await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+    await page.goto('/');
+    await page.locator('.btn-login').first().click();
+    await page.locator('#sso-egov').click();
+    await expect(page.locator('.user-chip')).toBeVisible({ timeout: 8000 });
+
     await reachDeadEnd(page);
     await page.click('button:has-text("Получить консультацию менеджера")');
 
     // Форма открывается без выбранной программы — обобщённый блок вместо названия.
     await expect(page.locator('.callback-summary-t')).toContainText('Индивидуальная консультация');
 
+    // Профиль подставлен (вход) → раскрываем поля и правим контакты.
+    await page.locator('#callback-container').getByRole('button', { name: 'Изменить' }).click();
     await page.fill('input[data-cb="name"]', 'Бауыржан');
     const phone = page.locator('input[data-cb-phone]');
     await phone.focus();

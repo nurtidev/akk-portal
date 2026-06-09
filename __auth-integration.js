@@ -373,8 +373,14 @@
   // finishLogin: после входа — если ждали отправку заявки, отправляем её
   // =========================================================================
   var origFinishLogin = window.finishLogin;
+  var pendingWizard = false;
   window.finishLogin = function (user) {
     origFinishLogin(user);
+    if (pendingWizard && accessToken()) {
+      pendingWizard = false;
+      setTimeout(function () { startWizard(); }, 150);
+      return;
+    }
     if (pendingSubmit && accessToken()) {
       pendingSubmit = false;
       setTimeout(function () { window.submitCallback(); }, 150);
@@ -1319,6 +1325,266 @@
   };
 
   // Восстановление сессии: если есть валидный токен, но state.user пуст — поднимем профиль.
+  // =========================================================================
+  // ВИЗАРД ПОДАЧИ ЗАЯВКИ (банковский флоу вместо формы обратной связи).
+  // Шаги: параметры → заявитель → согласия → подтверждение по SMS → готово.
+  // gov-данные «подтягиваются» автоматически; согласия подписываются SMS-кодом.
+  // =========================================================================
+  var WIZ_STEPS = ['Параметры', 'Заявитель', 'Согласия', 'Подтверждение', 'Готово'];
+  var wiz = null;
+  var wizStep = 0;
+  var WIZ_SOURCES = 'ГБД ФЛ, КГД, ЕНПФ, ПКБ, ИСЖИБ и земельного кадастра';
+
+  function initWiz() {
+    var pid = state.selectedProgram;
+    var prog = (typeof PROGRAMS !== 'undefined') && PROGRAMS.find(function (p) { return p.id === pid; });
+    var calc = (state.calc && state.calc[pid]) || {};
+    return {
+      programId: pid, program: prog || null,
+      amount: calc.amount || 0,
+      term: calc.term || 60,
+      purpose: prog ? (prog.category || prog.title) : '',
+      consents: { pd: false, pkb: false, gov: false },
+      otp: { code: '', sent: false },
+      created: null
+    };
+  }
+
+  // Перехват: заявка по программе → визард; консультация (без программы) → старая форма.
+  var origShowCallback = window.showCallback;
+  window.showCallback = function () {
+    if (state.selectedProgram) return startWizard();
+    return origShowCallback.apply(window, arguments);
+  };
+
+  function startWizard() {
+    if (!accessToken()) { pendingWizard = true; openAuth('login'); return; }
+    wiz = initWiz();
+    wizStep = 0;
+    if (typeof showSection === 'function') showSection('callback-section');
+    // фокусируемся на заявке — прячем маркетинговый лендинг (как в банке)
+    LANDING_IDS.forEach(function (id) { setHidden(id, true); });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    renderWizard();
+  }
+  // Выход из визарда обратно к программам (восстанавливаем лендинг).
+  window.akkWizExit = function () {
+    setHidden('callback-section', true);
+    LANDING_IDS.forEach(function (id) { setHidden(id, false); });
+    var p = document.getElementById('programs');
+    if (p) p.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  function wizProgressHtml() {
+    return '<div style="display:flex;gap:6px;margin:0 0 20px;">' +
+      WIZ_STEPS.map(function (s, i) {
+        var on = i <= wizStep;
+        return '<div style="flex:1;text-align:center;">' +
+          '<div style="height:4px;border-radius:2px;background:' + (on ? 'var(--primary,#2b8a3e)' : '#e3e8e5') + ';"></div>' +
+          '<div style="font-size:10.5px;margin-top:5px;color:' + (i === wizStep ? 'var(--primary,#2b8a3e)' : '#9aa6a0') + ';font-weight:' + (i === wizStep ? '700' : '500') + ';">' + s + '</div></div>';
+      }).join('') + '</div>';
+  }
+
+  function wizShell(bodyHtml) {
+    var host = document.getElementById('callback-container');
+    if (!host) return;
+    var prog = wiz.program;
+    host.innerHTML =
+      '<button class="muted-link" onclick="akkWizExit()" style="margin-bottom:14px;">← К программам</button>' +
+      '<div class="callback-wrap fade-in" style="max-width:560px;">' +
+        '<div class="section-eyebrow" style="margin-bottom:6px;">Заявка на кредит</div>' +
+        '<h2 class="stress-title" style="margin:0 0 4px;">' + escHtml(prog ? prog.title : 'Заявка') + '</h2>' +
+        (prog && prog.category ? '<p class="stress-sub" style="margin:0 0 16px;">' + escHtml(prog.category) + '</p>' : '<div style="height:8px;"></div>') +
+        wizProgressHtml() +
+        '<div id="wiz-err" class="auth-err" style="margin-bottom:10px;"></div>' +
+        bodyHtml +
+      '</div>';
+  }
+  function wizError(msg) { var e = document.getElementById('wiz-err'); if (e) e.textContent = msg || ''; }
+  function wizNav(nextLabel, opts) {
+    opts = opts || {};
+    return '<div style="display:flex;gap:10px;margin-top:22px;">' +
+      (wizStep > 0 && !opts.noBack ? '<button class="auth-btn auth-btn-ghost" style="flex:0 0 auto;" onclick="akkWizBack()">Назад</button>' : '') +
+      (opts.hideNext ? '' : '<button class="btn-submit" id="wiz-next" style="flex:1;margin:0;" onclick="akkWizNext()">' + (nextLabel || 'Далее') + '</button>') +
+      '</div>';
+  }
+
+  function renderWizard() {
+    if (!wiz) wiz = initWiz();
+    if (wizStep === 1) return wizApplicant();
+    if (wizStep === 2) return wizConsents();
+    if (wizStep === 3) return wizSms();
+    if (wizStep === 4) return wizDone();
+    return wizParams();
+  }
+
+  // Шаг 1 — параметры займа
+  function wizParams() {
+    var terms = [12, 24, 36, 60, 84, 120];
+    wizShell(
+      '<div class="field"><label>Сумма займа, ₸</label>' +
+        '<input class="text-input" id="wiz-amount" inputmode="numeric" value="' + (wiz.amount ? Number(wiz.amount).toLocaleString('ru-RU') : '') + '" placeholder="например, 5 000 000"></div>' +
+      '<div class="field"><label>Срок, мес.</label>' +
+        '<select class="text-input" id="wiz-term">' + terms.map(function (t) {
+          return '<option value="' + t + '"' + (t === wiz.term ? ' selected' : '') + '>' + t + ' мес. (' + (t / 12) + ' г.)</option>';
+        }).join('') + '</select></div>' +
+      '<div class="field"><label>Цель кредитования</label>' +
+        '<input class="text-input" id="wiz-purpose" value="' + escHtml(wiz.purpose) + '" placeholder="на что направите средства"></div>' +
+      wizNav('Далее')
+    );
+    var amt = document.getElementById('wiz-amount');
+    if (amt) amt.addEventListener('input', function () {
+      var d = onlyDigits(amt.value); amt.value = d ? Number(d).toLocaleString('ru-RU') : '';
+    });
+  }
+
+  // Шаг 2 — заявитель (данные из госбаз)
+  function wizApplicant() {
+    var u = state.user || {};
+    var g = govDataFor(u);
+    function row(label, val, chip) {
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f0f3f1;">' +
+        '<span style="color:#8a948f;font-size:12.5px;">' + label + '</span>' +
+        '<span style="display:flex;align-items:center;gap:8px;text-align:right;"><b style="font-weight:600;font-size:13px;">' + escHtml(val) + '</b>' + (chip || '') + '</span></div>';
+    }
+    wizShell(
+      '<p class="stress-sub" style="margin:0 0 14px;">Данные заявителя подтянуты автоматически и подтверждены через eGov.</p>' +
+      '<div style="border:1px solid #e6ebe8;border-radius:12px;padding:6px 14px;background:#fff;">' +
+        row('ФИО', g.identity.fio, srcChip('ГБД ФЛ', '#1c6fd6')) +
+        row('ИИН', g.identity.iin, '') +
+        row('Дата рождения', g.identity.birth, '') +
+        row('Адрес', g.identity.address, '') +
+        row('Телефон', u.phone ? formatPhone(onlyDigits(u.phone)) : '—', srcChip('БМГ', '#0c8577')) +
+      '</div>' +
+      wizNav('Далее')
+    );
+  }
+
+  // Шаг 3 — согласия
+  function wizConsents() {
+    function c(key, title, why) {
+      return '<label style="display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #f0f3f1;cursor:pointer;">' +
+        '<input type="checkbox" id="wiz-c-' + key + '"' + (wiz.consents[key] ? ' checked' : '') + ' onchange="akkWizConsent(\'' + key + '\',this.checked)" style="margin-top:3px;width:18px;height:18px;flex:0 0 18px;">' +
+        '<span><span style="font-size:13.5px;font-weight:600;color:#14211b;">' + title + '</span>' +
+        '<span style="display:block;font-size:12px;color:#8a948f;margin-top:2px;">' + why + '</span></span></label>';
+    }
+    wizShell(
+      '<p class="stress-sub" style="margin:0 0 6px;">Для рассмотрения заявки нужны ваши согласия:</p>' +
+      '<div style="border:1px solid #e6ebe8;border-radius:12px;padding:2px 14px;background:#fff;">' +
+        c('pd', 'Согласие на обработку персональных данных', 'Необходимо для регистрации и рассмотрения заявки в АКК.') +
+        c('pkb', 'Согласие на запрос кредитной истории', 'Запрос в ПКБ/ГКБ для оценки кредитоспособности.') +
+        c('gov', 'Согласие на получение сведений из госбаз', 'ГБД ФЛ, КГД, ЕНПФ, ИСЖИБ, земельный кадастр — для проверки данных и активов.') +
+      '</div>' +
+      wizNav('Далее')
+    );
+  }
+
+  // Шаг 4 — подтверждение по SMS
+  function wizSms() {
+    var u = state.user || {};
+    var phone = u.phone ? formatPhone(onlyDigits(u.phone)) : 'привязанный номер';
+    var info = '<div style="border:1px solid #dbe7f6;background:#f4f8fe;border-radius:12px;padding:13px 15px;font-size:12.5px;color:#2b4257;line-height:1.5;">' +
+      'Запрашиваем ваши сведения из <b>' + WIZ_SOURCES + '</b> для рассмотрения заявки по программе «' + escHtml(wiz.program ? wiz.program.title : '') + '». ' +
+      'Подтвердите согласие кодом из SMS на <b>' + escHtml(phone) + '</b>.</div>';
+    if (!wiz.otp.sent) {
+      wizShell(info + '<div style="margin-top:16px;"></div>' +
+        '<button class="btn-submit" style="margin:0;" onclick="akkWizSendSms(this)">Отправить код по SMS</button>' +
+        '<div style="margin-top:10px;"><button class="auth-btn auth-btn-ghost" onclick="akkWizBack()">Назад</button></div>');
+      return;
+    }
+    wizShell(info +
+      '<div class="field" style="margin-top:16px;"><label>Код из SMS</label>' +
+        '<input class="text-input" id="wiz-otp" inputmode="numeric" maxlength="6" placeholder="••••••" style="letter-spacing:8px;text-align:center;font-size:20px;font-weight:700;"></div>' +
+      '<div class="demo-badge" style="margin:0 0 6px;">демо · код подставлен автоматически</div>' +
+      wizNav('Подтвердить и подать заявку'));
+    var el = document.getElementById('wiz-otp');
+    if (el) { el.value = wiz.otp.code; el.addEventListener('input', function () { el.value = onlyDigits(el.value).slice(0, 6); }); }
+  }
+
+  // Шаг 5 — готово
+  function wizDone() {
+    var c = wiz.created || {};
+    wizShell(
+      '<div style="text-align:center;padding:6px 0 2px;">' +
+        '<div class="success-icon" style="margin:0 auto 10px;">✓</div>' +
+        '<h2 class="success-title" style="margin:0 0 4px;">Заявка подана</h2>' +
+        '<div class="success-num" style="margin-bottom:8px;">Номер заявки: <strong>' + escHtml(c.number || '—') + '</strong></div>' +
+        '<p class="auth-sub" style="max-width:420px;margin:0 auto 4px;">Данные получены из госбаз, согласия подписаны по SMS. Отслеживайте движение заявки по этапам в личном кабинете.</p>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;margin-top:18px;">' +
+        '<button class="btn-submit" style="flex:1;margin:0;" onclick="akkWizOpenApp()">Открыть заявку →</button>' +
+        '<button class="auth-btn auth-btn-ghost" style="flex:0 0 auto;" onclick="openCabinet(\'apps\')">В кабинет</button>' +
+      '</div>'
+    );
+  }
+
+  window.akkWizBack = function () { if (wizStep > 0) { wizStep--; renderWizard(); } };
+  window.akkWizConsent = function (key, val) { if (wiz) wiz.consents[key] = !!val; };
+  window.akkWizSendSms = function (btn) {
+    if (btn) { btn.disabled = true; btn.textContent = 'Отправка…'; }
+    wiz.otp.code = String(Math.floor(100000 + Math.random() * 900000));
+    wiz.otp.sent = true;
+    renderWizard();
+  };
+  window.akkWizOpenApp = function () {
+    var uid = wiz.created && wiz.created.uid;
+    if (!uid) return openCabinet('apps');
+    loadCabApps(function () { openApplication(uid); });
+  };
+  window.akkWizNext = function () {
+    if (!wiz) return;
+    if (wizStep === 0) {
+      var amt = parseInt(onlyDigits((document.getElementById('wiz-amount') || {}).value || ''), 10) || 0;
+      wiz.amount = amt;
+      wiz.term = parseInt((document.getElementById('wiz-term') || {}).value || '60', 10) || 60;
+      wiz.purpose = ((document.getElementById('wiz-purpose') || {}).value || wiz.purpose || '').trim();
+      if (wiz.amount <= 0) { wizError('Укажите сумму займа.'); return; }
+      wizStep = 1; renderWizard(); return;
+    }
+    if (wizStep === 1) { wizStep = 2; renderWizard(); return; }
+    if (wizStep === 2) {
+      if (!(wiz.consents.pd && wiz.consents.pkb && wiz.consents.gov)) { wizError('Отметьте все согласия, чтобы продолжить.'); return; }
+      wizStep = 3; renderWizard(); return;
+    }
+    if (wizStep === 3) {
+      var entered = onlyDigits((document.getElementById('wiz-otp') || {}).value || '');
+      if (!wiz.otp.sent) { wizError('Сначала отправьте код.'); return; }
+      if (entered.length !== 6 || entered !== wiz.otp.code) { wizError('Неверный код из SMS.'); return; }
+      wizCreateApplication();
+      return;
+    }
+  };
+
+  function wizCreateApplication() {
+    var btn = document.getElementById('wiz-next');
+    if (btn) { btn.disabled = true; btn.textContent = 'Создаём заявку…'; }
+    var u = state.user || {};
+    var payload = {
+      requested_amount: wiz.amount,
+      loan_purpose: wiz.purpose || (wiz.program ? wiz.program.category : ''),
+      program_id: wiz.programId || '',
+      onboarding: {
+        params: { amount: wiz.amount, term_months: wiz.term, purpose: wiz.purpose },
+        applicant: { name: u.name, iin: u.iin, phone: u.phone },
+        consents: { personal_data: true, credit_bureau: true, gov_sources: true, signed_via: 'sms' },
+        program: wiz.program ? { id: wiz.program.id, title: wiz.program.title, category: wiz.program.category } : null,
+        answers: state.answers || null
+      }
+    };
+    callCredit('/applications', { method: 'POST', auth: true, body: payload })
+      .then(function (r) {
+        if (r.status === 401) { pendingWizard = true; openAuth('login'); return; }
+        if (!r.ok) {
+          wizError(errText(r, 'Не удалось создать заявку.'));
+          if (btn) { btn.disabled = false; btn.textContent = 'Подтвердить и подать заявку'; }
+          return;
+        }
+        wiz.created = r.data;
+        if (r.data && r.data.number) state.leadNumber = r.data.number;
+        wizStep = 4; renderWizard();
+      });
+  }
+
   (function restore() {
     var tok = accessToken();
     if (tok && !state.user) {
