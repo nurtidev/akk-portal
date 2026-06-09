@@ -32,8 +32,9 @@ type Config struct {
 	OTPRateLimit time.Duration // минимальный интервал между отправками
 	OTPMaxPerHr  int
 
-	// OTPDebugReturn=true → код возвращается в теле ответа (только для локальной отладки).
-	OTPDebugReturn bool
+	// DemoMode=true → код возвращается в теле ответа (demoCode), фронт подставляет его
+	// автоматически. Для демо без реальной SMS. Когда заработает боевая SMS — выставить false.
+	DemoMode bool
 }
 
 // Load собирает конфиг из окружения с разумными дефолтами для локального запуска.
@@ -57,7 +58,7 @@ func Load() Config {
 		OTPRateLimit: time.Duration(envInt("OTP_RATE_LIMIT_SECONDS", 60)) * time.Second,
 		OTPMaxPerHr:  envInt("OTP_MAX_PER_HOUR", 5),
 
-		OTPDebugReturn: envBool("OTP_DEBUG_RETURN", false),
+		DemoMode: envBool("DEMO_MODE", true),
 	}
 }
 

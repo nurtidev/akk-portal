@@ -134,7 +134,7 @@
         .then(function (r) {
           if (r.status === 404) throw new Error('Пользователь с таким ИИН не найден. Пройдите регистрацию.');
           if (!r.ok) throw new Error(errText(r, 'Не удалось отправить SMS (код ' + r.status + ').'));
-          renderOtpStep({ mode: 'login', iin: iinV, phone: '' });
+          renderOtpStep({ mode: 'login', iin: iinV, phone: '', demoCode: r.data && r.data.demoCode });
         })
         .catch(function (e) {
           err.textContent = e.message || 'Ошибка сети.';
@@ -179,6 +179,7 @@
       callAuth('/CheckBmgAndSendSmsForRegister', { body: { iin: iinV, phone: '+' + phoneV } })
         .then(function (r) {
           if (!r.ok) throw new Error(errText(r, 'Не удалось отправить SMS (код ' + r.status + ').'));
+          ctx.demoCode = r.data && r.data.demoCode;
           renderOtpStep(ctx);
         })
         .catch(function (e) {
@@ -198,6 +199,15 @@
       v += el ? onlyDigits(el.value).slice(-1) : '';
     }
     return v;
+  }
+  // Демо-режим: подставить код в ячейки.
+  function fillOtp(code) {
+    var d = String(code || '').replace(/\D/g, '').slice(0, 6);
+    if (d.length !== 6) return;
+    for (var i = 0; i < 6; i++) {
+      var el = document.getElementById('otp-' + i);
+      if (el) el.value = d[i] || '';
+    }
   }
   function wireOtpCells() {
     var cells = [];
@@ -249,6 +259,7 @@
       resendEndpoint(ctx)
         .then(function (r) {
           if (!r.ok) throw new Error(errText(r, 'Не удалось отправить SMS.'));
+          if (r.data && r.data.demoCode) fillOtp(r.data.demoCode);
           startResendTimer(ctx);
         })
         .catch(function (e) { err.textContent = e.message || 'Ошибка.'; });
@@ -259,16 +270,20 @@
     var body = document.getElementById('auth-body');
     if (!body) return;
     var where = maskPhone(ctx.phone) || 'привязанный к ИИН номер';
+    var dc = (ctx.demoCode && /^\d{6}$/.test(String(ctx.demoCode))) ? String(ctx.demoCode) : '';
     var cells = '';
     for (var i = 0; i < 6; i++) {
-      cells += '<input id="otp-' + i + '" class="auth-input" inputmode="numeric" maxlength="1" ' +
+      cells += '<input id="otp-' + i + '" class="auth-input" inputmode="numeric" maxlength="1" value="' + (dc ? dc[i] : '') + '" ' +
         'style="width:46px;height:56px;text-align:center;font-size:24px;font-weight:600;padding:0;" />';
     }
     body.innerHTML =
       '<div style="max-width:420px;margin:0 auto;">' +
         '<h2 class="auth-head">Введите код из SMS</h2>' +
-        '<p class="auth-sub">Мы отправили 6-значный код на <strong>' + where + '</strong>.</p>' +
+        '<p class="auth-sub">' + (dc
+          ? 'Демо-режим: SMS не отправляется — код подставлен автоматически.'
+          : ('Мы отправили 6-значный код на <strong>' + where + '</strong>.')) + '</p>' +
         '<div style="display:flex;gap:8px;justify-content:space-between;margin:18px 0 6px;">' + cells + '</div>' +
+        (dc ? '<div class="demo-badge" style="margin:0 0 8px;">демо · код вставлен, нажмите «Подтвердить»</div>' : '') +
         '<div class="auth-err" id="auth-err"></div>' +
         '<a id="otp-resend" class="auth-forgot" style="display:inline-block;margin:6px 0 14px;cursor:pointer;">Отправить код повторно</a>' +
         '<div class="auth-actions">' +

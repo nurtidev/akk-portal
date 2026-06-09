@@ -39,7 +39,7 @@ func main() {
 	otp := auth.NewOTP(db, sender, cfg.OTPTTL, cfg.OTPRateLimit, cfg.OTPMaxPerHr)
 	issuer := auth.NewIssuer(cfg.JWTSecret, cfg.JWTIssuer, cfg.AccessTTL)
 
-	authH := auth.NewHandler(db, otp, issuer, cfg.OTPDebugReturn, logger)
+	authH := auth.NewHandler(db, otp, issuer, cfg.DemoMode, logger)
 	creditH := credit.NewHandler(db, logger)
 
 	e := echo.New()

@@ -16,19 +16,19 @@ import (
 
 // Handler обслуживает эндпоинты /api/v1/auth/Account/*.
 type Handler struct {
-	store       *store.Store
-	otp         *OTP
-	issuer      *Issuer
-	logger      *slog.Logger
-	debugReturn bool // вернуть код в ответе (только для локальной отладки)
+	store    *store.Store
+	otp      *OTP
+	issuer   *Issuer
+	logger   *slog.Logger
+	demoMode bool // вернуть код в ответе (demoCode) — демо без реальной SMS
 }
 
 // NewHandler создаёт auth-хендлер.
-func NewHandler(s *store.Store, otp *OTP, issuer *Issuer, debugReturn bool, logger *slog.Logger) *Handler {
+func NewHandler(s *store.Store, otp *OTP, issuer *Issuer, demoMode bool, logger *slog.Logger) *Handler {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Handler{store: s, otp: otp, issuer: issuer, debugReturn: debugReturn, logger: logger}
+	return &Handler{store: s, otp: otp, issuer: issuer, demoMode: demoMode, logger: logger}
 }
 
 // Register вешает маршруты на группу /Account.
@@ -120,8 +120,10 @@ func (h *Handler) sendCode(c echo.Context, iin, phone, purpose string) error {
 		return h.serverError(c, err)
 	}
 	resp := map[string]any{"sent": true}
-	if h.debugReturn {
-		resp["debugCode"] = code // ТОЛЬКО для локальной отладки (OTP_DEBUG_RETURN=true)
+	if h.demoMode {
+		// Демо-режим: фронт сам подставит код в ячейки (без реальной SMS).
+		resp["demoCode"] = code
+		resp["debugCode"] = code // алиас для совместимости с локальными тестами
 	}
 	return c.JSON(http.StatusOK, resp)
 }
