@@ -4310,5 +4310,18 @@ track('page_loaded', { url: location.pathname });
 })();
 </script>
 
+<!-- Реальный бэкенд (akk-railway/backend): SMS-авторизация + подача заявки.
+     config.js отдаётся nginx из env AKK_BACKEND_URL (в проде) или статикой (локально, пусто).
+     Если backend URL не задан — интеграция не активируется, остаётся мок-прототип. -->
+<script src="/config.js"></script>
+<script>
+  if (window.AKK_BACKEND_URL) {
+    var __b = String(window.AKK_BACKEND_URL).replace(/\/+$/, '');
+    window.AKK_API_BASE = __b + '/api/v1/auth';
+    window.AKK_CREDIT_BASE = __b + '/api/v1/credit';
+  }
+</script>
+<script src="/__auth-integration.js"></script>
+
 </body>
 </html>

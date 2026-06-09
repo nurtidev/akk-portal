@@ -1,0 +1,309 @@
+package auth
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"log/slog"
+	"net/http"
+	"strings"
+
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+
+	"akk-railway-backend/internal/store"
+)
+
+// Handler обслуживает эндпоинты /api/v1/auth/Account/*.
+type Handler struct {
+	store       *store.Store
+	otp         *OTP
+	issuer      *Issuer
+	logger      *slog.Logger
+	debugReturn bool // вернуть код в ответе (только для локальной отладки)
+}
+
+// NewHandler создаёт auth-хендлер.
+func NewHandler(s *store.Store, otp *OTP, issuer *Issuer, debugReturn bool, logger *slog.Logger) *Handler {
+	if logger == nil {
+		logger = slog.Default()
+	}
+	return &Handler{store: s, otp: otp, issuer: issuer, debugReturn: debugReturn, logger: logger}
+}
+
+// Register вешает маршруты на группу /Account.
+func (h *Handler) Register(g *echo.Group) {
+	g.POST("/CheckBmgAndSendSmsForRegister", h.sendRegisterSMS)
+	g.POST("/RequestSms", h.requestLoginSMS)
+	g.POST("/VerifySmsCode", h.verifySMS)
+	g.POST("/smsRegister", h.smsRegister)
+	g.POST("/login", h.passwordLoginDisabled)
+	g.GET("/me", h.me, h.Middleware)
+}
+
+// --- DTO -----------------------------------------------------------------
+
+type sendRegisterReq struct {
+	IIN   string `json:"iin"`
+	Phone string `json:"phone"`
+}
+
+type requestSmsReq struct {
+	IIN         string `json:"iin"`
+	PhoneNumber string `json:"phoneNumber"`
+}
+
+type verifyReq struct {
+	IIN     string `json:"iin"`
+	Code    string `json:"code"`
+	Purpose string `json:"purpose"`
+}
+
+type registerReq struct {
+	IIN         string `json:"iin"`
+	LastName    string `json:"lastName"`
+	FirstName   string `json:"firstName"`
+	MiddleName  string `json:"middleName"`
+	PhoneNumber string `json:"phoneNumber"`
+}
+
+// --- Handlers ------------------------------------------------------------
+
+// sendRegisterSMS: шаг 1 регистрации. БМГ-проверку в прототипе пропускаем (mock).
+func (h *Handler) sendRegisterSMS(c echo.Context) error {
+	var req sendRegisterReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(c, "некорректный запрос")
+	}
+	iin := onlyDigits(req.IIN)
+	phone := normalizePhone(req.Phone)
+	if len(iin) != 12 {
+		return badRequest(c, "ИИН должен состоять из 12 цифр")
+	}
+	if len(onlyDigits(phone)) != 11 {
+		return badRequest(c, "некорректный номер телефона")
+	}
+	return h.sendCode(c, iin, phone, PurposeRegistration)
+}
+
+// requestLoginSMS: шаг 1 входа. Шлём код на телефон зарегистрированного клиента.
+func (h *Handler) requestLoginSMS(c echo.Context) error {
+	var req requestSmsReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(c, "некорректный запрос")
+	}
+	iin := onlyDigits(req.IIN)
+	if len(iin) != 12 {
+		return badRequest(c, "ИИН должен состоять из 12 цифр")
+	}
+	client, err := h.store.GetClientByIINHash(c.Request().Context(), hashIIN(iin))
+	if errors.Is(err, store.ErrNotFound) {
+		return c.JSON(http.StatusNotFound, errBody("Пользователь с таким ИИН не зарегистрирован"))
+	}
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	// Телефон берём из профиля (а не из запроса) — нельзя слать код на чужой номер.
+	phone := client.Phone
+	if phone == "" {
+		phone = normalizePhone(req.PhoneNumber)
+	}
+	return h.sendCode(c, iin, phone, PurposeLogin)
+}
+
+func (h *Handler) sendCode(c echo.Context, iin, phone, purpose string) error {
+	code, err := h.otp.Send(c.Request().Context(), iin, phone, purpose)
+	switch {
+	case errors.Is(err, ErrRateLimit), errors.Is(err, ErrTooSoon):
+		return c.JSON(http.StatusTooManyRequests, errBody(err.Error()))
+	case err != nil:
+		return h.serverError(c, err)
+	}
+	resp := map[string]any{"sent": true}
+	if h.debugReturn {
+		resp["debugCode"] = code // ТОЛЬКО для локальной отладки (OTP_DEBUG_RETURN=true)
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// verifySMS проверяет код. Для purpose=login дополнительно возвращает токены.
+func (h *Handler) verifySMS(c echo.Context) error {
+	var req verifyReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(c, "некорректный запрос")
+	}
+	iin := onlyDigits(req.IIN)
+	purpose := req.Purpose
+	if purpose == "" {
+		purpose = PurposeRegistration
+	}
+
+	verified, attemptsLeft, err := h.otp.Verify(c.Request().Context(), iin, onlyDigits(req.Code), purpose)
+	if err != nil && !errors.Is(err, ErrInvalidCode) {
+		// Истёк / нет кода / исчерпаны попытки — отдаём 200 с verified=false и сообщением,
+		// чтобы фронт показал текст (он читает r.data.verified / attemptsLeft).
+		return c.JSON(http.StatusOK, map[string]any{
+			"verified": false, "attemptsLeft": attemptsLeft, "message": err.Error(),
+		})
+	}
+
+	resp := map[string]any{"verified": verified, "attemptsLeft": attemptsLeft}
+	if !verified {
+		resp["message"] = "Неверный код"
+		return c.JSON(http.StatusOK, resp)
+	}
+
+	// Успешный вход по SMS — сразу выдаём токены.
+	if purpose == PurposeLogin {
+		client, err := h.store.GetClientByIINHash(c.Request().Context(), hashIIN(iin))
+		if err != nil {
+			return h.serverError(c, err)
+		}
+		tokens, err := h.issuer.Issue(client)
+		if err != nil {
+			return h.serverError(c, err)
+		}
+		resp["accessToken"] = tokens.AccessToken
+		resp["refreshToken"] = tokens.RefreshToken
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// smsRegister завершает регистрацию: создаёт клиента (после подтверждённого SMS) и выдаёт токены.
+func (h *Handler) smsRegister(c echo.Context) error {
+	var req registerReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(c, "некорректный запрос")
+	}
+	iin := onlyDigits(req.IIN)
+	phone := normalizePhone(req.PhoneNumber)
+	if len(iin) != 12 {
+		return badRequest(c, "ИИН должен состоять из 12 цифр")
+	}
+	if strings.TrimSpace(req.LastName) == "" || strings.TrimSpace(req.FirstName) == "" {
+		return badRequest(c, "укажите фамилию и имя")
+	}
+
+	// Регистрация возможна только после подтверждённого кода.
+	ok, err := h.otp.HasVerified(c.Request().Context(), iin, PurposeRegistration)
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	if !ok {
+		return c.JSON(http.StatusBadRequest, errBody(ErrNotVerified.Error()))
+	}
+
+	client, err := h.store.UpsertClient(c.Request().Context(), hashIIN(iin), store.Client{
+		IIN:        iin,
+		LastName:   strings.TrimSpace(req.LastName),
+		FirstName:  strings.TrimSpace(req.FirstName),
+		MiddleName: strings.TrimSpace(req.MiddleName),
+		Phone:      phone,
+	})
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	tokens, err := h.issuer.Issue(client)
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	h.logger.Info("auth: клиент зарегистрирован", "uid", client.UID, "iin", maskIIN(iin))
+	return c.JSON(http.StatusOK, map[string]any{
+		"uid":          client.UID.String(),
+		"accessToken":  tokens.AccessToken,
+		"refreshToken": tokens.RefreshToken,
+	})
+}
+
+// passwordLoginDisabled: в прототипе вход только по SMS.
+func (h *Handler) passwordLoginDisabled(c echo.Context) error {
+	return c.JSON(http.StatusBadRequest, errBody("Вход по паролю отключён — используйте вход по SMS"))
+}
+
+// me возвращает профиль текущего пользователя (для кабинета).
+func (h *Handler) me(c echo.Context) error {
+	client := ClientFromContext(c)
+	return c.JSON(http.StatusOK, map[string]any{
+		"uid":   client.UID.String(),
+		"iin":   client.IIN,
+		"name":  client.FullName(),
+		"phone": client.Phone,
+	})
+}
+
+// --- Middleware ----------------------------------------------------------
+
+const contextClientKey = "akkClient"
+
+// Middleware проверяет Bearer-токен и кладёт клиента в контекст.
+func (h *Handler) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		raw := c.Request().Header.Get("Authorization")
+		if !strings.HasPrefix(raw, "Bearer ") {
+			return c.JSON(http.StatusUnauthorized, errBody("требуется авторизация"))
+		}
+		claims, err := h.issuer.Parse(strings.TrimPrefix(raw, "Bearer "))
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, errBody("недействительный токен"))
+		}
+		uid, err := uuid.Parse(claims.Subject)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, errBody("недействительный токен"))
+		}
+		client, err := h.store.GetClientByUID(c.Request().Context(), uid)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, errBody("пользователь не найден"))
+		}
+		c.Set(contextClientKey, client)
+		return next(c)
+	}
+}
+
+// ClientFromContext достаёт клиента, положенного Middleware.
+func ClientFromContext(c echo.Context) store.Client {
+	if v, ok := c.Get(contextClientKey).(store.Client); ok {
+		return v
+	}
+	return store.Client{}
+}
+
+// --- Helpers -------------------------------------------------------------
+
+func (h *Handler) serverError(c echo.Context, err error) error {
+	h.logger.Error("auth: внутренняя ошибка", "err", err)
+	return c.JSON(http.StatusInternalServerError, errBody("внутренняя ошибка сервера"))
+}
+
+func badRequest(c echo.Context, msg string) error {
+	return c.JSON(http.StatusBadRequest, errBody(msg))
+}
+
+func errBody(msg string) map[string]any { return map[string]any{"message": msg} }
+
+func onlyDigits(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if r >= '0' && r <= '9' {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+// normalizePhone приводит номер к виду +7XXXXXXXXXX (11 цифр).
+func normalizePhone(s string) string {
+	d := onlyDigits(s)
+	if len(d) == 11 {
+		return "+" + d
+	}
+	if len(d) == 10 {
+		return "+7" + d
+	}
+	return "+" + d
+}
+
+// hashIIN — sha256-хэш ИИН для безопасного поиска (без хранения сырого ИИН в индексе).
+func hashIIN(iin string) string {
+	sum := sha256.Sum256([]byte(iin))
+	return hex.EncodeToString(sum[:])
+}
