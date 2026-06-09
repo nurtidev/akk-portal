@@ -1433,7 +1433,7 @@
       amount: calc.amount || 0,
       term: calc.term || 60,
       purpose: prog ? (prog.category || prog.title) : '',
-      consents: { pd: false, pkb: false, gov: false },
+      consents: { main: false },
       otp: { code: '', sent: false },
       created: null
     };
@@ -1474,9 +1474,46 @@
       }).join('') + '</div>';
   }
 
+  // Стили визарда: кастомный селект с зелёным шевроном, зелёные чекбоксы,
+  // аккуратная пара кнопок, блок «примерный платёж».
+  function ensureWizStyle() {
+    if (document.getElementById('akk-wiz-style')) return;
+    var st = document.createElement('style');
+    st.id = 'akk-wiz-style';
+    st.textContent =
+      ".wiz-select{width:100%;padding:12px 42px 12px 16px;background:var(--surface,#fff);border:1.5px solid var(--border,#e3e8e5);border-radius:10px;font-size:15px;color:var(--text,#14211b);font-family:inherit;appearance:none;-webkit-appearance:none;background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232b8a3e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\");}" +
+      '.wiz-select:focus{outline:none;border-color:var(--primary,#2b8a3e);}' +
+      '.wiz-check{width:20px;height:20px;flex:0 0 20px;margin-top:1px;accent-color:var(--primary,#2b8a3e);cursor:pointer;}' +
+      '.wiz-actions{display:flex;gap:10px;margin-top:22px;}' +
+      '.wiz-btn{height:50px;border-radius:11px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;border:1.5px solid transparent;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,border-color .15s,opacity .15s;}' +
+      '.wiz-btn-primary{flex:1;background:var(--primary,#2b8a3e);color:#fff;}' +
+      '.wiz-btn-primary:hover{background:var(--primary-2,#247035);}' +
+      '.wiz-btn-primary:disabled{opacity:.55;cursor:default;}' +
+      '.wiz-btn-ghost{flex:0 0 auto;padding:0 22px;background:#fff;border-color:var(--border,#dbe2dd);color:#3a463f;}' +
+      '.wiz-btn-ghost:hover{border-color:#9fc3ab;color:#14211b;}' +
+      '.wiz-pay{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #e6ebe8;border-radius:10px;padding:11px 14px;background:#fafdfb;}' +
+      '.wiz-pay-v{font-size:17px;font-weight:700;color:var(--primary,#2b8a3e);}';
+    document.head.appendChild(st);
+  }
+  function annuityMonthly(P, annualPct, n) {
+    if (!P || !n) return 0;
+    var r = (annualPct / 100) / 12;
+    if (r <= 0) return P / n;
+    return P * r / (1 - Math.pow(1 + r, -n));
+  }
+  function fmtRatePct(rate) { return String(rate).replace('.', ',') + '%'; }
+  function wizUpdatePayment() {
+    var el = document.getElementById('wiz-pay-v');
+    if (!el || !wiz.program || wiz.program.rate == null) return;
+    var amt = parseInt(onlyDigits((document.getElementById('wiz-amount') || {}).value || ''), 10) || 0;
+    var n = parseInt((document.getElementById('wiz-term') || {}).value || '0', 10) || 0;
+    el.textContent = (amt && n) ? ('≈ ' + fmtMoney(Math.round(annuityMonthly(amt, wiz.program.rate, n))) + ' / мес') : '—';
+  }
+
   function wizShell(bodyHtml) {
     var host = document.getElementById('callback-container');
     if (!host) return;
+    ensureWizStyle();
     var prog = wiz.program;
     host.innerHTML =
       '<button class="muted-link" onclick="akkWizExit()" style="margin-bottom:14px;">← К программам</button>' +
@@ -1492,9 +1529,9 @@
   function wizError(msg) { var e = document.getElementById('wiz-err'); if (e) e.textContent = msg || ''; }
   function wizNav(nextLabel, opts) {
     opts = opts || {};
-    return '<div style="display:flex;gap:10px;margin-top:22px;">' +
-      (wizStep > 0 && !opts.noBack ? '<button class="auth-btn auth-btn-ghost" style="flex:0 0 auto;" onclick="akkWizBack()">Назад</button>' : '') +
-      (opts.hideNext ? '' : '<button class="btn-submit" id="wiz-next" style="flex:1;margin:0;" onclick="akkWizNext()">' + (nextLabel || 'Далее') + '</button>') +
+    return '<div class="wiz-actions">' +
+      (wizStep > 0 && !opts.noBack ? '<button class="wiz-btn wiz-btn-ghost" onclick="akkWizBack()">← Назад</button>' : '') +
+      (opts.hideNext ? '' : '<button class="wiz-btn wiz-btn-primary" id="wiz-next" onclick="akkWizNext()">' + (nextLabel || 'Далее') + '</button>') +
       '</div>';
   }
 
@@ -1510,21 +1547,36 @@
   // Шаг 1 — параметры займа
   function wizParams() {
     var terms = [12, 24, 36, 60, 84, 120];
+    var purposes = ['Посевная и уборка', 'Покупка скота / биоактивов', 'Оборотные средства',
+      'Инвестиции и техника', 'Строительство / модернизация', 'Переработка продукции', 'Иное'];
+    if (wiz.purpose && purposes.indexOf(wiz.purpose) === -1) purposes.unshift(wiz.purpose);
+    var hasRate = wiz.program && wiz.program.rate != null;
     wizShell(
       '<div class="field"><label>Сумма займа, ₸</label>' +
         '<input class="text-input" id="wiz-amount" inputmode="numeric" value="' + (wiz.amount ? Number(wiz.amount).toLocaleString('ru-RU') : '') + '" placeholder="например, 5 000 000"></div>' +
       '<div class="field"><label>Срок, мес.</label>' +
-        '<select class="text-input" id="wiz-term">' + terms.map(function (t) {
+        '<select class="wiz-select" id="wiz-term">' + terms.map(function (t) {
           return '<option value="' + t + '"' + (t === wiz.term ? ' selected' : '') + '>' + t + ' мес. (' + (t / 12) + ' г.)</option>';
         }).join('') + '</select></div>' +
       '<div class="field"><label>Цель кредитования</label>' +
-        '<input class="text-input" id="wiz-purpose" value="' + escHtml(wiz.purpose) + '" placeholder="на что направите средства"></div>' +
+        '<select class="wiz-select" id="wiz-purpose">' + purposes.map(function (p) {
+          return '<option' + (p === wiz.purpose ? ' selected' : '') + '>' + escHtml(p) + '</option>';
+        }).join('') + '</select></div>' +
+      (hasRate
+        ? '<div class="field" style="margin-bottom:6px;"><label>Примерный ежемесячный платёж</label>' +
+          '<div class="wiz-pay"><span class="wiz-pay-v" id="wiz-pay-v">—</span>' +
+          '<span style="font-size:11.5px;color:#8a948f;text-align:right;">ставка ' + fmtRatePct(wiz.program.rate) + ' · аннуитет<br>ориентировочно</span></div></div>'
+        : '') +
       wizNav('Далее')
     );
     var amt = document.getElementById('wiz-amount');
     if (amt) amt.addEventListener('input', function () {
       var d = onlyDigits(amt.value); amt.value = d ? Number(d).toLocaleString('ru-RU') : '';
+      wizUpdatePayment();
     });
+    var term = document.getElementById('wiz-term');
+    if (term) term.addEventListener('change', wizUpdatePayment);
+    wizUpdatePayment();
   }
 
   // Шаг 2 — заявитель (данные из госбаз)
@@ -1551,19 +1603,17 @@
 
   // Шаг 3 — согласия
   function wizConsents() {
-    function c(key, title, why) {
-      return '<label style="display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #f0f3f1;cursor:pointer;">' +
-        '<input type="checkbox" id="wiz-c-' + key + '"' + (wiz.consents[key] ? ' checked' : '') + ' onchange="akkWizConsent(\'' + key + '\',this.checked)" style="margin-top:3px;width:18px;height:18px;flex:0 0 18px;">' +
-        '<span><span style="font-size:13.5px;font-weight:600;color:#14211b;">' + title + '</span>' +
-        '<span style="display:block;font-size:12px;color:#8a948f;margin-top:2px;">' + why + '</span></span></label>';
-    }
     wizShell(
-      '<p class="stress-sub" style="margin:0 0 6px;">Для рассмотрения заявки нужны ваши согласия:</p>' +
-      '<div style="border:1px solid #e6ebe8;border-radius:12px;padding:2px 14px;background:#fff;">' +
-        c('pd', 'Согласие на обработку персональных данных', 'Необходимо для регистрации и рассмотрения заявки в АКК.') +
-        c('pkb', 'Согласие на запрос кредитной истории', 'Запрос в ПКБ/ГКБ для оценки кредитоспособности.') +
-        c('gov', 'Согласие на получение сведений из госбаз', 'ГБД ФЛ, КГД, ЕНПФ, ИСЖИБ, земельный кадастр — для проверки данных и активов.') +
-      '</div>' +
+      '<p class="stress-sub" style="margin:0 0 12px;">Для рассмотрения заявки требуется ваше согласие:</p>' +
+      '<label style="display:flex;gap:12px;align-items:flex-start;border:1px solid #e6ebe8;border-radius:12px;padding:14px 16px;background:#fff;cursor:pointer;">' +
+        '<input type="checkbox" class="wiz-check" id="wiz-c-main"' + (wiz.consents.main ? ' checked' : '') + ' onchange="akkWizConsent(\'main\',this.checked)">' +
+        '<span><span style="font-size:14px;font-weight:700;color:#14211b;">Согласие на обработку персональных данных и получение сведений</span>' +
+        '<span style="display:block;font-size:12.5px;color:#8a948f;margin-top:5px;line-height:1.5;">' +
+          'Разрешаю АО «Аграрная кредитная корпорация» обрабатывать мои персональные данные и запрашивать сведения из ' +
+          'государственных информационных систем (ГБД ФЛ, КГД, ЕНПФ, ИСЖИБ, земельный кадастр) и кредитного бюро (ПКБ/ГКБ) ' +
+          'для рассмотрения настоящей заявки.</span></span>' +
+      '</label>' +
+      '<p class="auth-sub" style="font-size:11.5px;margin:10px 2px 0;color:#8a948f;">Согласие подтверждается одноразовым кодом из SMS на следующем шаге.</p>' +
       wizNav('Далее')
     );
   }
@@ -1632,7 +1682,7 @@
     }
     if (wizStep === 1) { wizStep = 2; renderWizard(); return; }
     if (wizStep === 2) {
-      if (!(wiz.consents.pd && wiz.consents.pkb && wiz.consents.gov)) { wizError('Отметьте все согласия, чтобы продолжить.'); return; }
+      if (!wiz.consents.main) { wizError('Отметьте согласие, чтобы продолжить.'); return; }
       wizStep = 3; renderWizard(); return;
     }
     if (wizStep === 3) {

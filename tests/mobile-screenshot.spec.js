@@ -58,15 +58,16 @@ test('mobile viewport — result stats (label сверху, value снизу)', 
 });
 
 test('mobile viewport — callback form (mask + hint)', async ({ page }) => {
+  // Форма обратной связи живёт на пути консультации без программы
+  // (подача по программе ушла в визард).
   await page.goto('/');
   await page.click('button:has-text("Начать подбор")');
   await page.click('.quiz-opt:has-text("Микрокредит, стартап")');
   await page.click('.quiz-opt:has-text("Услуги, торговля, прочее")');
   await page.click('.quiz-opt:has-text("Только открываюсь")');
-  await page.click('.quiz-opt:has-text("Село")');
-  await page.click('.quiz-opt:has-text("До 20 млн")');
-  await page.locator('.result-card').filter({ hasText: 'Іскер' }).first()
-    .locator('button:has-text("Подать заявку")').click();
+  await page.click('.quiz-opt:has-text("Областной центр")');
+  await page.click('.quiz-opt:has-text("100 – 500 млн")');
+  await page.click('button:has-text("Получить консультацию менеджера")');
   await page.waitForTimeout(400);
   await page.locator('input[data-cb-phone]').focus();
   await page.locator('input[data-cb-phone]').type('77001234567', { delay: 10 });
