@@ -409,9 +409,32 @@
     return (Math.round(n || 0)).toLocaleString('ru-RU') + ' ₸';
   }
 
-  // Лента движения заявки — клиентские этапы как в реальной системе (credit-backend
-  // okaps_menu_status: Регистрация → Новая заявка → На рассмотрении → Одобрена → Выдача).
-  var APP_STAGES = ['Регистрация заявки', 'Новая заявка', 'На рассмотрении', 'Одобрена', 'Средства выданы'];
+  // Лента движения заявки — полная клиентская проекция как в реальной системе
+  // (credit-backend okaps_menu_status). 7 этапов + терминальная ветка отказа.
+  var APP_STAGES = ['Регистрация заявки', 'Новая заявка', 'На рассмотрении', 'Одобрена',
+    'Средства выданы', 'Мониторинг', 'Завершена'];
+
+  // Полный маппинг реальных workflow-статусов credit-backend -> индекс клиентского этапа.
+  // Так лента корректна и для демо-лестницы, и если бэкенд начнёт слать настоящие статусы Temporal.
+  var STATUS_INDEX = {
+    'new': 0, 'flk_validation': 0, 'document_signing': 0,
+    'scoring_in_progress': 1, 'scoring_positive': 1, 'scoring_reviewed': 1,
+    'distribution_pending': 1, 'manager_assigned': 1,
+    'manager_expertise': 2, 'inspections': 2, 'expertise': 2, 'aggregated': 2,
+    'cc_pending': 2, 'cc_voting': 2,
+    'cc_approved': 3, 'financing_conditions': 3, 'approval_letter_signing': 3,
+    'contract_generation': 3, 'contract_signing': 3, 'contracts_signed': 3, 'disbursement_pending': 3,
+    'disbursed': 4,
+    'monitoring': 5,
+    'completed': 6
+  };
+  // Статусы отказа/отмены — показываем красную терминальную ленту вместо прогресса.
+  var REJECTED_STATUS = {
+    'rejected': 'Отказано', 'rejected_scoring': 'Отказано (скоринг)', 'rejected_cc': 'Отказано (КК)',
+    'scoring_negative': 'Отказано (скоринг)', 'cc_rejected': 'Отказано (КК)', 'cancelled': 'Отменена'
+  };
+  function rejectLabel(status) { return REJECTED_STATUS[status] || ''; }
+
   function statusTimelineHtml(currentIdx) {
     return '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">' +
       APP_STAGES.map(function (s, i) {
@@ -427,12 +450,25 @@
           '</div>';
       }).join('') + '</div>';
   }
-  // Демо-этап заявки: показываем «На рассмотрении» (в проде — реальный workflow_status).
+  // Терминальная лента отказа: пройденные этапы серым, итог — красным.
+  function rejectedTimelineHtml(reachedIdx, label) {
+    var rows = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">' +
+      APP_STAGES.slice(0, reachedIdx + 1).map(function (s) {
+        return '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#9aa6a0;">' +
+          '<span style="flex:0 0 16px;width:16px;height:16px;border-radius:50%;background:#cfd6d2;color:#fff;font-size:9px;line-height:16px;text-align:center;">✓</span>' +
+          '<span>' + s + '</span></div>';
+      }).join('') +
+      '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--danger,#d6336c);font-weight:700;">' +
+        '<span style="flex:0 0 16px;width:16px;height:16px;border-radius:50%;background:var(--danger,#d6336c);color:#fff;font-size:11px;line-height:16px;text-align:center;">✕</span>' +
+        '<span>' + escHtml(label) + '</span>' +
+        '<span style="margin-left:auto;font-size:10px;">заявка закрыта</span>' +
+      '</div></div>';
+    return rows;
+  }
+
   function appStageIndex(a) {
     var s = (a && a.status) || 'new';
-    if (s === 'disbursed') return 4;
-    if (s === 'approved' || s === 'cc_approved') return 3;
-    return 2; // new и пр. → «На рассмотрении»
+    return STATUS_INDEX[s] != null ? STATUS_INDEX[s] : 0;
   }
 
   function renderCabinet() {
@@ -467,17 +503,61 @@
         }
         host.innerHTML = '<div class="cab-row" style="font-weight:600;border:none;"><span>Мои заявки</span><span>' + apps.length + '</span></div>' +
           apps.map(function (a) {
+            var rej = rejectLabel(a.status);
+            var idx = appStageIndex(a);
+            var isFinal = idx >= APP_STAGES.length - 1;
+
+            // Лента: красная терминальная при отказе, иначе прогресс по этапам.
+            var timeline = rej
+              ? rejectedTimelineHtml(2, rej) // отказ показываем после «На рассмотрении»
+              : statusTimelineHtml(idx);
+
+            // Управление: при отказе/завершении прятать продвижение, оставлять «Сбросить».
+            var controls;
+            if (rej) {
+              controls = '<span style="font-size:12px;color:var(--danger,#d6336c);font-weight:600;">Заявка отклонена</span>';
+            } else if (isFinal) {
+              controls = '<span style="font-size:12px;color:var(--primary,#2b8a3e);font-weight:600;">Заявка прошла все этапы</span>';
+            } else {
+              controls =
+                '<button class="auth-btn auth-btn-primary" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', null, this)">Продвинуть этап →</button>' +
+                '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;color:var(--danger,#d6336c);" onclick="akkAdvanceApp(\'' + a.uid + '\', \'rejected\', this)">Отклонить</button>';
+            }
+
             return '<div style="border:1px solid #e3e8e5;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
               '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">' +
                 '<strong style="font-size:14px;">№ ' + escHtml(a.number) + '</strong>' +
                 '<span style="font-weight:600;">' + escHtml(fmtMoney(a.amount)) + '</span>' +
               '</div>' +
               '<div style="font-size:12px;color:var(--text-3,#8a948f);margin-top:2px;">' + escHtml(programTitle(a.program_id)) + '</div>' +
-              statusTimelineHtml(appStageIndex(a)) +
+              timeline +
+              '<div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">' +
+                controls +
+                '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', \'new\', this)">Сбросить</button>' +
+              '</div>' +
               '</div>';
-          }).join('');
+          }).join('') +
+          '<p class="auth-sub" style="font-size:11px;color:var(--text-3,#8a948f);margin-top:4px;">Демо: этапы переключаются вручную. В рабочей системе статус обновляется автоматически по ходу workflow.</p>';
       });
   }
+
+  // Демо-управление движением заявки: продвинуть на следующий этап (status=null)
+  // или сбросить на конкретный (status='new'). После ответа — перерисовать кабинет.
+  window.akkAdvanceApp = function (uid, status, btn) {
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = '…'; }
+    var body = status ? { status: status } : undefined;
+    callCredit('/applications/' + uid + '/advance', { method: 'POST', auth: true, body: body })
+      .then(function (r) {
+        if (!r.ok) {
+          if (btn) { btn.disabled = false; if (btn.dataset.label) btn.textContent = btn.dataset.label; }
+          var host = document.getElementById('cab-apps');
+          if (host) host.insertAdjacentHTML('beforeend',
+            '<p class="auth-err" style="margin-top:6px;">' + errText(r, 'Не удалось обновить этап.') + '</p>');
+          return;
+        }
+        renderCabinet();
+      });
+  };
 
   // =========================================================================
   // ПОДАЧА ЗАЯВКИ: реальное создание через бэкенд (с авторизацией)

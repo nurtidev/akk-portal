@@ -266,6 +266,90 @@ func (s *Store) CreateApplication(ctx context.Context, a Application) (Applicati
 	return a, nil
 }
 
+// StatusLadder — клиентская проекция движения заявки (порядок = прогресс).
+// Ключи — представительные статусы реального workflow credit-backend (smart10/smart30),
+// сводимые маппером okaps_menu_status к 7 клиентским этапам:
+// Регистрация → Новая заявка → На рассмотрении → Одобрена → Средства выданы → Мониторинг → Завершена.
+// В прод поле = реальный workflow_status из Temporal; здесь — демо-лестница для ручного показа.
+var StatusLadder = []string{
+	"new",                 // Регистрация заявки
+	"scoring_in_progress", // Новая заявка
+	"expertise",           // На рассмотрении
+	"cc_approved",         // Одобрена
+	"disbursed",           // Средства выданы
+	"monitoring",          // Мониторинг
+	"completed",           // Завершена
+}
+
+// StatusRejected — терминальный статус отказа (ветка вне основной лестницы).
+const StatusRejected = "rejected"
+
+// NextStatus возвращает следующий этап лестницы; на последнем этапе и в отказе — тот же статус.
+func NextStatus(cur string) string {
+	if cur == StatusRejected {
+		return cur // отказ терминален
+	}
+	for i, s := range StatusLadder {
+		if s == cur {
+			if i+1 < len(StatusLadder) {
+				return StatusLadder[i+1]
+			}
+			return cur
+		}
+	}
+	// неизвестный статус → начинаем с первого этапа
+	return StatusLadder[0]
+}
+
+// ValidStatus сообщает, допустим ли статус (этап лестницы или отказ).
+func ValidStatus(s string) bool {
+	if s == StatusRejected {
+		return true
+	}
+	for _, x := range StatusLadder {
+		if x == s {
+			return true
+		}
+	}
+	return false
+}
+
+// GetApplication возвращает заявку клиента по uid (с проверкой владельца).
+func (s *Store) GetApplication(ctx context.Context, uid, clientUID uuid.UUID) (Application, error) {
+	var a Application
+	err := s.pool.QueryRow(ctx, `
+		SELECT uid, number, client_uid, program_id, loan_purpose, requested_amount, onboarding, status, created_at
+		  FROM applications WHERE uid=$1 AND client_uid=$2`, uid, clientUID).
+		Scan(&a.UID, &a.Number, &a.ClientUID, &a.ProgramID, &a.LoanPurpose,
+			&a.Amount, &a.Onboarding, &a.Status, &a.CreatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Application{}, ErrNotFound
+	}
+	if err != nil {
+		return Application{}, fmt.Errorf("store: get application: %w", err)
+	}
+	return a, nil
+}
+
+// SetApplicationStatus меняет статус заявки клиента и возвращает обновлённую запись.
+func (s *Store) SetApplicationStatus(ctx context.Context, uid, clientUID uuid.UUID, status string) (Application, error) {
+	var a Application
+	err := s.pool.QueryRow(ctx, `
+		UPDATE applications SET status=$3
+		 WHERE uid=$1 AND client_uid=$2
+		RETURNING uid, number, client_uid, program_id, loan_purpose, requested_amount, onboarding, status, created_at`,
+		uid, clientUID, status).
+		Scan(&a.UID, &a.Number, &a.ClientUID, &a.ProgramID, &a.LoanPurpose,
+			&a.Amount, &a.Onboarding, &a.Status, &a.CreatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Application{}, ErrNotFound
+	}
+	if err != nil {
+		return Application{}, fmt.Errorf("store: set status: %w", err)
+	}
+	return a, nil
+}
+
 // ListApplications возвращает заявки клиента (новые сверху).
 func (s *Store) ListApplications(ctx context.Context, clientUID uuid.UUID) ([]Application, error) {
 	rows, err := s.pool.Query(ctx, `

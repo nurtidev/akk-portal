@@ -25,8 +25,18 @@ test('прямой выбор программы → заявка → кабин
   // Успех с реальным номером.
   await expect(page.getByText(/AKK-\d{4}-\d{6}/)).toBeVisible({ timeout: 8000 });
 
-  // Кабинет: заявка + лента статусов (текущий этап «На рассмотрении»).
+  // Кабинет: заявка + лента статусов. Свежая заявка стоит на первом этапе «Регистрация заявки».
   await page.getByText('Открыть личный кабинет', { exact: false }).click();
   await expect(page.locator('#cab-apps')).toContainText('AKK-', { timeout: 5000 });
-  await expect(page.locator('#cab-apps')).toContainText('На рассмотрении');
+  await expect(page.locator('#cab-apps')).toContainText('Регистрация заявки');
+  // Текущий этап свежей заявки — «Регистрация заявки» (строка с маркером «текущий этап»).
+  await expect(
+    page.locator('#cab-apps div', { hasText: 'текущий этап' }).last()
+  ).toContainText('Регистрация заявки');
+
+  // Демо-управление: «Продвинуть этап» двигает текущий этап на «Новая заявка».
+  await page.getByRole('button', { name: 'Продвинуть этап →' }).first().click();
+  await expect(
+    page.locator('#cab-apps div', { hasText: 'текущий этап' }).last()
+  ).toContainText('Новая заявка', { timeout: 5000 });
 });

@@ -3,9 +3,11 @@ package credit
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
 	"akk-railway-backend/internal/auth"
@@ -30,6 +32,7 @@ func NewHandler(s *store.Store, logger *slog.Logger) *Handler {
 func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
 	g.POST("/applications", h.create, mw)
 	g.GET("/applications", h.list, mw)
+	g.POST("/applications/:uid/advance", h.advance, mw)
 }
 
 type createReq struct {
@@ -60,6 +63,48 @@ func (h *Handler) create(c echo.Context) error {
 	}
 	h.logger.Info("credit: заявка создана", "number", app.Number, "client", client.UID)
 	return c.JSON(http.StatusOK, toDTO(app))
+}
+
+type advanceReq struct {
+	Status string `json:"status"`
+}
+
+// advance двигает заявку по клиентским этапам (демо-управление вручную для показа).
+// Без тела — переход на следующий этап; с {"status":"new"} — установка конкретного
+// (например, сброс на начало для повторного прогона демо). В прод этим управляет workflow.
+func (h *Handler) advance(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	uid, err := uuid.Parse(c.Param("uid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "некорректный идентификатор заявки"})
+	}
+	var req advanceReq
+	_ = c.Bind(&req) // тело необязательно
+
+	app, err := h.store.GetApplication(c.Request().Context(), uid, client.UID)
+	if errors.Is(err, store.ErrNotFound) {
+		return c.JSON(http.StatusNotFound, map[string]any{"message": "заявка не найдена"})
+	}
+	if err != nil {
+		h.logger.Error("credit: чтение заявки", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить заявку"})
+	}
+
+	next := store.NextStatus(app.Status)
+	if req.Status != "" {
+		if !store.ValidStatus(req.Status) {
+			return c.JSON(http.StatusBadRequest, map[string]any{"message": "недопустимый статус"})
+		}
+		next = req.Status
+	}
+
+	updated, err := h.store.SetApplicationStatus(c.Request().Context(), uid, client.UID, next)
+	if err != nil {
+		h.logger.Error("credit: смена статуса заявки", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось обновить статус"})
+	}
+	h.logger.Info("credit: статус заявки изменён", "number", updated.Number, "status", updated.Status, "client", client.UID)
+	return c.JSON(http.StatusOK, toDTO(updated))
 }
 
 func (h *Handler) list(c echo.Context) error {
