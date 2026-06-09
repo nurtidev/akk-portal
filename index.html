@@ -2153,7 +2153,6 @@ function toggleTheme() {
         <a href="#contacts">Контакты</a>
       </nav>
       <div class="header-actions">
-        <div id="auth-slot"></div>
         <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тёмную тему">
           <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -2795,6 +2794,7 @@ const state = {
   calc: {},
   stress: { animalType: 'KRS', existingHerd: '', plannedHerd: '', pasturesHa: '', barnSqm: '', existingDebtsMonthly: '', annualRevenue: '', result: null },
   callback: { name: '', phone: '', channel: 'call' },
+  callbackEdit: false,          // true → показываем поля ввода даже для авторизованного
   leadNumber: null,
   user: null                    // мок-сессия: { name, iin, phone, via }
 };
@@ -3068,7 +3068,6 @@ function renderProgramsPreview() {
       '<div class="prog-tile-row"><span>Ставка</span><span>' + fmtRate(p) + '</span></div>' +
       '<div class="prog-tile-row"><span>Сумма до</span><span>' + fmtAmount(p.maxAmount) + '</span></div>' +
       '<div class="prog-tile-row"><span>Срок до</span><span>' + p.maxTerm + ' мес.</span></div>' +
-      '<div class="prog-tile-more">Подробнее · подать заявку →</div>' +
       '</div>' + // /.prog-tile-body
     '</div>'; // /.prog-tile
   }).join('');
@@ -3203,6 +3202,12 @@ function initials(name) {
   const p = String(name || '').trim().split(/\s+/).filter(Boolean);
   return ((p[0] || '').charAt(0) + (p[1] || '').charAt(0)).toUpperCase() || 'К';
 }
+// ФИО приходит в порядке «Фамилия Имя Отчество» (см. splitFio в __auth-integration.js),
+// поэтому собственно имя — второе слово. Для чипа в шапке здороваемся по имени.
+function firstName(name) {
+  const p = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return p[1] || p[0] || 'Кабинет';
+}
 function maskIin(iin) {
   const s = String(iin || '');
   return s.length === 12 ? s.slice(0, 4) + ' •••• ' + s.slice(-2) : s;
@@ -3219,7 +3224,7 @@ function renderAuthSlot() {
   if (state.user) {
     slot.innerHTML = '<button class="user-chip" onclick="openAuth(\'cabinet\')" aria-label="Личный кабинет">' +
       '<span class="user-avatar">' + escHtml(initials(state.user.name)) + '</span>' +
-      '<span class="user-chip-name">' + escHtml((state.user.name || 'Кабинет').split(' ')[0]) + '</span>' +
+      '<span class="user-chip-name">' + escHtml(firstName(state.user.name)) + '</span>' +
       '</button>';
   } else {
     slot.innerHTML = '<button class="btn-login" onclick="openAuth(\'login\')">' +
@@ -3371,7 +3376,7 @@ function attachLogin() {
     if (iinV.length !== 12) { err.textContent = 'ИИН должен состоять из 12 цифр.'; return; }
     if (!pass) { err.textContent = 'Введите пароль.'; return; }
     // Мок: «находим» профиль по ИИН
-    finishLogin({ name: 'Бауыржан Сапаров', iin: iinV, phone: '77012345678', via: 'iin' });
+    finishLogin({ name: 'Сапаров Бауыржан', iin: iinV, phone: '77012345678', via: 'iin' });
   });
 }
 function attachRegister() {
@@ -3398,7 +3403,7 @@ function attachRegister() {
 function attachEgov() {
   const btn = document.getElementById('egov-confirm');
   if (btn) btn.addEventListener('click', function () {
-    finishLogin({ name: 'Бауыржан Сапаров', iin: '950101350123', phone: '77012345678', via: 'egov' });
+    finishLogin({ name: 'Сапаров Бауыржан', iin: '950101350123', phone: '77012345678', via: 'egov' });
   });
 }
 function attachCabinet() {
@@ -4123,15 +4128,30 @@ function renderCallback() {
 
       stressBlock +
 
-      '<div class="field">' +
-        '<label>Как к вам обращаться?</label>' +
-        '<input class="text-input" type="text" placeholder="Бауыржан" value="' + state.callback.name + '" data-cb="name" />' +
-      '</div>' +
+      // Авторизован и данные уже подставлены — не спрашиваем повторно, а показываем
+      // компактное подтверждение с возможностью отредактировать.
+      ((state.user && !state.callbackEdit) ?
+        '<div class="field">' +
+          '<label>Контакты для связи</label>' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--primary-soft);border-radius:10px;padding:12px 14px;">' +
+            '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;">' +
+              '<strong style="font-size:14px;line-height:1.3;">' + escHtml(state.callback.name || state.user.name) + '</strong>' +
+              '<span style="font-size:13px;color:var(--text-3);">' + escHtml(formatPhone(state.callback.phone) || '—') + '</span>' +
+            '</div>' +
+            '<button type="button" class="muted-link" onclick="editCallbackContacts()" style="white-space:nowrap;flex:none;">Изменить</button>' +
+          '</div>' +
+        '</div>'
+      :
+        '<div class="field">' +
+          '<label>Как к вам обращаться?</label>' +
+          '<input class="text-input" type="text" placeholder="Бауыржан" value="' + state.callback.name + '" data-cb="name" />' +
+        '</div>' +
 
-      '<div class="field">' +
-        '<label>Телефон</label>' +
-        '<input class="text-input" type="tel" inputmode="numeric" autocomplete="tel" placeholder="+7 (___) ___-__-__" value="' + formatPhone(state.callback.phone) + '" data-cb-phone maxlength="18" />' +
-      '</div>' +
+        '<div class="field">' +
+          '<label>Телефон</label>' +
+          '<input class="text-input" type="tel" inputmode="numeric" autocomplete="tel" placeholder="+7 (___) ___-__-__" value="' + formatPhone(state.callback.phone) + '" data-cb-phone maxlength="18" />' +
+        '</div>'
+      ) +
 
       '<div class="field">' +
         '<label>Удобный канал связи</label>' +
@@ -4207,6 +4227,14 @@ function backToResults() {
   showSection('results-section');
 }
 
+// Авторизованный пользователь захотел изменить подставленные контакты —
+// раскрываем обычные поля ввода.
+function editCallbackContacts() {
+  state.callbackEdit = true;
+  renderCallback();
+  track('callback_contacts_edit');
+}
+
 function submitCallback() {
   const digits = onlyDigits(state.callback.phone);
   if (!state.callback.name.trim() || digits.length !== 11) {
@@ -4263,6 +4291,7 @@ function resetAll() {
   state.selectedProgram = null;
   state.stress = { existingHerd: '', plannedHerd: '', pasturesHa: '', annualRevenue: '', result: null };
   state.callback = { name: '', phone: '', channel: 'call' };
+  state.callbackEdit = false;
   state.leadNumber = null;
   showSection(null);
   window.scrollTo({ top: 0, behavior: 'smooth' });
