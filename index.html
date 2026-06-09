@@ -212,6 +212,15 @@ a { color: inherit; }
   letter-spacing: 0.02em;
   margin-top: 2px;
 }
+/* Компактный вордмарк для узких экранов — включается в медиа-запросе ниже */
+.logo-abbr {
+  display: none;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
 .site-nav {
   display: flex;
   align-items: center;
@@ -259,14 +268,70 @@ a { color: inherit; }
 .theme-toggle .icon-moon { display: block; }
 .dark .theme-toggle .icon-sun { display: block; }
 .dark .theme-toggle .icon-moon { display: none; }
+/* Бургер мобильного меню — тот же бокс, что у theme-toggle. На десктопе скрыт. */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  flex-shrink: 0;
+  transition: color 140ms, border-color 140ms, background 140ms;
+}
+.nav-toggle:hover { color: var(--primary); border-color: var(--primary); }
+.nav-toggle .icon-close { display: none; }
+.nav-toggle.open .icon-burger { display: none; }
+.nav-toggle.open .icon-close { display: block; }
+.mobile-nav {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 14px 28px rgba(20,33,27,0.12);
+  z-index: 49;
+}
+.mobile-nav.open { display: flex; }
+.mobile-nav a {
+  padding: 12px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text-2);
+  font-size: 15px;
+  font-weight: 500;
+}
+.mobile-nav a:hover { background: var(--primary-soft); color: var(--primary); }
+@media (min-width: 641px) { .mobile-nav { display: none !important; } }
 @media (max-width: 640px) {
+  .nav-toggle { display: inline-flex; }
+  .nav-toggle { width: 34px; height: 34px; }
   .site-cta-phone-full { display: none; }
   .site-cta-phone-short { display: inline; }
   .site-cta-phone { padding: 8px 12px; }
   .logo-mark { height: 36px; }
   .logo-name span { display: none; }
   .logo-name { font-size: 15px; max-width: 160px; line-height: 1.2; }
+  .header-actions { gap: 8px; }
+  .theme-toggle { width: 34px; height: 34px; }
   html { scroll-padding-top: 80px; }
+}
+/* Очень узкие телефоны: полное название переносится в 3 строки и налезает на
+   кнопки справа — сворачиваем бренд до вордмарка «АКК» (эмблема остаётся).
+   На 375+ (iPhone mini/SE2) полное название ещё помещается, поэтому порог 360. */
+@media (max-width: 360px) {
+  .logo-name { display: none; }
+  .logo-abbr { display: inline; }
+  .logo { gap: 9px; }
+  .header-actions { gap: 6px; }
 }
 
 /* ===== Hero ===== */
@@ -1704,72 +1769,7 @@ input[type=range]::-moz-range-thumb {
   color: rgba(255,255,255,0.5);
 }
 
-/* ===== Analytics panel ===== */
-.analytics-panel {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  background: var(--primary);
-  color: var(--on-primary);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(21,41,74,0.4);
-  z-index: 100;
-  font-size: 12px;
-  overflow: hidden;
-  transition: max-height 300ms, opacity 200ms;
-  max-width: 360px;
-}
-.analytics-panel.collapsed {
-  max-height: 40px;
-}
-.analytics-panel-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-weight: 500;
-  background: rgba(0,0,0,0.15);
-  user-select: none;
-}
-.analytics-panel-toggle .badge-count {
-  background: var(--accent);
-  color: var(--primary);
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 11px;
-  margin-left: 8px;
-}
-.analytics-panel-list {
-  max-height: 320px;
-  overflow-y: auto;
-  padding: 8px 0;
-}
-.analytics-event {
-  padding: 8px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.analytics-event:last-child { border-bottom: none; }
-.analytics-event-name {
-  font-weight: 600;
-  color: var(--accent-2);
-  font-family: ui-monospace, 'SF Mono', monospace;
-  font-size: 11px;
-}
-.analytics-event-data {
-  font-size: 10.5px;
-  color: rgba(255,255,255,0.6);
-  font-family: ui-monospace, 'SF Mono', monospace;
-}
-.analytics-event-time {
-  font-size: 9.5px;
-  color: rgba(255,255,255,0.4);
-  margin-top: 2px;
-}
+/* Панель «События воронки» убрана из UI; track() остаётся как no-op (см. renderAnalytics). */
 
 /* ===== Helpers ===== */
 .fade-in {
@@ -2146,6 +2146,7 @@ function toggleTheme() {
       <a href="#" class="logo">
         <svg class="logo-mark" viewBox="-6 -5 471 479" aria-hidden="true"><use href="#akk-mark"/></svg>
         <span class="logo-name">Аграрная кредитная корпорация<span>АО, 100% участие НУХ «Байтерек»</span></span>
+        <span class="logo-abbr" aria-hidden="true">АКК</span>
       </a>
       <nav class="site-nav">
         <a href="#programs">Программы</a>
@@ -2153,6 +2154,10 @@ function toggleTheme() {
         <a href="#contacts">Контакты</a>
       </nav>
       <div class="header-actions">
+        <button type="button" class="nav-toggle" onclick="toggleMobileNav()" aria-label="Меню" aria-expanded="false">
+          <svg class="icon-burger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <svg class="icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
         <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тёмную тему">
           <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -2162,9 +2167,15 @@ function toggleTheme() {
           <span class="site-cta-phone-full">1408 · Колл-центр</span>
           <span class="site-cta-phone-short">1408</span>
         </a>
+        <div id="auth-slot"></div>
       </div>
     </div>
   </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Мобильная навигация">
+    <a href="#programs" onclick="closeMobileNav()">Программы</a>
+    <a href="#" onclick="startQuiz(); closeMobileNav(); return false;">Подбор</a>
+    <a href="#contacts" onclick="closeMobileNav()">Контакты</a>
+  </nav>
 </header>
 
 <!-- ===== Hero ===== -->
@@ -2325,15 +2336,7 @@ function toggleTheme() {
   </div>
 </footer>
 
-<!-- ===== Analytics panel ===== -->
-<div class="analytics-panel collapsed" id="analytics-panel">
-  <div class="analytics-panel-toggle" onclick="toggleAnalytics()">
-    <span>📊 События воронки <span class="badge-count" id="event-count">0</span></span>
-    <span id="analytics-arrow">▲</span>
-  </div>
-  <div class="analytics-panel-list" id="analytics-list"></div>
-</div>
-
+<!-- Панель «События воронки» убрана из UI (track() продолжает работать как no-op). -->
 <!-- ===== Program detail modal ===== -->
 <div class="prog-modal" id="prog-modal" aria-hidden="true">
   <div class="prog-modal-backdrop" onclick="closeProgramModal()"></div>
@@ -2812,6 +2815,7 @@ function track(name, payload) {
   renderAnalytics();
 }
 function renderAnalytics() {
+  if (!document.getElementById('analytics-panel')) return; // панель убрана из UI — no-op
   document.getElementById('event-count').textContent = analyticsEvents.length;
   const list = document.getElementById('analytics-list');
   list.innerHTML = analyticsEvents.slice(0, 30).map(function(e) {
@@ -3308,7 +3312,8 @@ function registerHtml() {
         '<div class="auth-input-wrap"><span class="auth-input-ic">' + AUTH_ICONS.user + '</span>' +
         '<input class="auth-input has-icon" id="reg-last" placeholder="Сапаров" /></div></div>' +
       '<div class="auth-field"><label>Имя</label>' +
-        '<input class="auth-input" id="reg-first" placeholder="Бауыржан" /></div>' +
+        '<div class="auth-input-wrap"><span class="auth-input-ic">' + AUTH_ICONS.user + '</span>' +
+        '<input class="auth-input has-icon" id="reg-first" placeholder="Бауыржан" /></div></div>' +
       '<div class="auth-field"><label>ИИН</label>' +
         '<input class="auth-input" id="reg-iin" inputmode="numeric" maxlength="12" placeholder="Введите ИИН (12 цифр)" /></div>' +
       '<div class="auth-field"><label>Телефон</label>' +

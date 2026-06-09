@@ -16,8 +16,10 @@ test('прямой выбор программы → заявка → кабин
   await page.locator('.prog-tile').first().click();
   await page.getByText('Подать заявку по этой программе', { exact: false }).click();
 
-  // Форма контактов (предзаполнена профилем) → отправить.
+  // Форма контактов: профиль уже подставлен и показан подтверждением.
+  // Раскрываем поля кнопкой «Изменить» и правим контакты, затем отправляем.
   await expect(page.locator('#submit-btn')).toBeVisible({ timeout: 5000 });
+  await page.locator('#callback-container').getByRole('button', { name: 'Изменить' }).click();
   await page.locator('[data-cb="name"]').fill('Бауыржан Сапаров');
   await page.locator('[data-cb-phone]').fill('77011234567');
   await page.locator('#submit-btn').click();

@@ -391,12 +391,131 @@
   }
 
   // =========================================================================
-  // КАБИНЕТ: реальные заявки из бэкенда
+  // КАБИНЕТ как отдельная СТРАНИЦА (не модалка) + дропдаун в шапке
   // =========================================================================
   var origRenderAuth = window.renderAuth;
+  var origOpenAuth = window.openAuth;
+  var origRenderAuthSlot = window.renderAuthSlot;
+
+  var cabTab = 'profile';   // активная вкладка кабинета
+  var notifRead = false;    // уведомления просмотрены в этой сессии
+  var cabApps = [];         // кэш заявок (для вкладок «Заявки»/«Уведомления» и бейджа)
+
+  var LANDING_IDS = ['main', 'programs'];
+  var FLOW_IDS = ['quiz-section', 'results-section', 'stress-section', 'callback-section', 'success-section'];
+
+  // Внедряем секцию-страницу кабинета один раз (чтобы не трогать index.html).
+  function ensureCabinetSection() {
+    if (document.getElementById('cabinet-section')) return;
+    var sec = document.createElement('section');
+    sec.id = 'cabinet-section';
+    sec.className = 'section';
+    sec.hidden = true;
+    sec.innerHTML = '<div class="cab-page"><aside class="cab-nav" id="cab-nav"></aside><div class="cab-main" id="cab-main"></div></div>';
+    // Вставляем сразу ПОСЛЕ success-section (до футера), а не в конец родителя.
+    var anchor = document.getElementById('success-section');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(sec, anchor.nextSibling);
+    else document.body.appendChild(sec);
+  }
+
+  function setHidden(id, h) { var el = document.getElementById(id); if (el) el.hidden = !!h; }
+
+  // Лендинг (главная) ⇄ страница кабинета.
+  function showLanding() {
+    setHidden('cabinet-section', true);
+    FLOW_IDS.forEach(function (id) { setHidden(id, true); });
+    LANDING_IDS.forEach(function (id) { setHidden(id, false); });
+  }
+  window.exitCabinet = function () {
+    closeAuthDropdown();
+    showLanding();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Открыть кабинет на нужной вкладке.
+  window.openCabinet = function (tab) {
+    if (!state.user) { return origOpenAuth.call(window, 'login'); }
+    ensureCabStyle();
+    ensureCabinetSection();
+    closeAuth();
+    closeAuthDropdown();
+    cabTab = tab || cabTab || 'profile';
+    LANDING_IDS.concat(FLOW_IDS).forEach(function (id) { setHidden(id, true); });
+    setHidden('cabinet-section', false);
+    renderCabNav();
+    renderCabTab();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    loadCabApps(function () { renderCabNav(); if (cabTab === 'apps') renderApps(); else if (cabTab === 'notif') renderCabTab(); });
+  };
+
+  // Перехватываем openAuth('cabinet') → открываем страницу вместо модалки.
+  window.openAuth = function (view) {
+    if (view === 'cabinet') { return window.openCabinet('profile'); }
+    return origOpenAuth.call(window, view);
+  };
   window.renderAuth = function (view) {
-    if (view === 'cabinet' && state.user) { return renderCabinet(); }
+    if (view === 'cabinet' && state.user) { return window.openCabinet('profile'); }
     return origRenderAuth(view);
+  };
+
+  // --- дропдаун пользователя в шапке ----------------------------------------
+  function unreadCount() { return notifRead ? 0 : notifEvents().length; }
+
+  function closeAuthDropdown() {
+    var dd = document.getElementById('auth-dd');
+    if (dd) dd.classList.remove('open');
+    var chip = document.querySelector('#auth-slot .user-chip');
+    if (chip) chip.setAttribute('aria-expanded', 'false');
+  }
+  function toggleAuthDropdown() {
+    var dd = document.getElementById('auth-dd');
+    if (!dd) return;
+    var open = !dd.classList.contains('open');
+    dd.classList.toggle('open', open);
+    var chip = document.querySelector('#auth-slot .user-chip');
+    if (chip) chip.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  // Закрытие дропдауна по клику вне (вешаем один раз).
+  document.addEventListener('click', function (e) {
+    var slot = document.getElementById('auth-slot');
+    if (slot && !slot.contains(e.target)) closeAuthDropdown();
+  });
+
+  function ddItem(tab, icon, label, badge) {
+    return '<button data-cab-tab="' + tab + '">' + icon + '<span>' + label + '</span>' +
+      (badge ? '<span class="nb-badge">' + badge + '</span>' : '') + '</button>';
+  }
+
+  window.renderAuthSlot = function () {
+    var slot = document.getElementById('auth-slot');
+    if (!slot) return;
+    if (!state.user) { return origRenderAuthSlot ? origRenderAuthSlot.call(window) : null; }
+    ensureCabStyle();
+    var unread = unreadCount();
+    slot.innerHTML =
+      '<button class="user-chip" aria-haspopup="true" aria-expanded="false" id="auth-chip">' +
+        '<span class="user-avatar" style="position:relative;">' + escHtml(initials(state.user.name)) +
+          (unread ? '<span class="chip-badge">' + unread + '</span>' : '') + '</span>' +
+        '<span class="user-chip-name">' + escHtml(firstName(state.user.name)) + '</span>' +
+        NAV_ICONS.caret +
+      '</button>' +
+      '<div class="auth-dd" id="auth-dd" role="menu">' +
+        ddItem('profile', NAV_ICONS.profile, 'Профиль') +
+        ddItem('apps', NAV_ICONS.apps, 'Мои заявки') +
+        ddItem('docs', NAV_ICONS.docs, 'Документы') +
+        ddItem('notif', NAV_ICONS.notif, 'Уведомления', unread) +
+        ddItem('support', NAV_ICONS.support, 'Поддержка') +
+        '<div class="dd-sep"></div>' +
+        '<button class="dd-danger" id="dd-logout">' + NAV_ICONS.logout + '<span>Выйти</span></button>' +
+      '</div>';
+
+    var chip = document.getElementById('auth-chip');
+    if (chip) chip.addEventListener('click', function (e) { e.stopPropagation(); toggleAuthDropdown(); });
+    slot.querySelectorAll('.auth-dd [data-cab-tab]').forEach(function (b) {
+      b.addEventListener('click', function () { closeAuthDropdown(); window.openCabinet(b.getAttribute('data-cab-tab')); });
+    });
+    var ddLogout = document.getElementById('dd-logout');
+    if (ddLogout) ddLogout.addEventListener('click', function () { closeAuthDropdown(); logout(); });
   };
 
   function programTitle(id) {
@@ -471,74 +590,410 @@
     return STATUS_INDEX[s] != null ? STATUS_INDEX[s] : 0;
   }
 
-  function renderCabinet() {
-    var body = document.getElementById('auth-body');
-    if (!body) return;
-    var u = state.user || {};
-    body.innerHTML =
-      '<h2 class="auth-head">Личный кабинет</h2>' +
-      '<p class="auth-sub">Вы вошли по SMS.</p>' +
-      '<div class="cab-list">' +
-        '<div class="cab-row"><span>ФИО</span><span>' + escHtml(u.name || '—') + '</span></div>' +
-        '<div class="cab-row"><span>ИИН</span><span>' + escHtml(maskIin ? maskIin(u.iin) : (u.iin || '—')) + '</span></div>' +
-        '<div class="cab-row"><span>Телефон</span><span>' + escHtml(u.phone ? formatPhone(onlyDigits(u.phone)) : '—') + '</span></div>' +
-      '</div>' +
-      '<div id="cab-apps" style="margin:18px 0;"><div class="auth-sub">Загружаем ваши заявки…</div></div>' +
-      '<div class="auth-actions">' +
-        '<button class="auth-btn auth-btn-primary" onclick="closeAuth(); startQuiz();">Подобрать программу</button>' +
-        '<button class="auth-btn auth-btn-ghost" id="logout-btn">Выйти</button>' +
-      '</div>';
-    var lo = document.getElementById('logout-btn');
-    if (lo) lo.addEventListener('click', logout);
+  // =========================================================================
+  // ДАННЫЕ «ИЗ ГОСБАЗ» (демо): детерминированно генерируются из ИИН, чтобы у одного
+  // пользователя всегда были одинаковые значения. В проде эти блоки заполняются
+  // реальными ответами через ШЭП (ГБД ФЛ, КГД, ЕНПФ, ПКБ, ИСЖИБ, земельный кадастр).
+  // =========================================================================
+  var govCache = {};        // iin -> объект данных
+  var govAnimatedFor = {};  // iin -> анимация загрузки уже проигрывалась в этой сессии
 
+  function hashStr(s) {
+    var h = 2166136261;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 16777619) >>> 0; }
+    return h >>> 0;
+  }
+  function rngFrom(seed) {
+    var x = seed || 123456789;
+    return function () { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+  }
+  function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+  function rint(rng, a, b) { return a + Math.floor(rng() * (b - a + 1)); }
+
+  function birthFromIin(iin) {
+    // ИИН РК: первые 6 цифр — ГГММДД, 7-я — пол/век.
+    if (!/^\d{12}$/.test(iin)) return '';
+    var yy = +iin.slice(0, 2), mm = +iin.slice(2, 4), dd = +iin.slice(4, 6), c = +iin[6];
+    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return '';
+    var century = (c === 1 || c === 2) ? 1800 : (c === 3 || c === 4) ? 1900 : 2000;
+    return ('0' + dd).slice(-2) + '.' + ('0' + mm).slice(-2) + '.' + (century + yy);
+  }
+
+  function govDataFor(u) {
+    var iin = onlyDigits(u.iin || '') || '000000000000';
+    if (govCache[iin]) return govCache[iin];
+    var rng = rngFrom(hashStr(iin));
+    var oblasts = ['Алматинская обл.', 'Туркестанская обл.', 'Жамбылская обл.', 'Костанайская обл.',
+      'Акмолинская обл.', 'Восточно-Казахстанская обл.', 'Северо-Казахстанская обл.'];
+    var villages = ['с. Кокозек', 'с. Енбекши', 'а. Жетысай', 'с. Карабулак', 'с. Шамалган',
+      'а. Узынагаш', 'с. Бесагаш'];
+    var data = {
+      identity: {
+        fio: u.name || 'Клиент',
+        iin: iin,
+        birth: birthFromIin(iin) || ('0' + rint(rng, 1, 28)).slice(-2) + '.0' + rint(rng, 1, 9) + '.' + rint(rng, 1972, 1996),
+        docNumber: '№ ' + rint(rng, 30000000, 49999999),
+        issuedBy: 'МВД РК',
+        issuedDate: ('0' + rint(rng, 1, 9)).slice(-2) + '.0' + rint(rng, 1, 9) + '.' + rint(rng, 2015, 2022),
+        address: pick(rng, oblasts) + ', ' + pick(rng, villages)
+      },
+      income: {
+        monthly: rint(rng, 22, 78) * 10000,
+        ip: pick(rng, ['ИП (действующий)', 'КХ (крестьянское хозяйство)', 'Физическое лицо']),
+        taxDebt: false
+      },
+      credit: {
+        active: rint(rng, 0, 2),
+        overdue: false,
+        pdn: rint(rng, 14, 36)
+      },
+      agro: {
+        cattle: rint(rng, 12, 90),
+        smallCattle: rint(rng, 0, 220),
+        landHa: rint(rng, 8, 140)
+      }
+    };
+    govCache[iin] = data;
+    return data;
+  }
+
+  // --- визуальные помощники --------------------------------------------------
+  function ensureCabStyle() {
+    if (document.getElementById('akk-cab-style')) return;
+    var st = document.createElement('style');
+    st.id = 'akk-cab-style';
+    st.textContent =
+      '@keyframes akkspin{to{transform:rotate(360deg)}}' +
+      '.akk-spin{display:inline-block;width:14px;height:14px;border:2px solid #d7e6dc;border-top-color:#2b8a3e;border-radius:50%;animation:akkspin .7s linear infinite;flex:0 0 14px;}' +
+      '@keyframes akkfade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}' +
+      '.akk-fade{animation:akkfade .45s ease both;}' +
+      '.akk-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}' +
+      '@media(max-width:520px){.akk-grid{grid-template-columns:1fr;}}' +
+      // страница кабинета
+      '.cab-page{max-width:1080px;margin:0 auto;padding:28px 16px 64px;display:grid;grid-template-columns:240px 1fr;gap:26px;}' +
+      '.cab-nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:84px;align-self:start;}' +
+      '.cab-navbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:none;border-radius:10px;padding:10px 12px;font-size:14px;color:#3a463f;cursor:pointer;font-weight:500;line-height:1;}' +
+      '.cab-navbtn svg{flex:0 0 18px;}' +
+      '.cab-navbtn:hover{background:#f0f5f1;color:#14211b;}' +
+      '.cab-navbtn.on{background:var(--primary-soft,#e7f3ea);color:var(--primary,#2b8a3e);font-weight:700;}' +
+      '.cab-navbtn .nb-badge{margin-left:auto;background:#e8413c;color:#fff;border-radius:999px;font-size:10px;font-weight:700;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}' +
+      '.cab-navsep{height:1px;background:#eef2f0;margin:7px 8px;}' +
+      '.cab-main{min-width:0;}' +
+      '.cab-h2{font-size:21px;font-weight:700;margin:0 0 4px;color:#14211b;}' +
+      '@media(max-width:760px){.cab-page{grid-template-columns:1fr;gap:14px;padding-top:16px;}.cab-nav{flex-direction:row;overflow-x:auto;position:static;gap:6px;padding-bottom:4px;}.cab-navbtn{flex:0 0 auto;white-space:nowrap;}.cab-navbtn.cab-back,.cab-navsep{display:none;}}' +
+      // дропдаун в шапке
+      '#auth-slot{position:relative;}' +
+      '.auth-dd{position:absolute;right:0;top:calc(100% + 8px);min-width:216px;background:#fff;border:1px solid #e6ebe8;border-radius:12px;box-shadow:0 14px 34px rgba(20,33,27,.14);padding:6px;z-index:1300;display:none;}' +
+      '.auth-dd.open{display:block;animation:akkfade .16s ease both;}' +
+      '.auth-dd button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-radius:8px;padding:9px 10px;font-size:13.5px;color:#14211b;cursor:pointer;}' +
+      '.auth-dd button svg{flex:0 0 17px;}' +
+      '.auth-dd button:hover{background:#f0f5f1;}' +
+      '.auth-dd .nb-badge{margin-left:auto;background:#e8413c;color:#fff;border-radius:999px;font-size:10px;font-weight:700;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}' +
+      '.auth-dd .dd-sep{height:1px;background:#eef2f0;margin:5px 4px;}' +
+      '.auth-dd .dd-danger{color:#d6336c;}' +
+      '.chip-badge{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;background:#e8413c;color:#fff;border-radius:999px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;padding:0 3px;}' +
+      '.user-chip .ucaret{transition:transform .15s ease;}' +
+      '.user-chip[aria-expanded="true"] .ucaret{transform:rotate(180deg);}';
+    document.head.appendChild(st);
+  }
+
+  // Иконки навигации/дропдауна (inline-SVG, единый штрих).
+  var NAV_ICONS = {
+    home: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+    profile: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>',
+    apps: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>',
+    docs: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+    notif: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+    support: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-3v-7h3a2 2 0 0 1 2 2zM3 19a2 2 0 0 0 2 2h3v-7H5a2 2 0 0 0-2 2z"/></svg>',
+    logout: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
+    caret: '<svg class="ucaret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'
+  };
+
+  // Чип источника данных: цветная пилюля с галочкой (inline-SVG).
+  function srcChip(label, color) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:' + color + '14;color:' + color +
+      ';border:1px solid ' + color + '40;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;white-space:nowrap;">' +
+      '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>' +
+      escHtml(label) + '</span>';
+  }
+  function infoCard(title, chip, rows) {
+    return '<div class="akk-fade" style="border:1px solid #e6ebe8;border-radius:12px;padding:13px 14px;background:#fff;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">' +
+        '<strong style="font-size:13px;color:#14211b;">' + title + '</strong>' + chip + '</div>' +
+      rows.map(function (r) {
+        return '<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:12.5px;">' +
+          '<span style="color:#8a948f;">' + r[0] + '</span>' +
+          '<span style="font-weight:600;text-align:right;color:#14211b;">' + r[1] + '</span></div>';
+      }).join('') + '</div>';
+  }
+
+  // --- секция профиля «из госбаз» -------------------------------------------
+  function profileHtml(g) {
+    return '<div class="akk-grid">' +
+      infoCard('Личность', srcChip('ГБД ФЛ', '#1c6fd6'), [
+        ['ФИО', escHtml(g.identity.fio)],
+        ['ИИН', escHtml(g.identity.iin)],
+        ['Дата рождения', escHtml(g.identity.birth)],
+        ['Удостоверение', escHtml(g.identity.docNumber + ' · ' + g.identity.issuedBy)],
+        ['Адрес (прописка)', escHtml(g.identity.address)]
+      ]) +
+      infoCard('Доходы и налоги', srcChip('КГД · ЕНПФ', '#0c8577'), [
+        ['Среднемесячный доход', fmtMoney(g.income.monthly)],
+        ['Статус', escHtml(g.income.ip)],
+        ['Налоговая задолженность', '<span style="color:#2b8a3e;">нет</span>']
+      ]) +
+      infoCard('Кредитная история', srcChip('ПКБ', '#6741d9'), [
+        ['Действующие займы', String(g.credit.active)],
+        ['Просрочки', '<span style="color:#2b8a3e;">нет</span>'],
+        ['Долговая нагрузка (ПДН)', g.credit.pdn + '%']
+      ]) +
+      infoCard('Агро-активы', srcChip('ИСЖИБ · кадастр', '#2f9e44'), [
+        ['Поголовье КРС', g.agro.cattle + ' гол.'],
+        ['Поголовье МРС', g.agro.smallCattle + ' гол.'],
+        ['Земельные участки', g.agro.landHa + ' га']
+      ]) +
+      '</div>';
+  }
+
+  // --- секция документов (всё получено/подписано, без ручной загрузки) -------
+  function docRow(name, badgeText, color) {
+    return '<div class="akk-fade" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f3f1;">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a948f" stroke-width="1.8" style="flex:0 0 18px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>' +
+      '<span style="flex:1;font-size:12.5px;color:#14211b;">' + escHtml(name) + '</span>' +
+      srcChip(badgeText, color) + '</div>';
+  }
+  function documentsHtml() {
+    return '<div style="border:1px solid #e6ebe8;border-radius:12px;padding:13px 14px;background:#fff;">' +
+      docRow('Удостоверение личности', 'из ГБД ФЛ', '#1c6fd6') +
+      docRow('Справка о доходах', 'из КГД · ЕНПФ', '#0c8577') +
+      docRow('Согласие на обработку ПД', 'подписано ЭЦП', '#2b8a3e') +
+      docRow('Согласие на запрос в ПКБ', 'подписано ЭЦП', '#2b8a3e') +
+      docRow('Заявка-анкета', 'сформирована', '#2b8a3e') +
+      '<p style="margin:10px 0 0;font-size:11px;color:#8a948f;line-height:1.45;">' +
+      'Все документы получены из верифицированных госисточников или подписаны онлайн — ' +
+      'загружать вручную ничего не нужно.</p>' +
+      '</div>';
+  }
+
+  // --- анимация «запрашиваем данные из госбаз» -------------------------------
+  function govLoaderHtml() {
+    var steps = [
+      ['ГБД ФЛ', 'личные данные'],
+      ['КГД · ЕНПФ', 'доходы и налоги'],
+      ['ПКБ', 'кредитная история'],
+      ['ИСЖИБ · кадастр', 'агро-активы']
+    ];
+    return '<div style="border:1px solid #e6ebe8;border-radius:12px;padding:14px;background:#fafdfb;">' +
+      '<div style="font-size:13px;font-weight:700;margin-bottom:10px;">Запрашиваем данные из госбаз…</div>' +
+      steps.map(function (s, i) {
+        return '<div id="gov-step-' + i + '" style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12.5px;color:#8a948f;">' +
+          '<span class="akk-spin"></span>' +
+          '<span style="font-weight:600;color:#14211b;">' + s[0] + '</span>' +
+          '<span>— ' + s[1] + '</span></div>';
+      }).join('') + '</div>';
+  }
+  function animateGov(host, g, iin) {
+    host.innerHTML = govLoaderHtml();
+    var n = 4;
+    for (var i = 0; i < n; i++) {
+      (function (idx) {
+        setTimeout(function () {
+          var el = document.getElementById('gov-step-' + idx);
+          if (!el) return;
+          var sp = el.querySelector('.akk-spin');
+          if (sp) sp.outerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2b8a3e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 16px;"><path d="M20 6L9 17l-5-5"/></svg>';
+          el.style.color = '#2b8a3e';
+        }, 350 + idx * 380);
+      })(i);
+    }
+    setTimeout(function () {
+      var cur = document.getElementById('cab-gov');
+      if (cur) cur.innerHTML = profileHtml(g);
+      govAnimatedFor[iin] = true;
+    }, 350 + n * 380 + 250);
+  }
+
+  // --- заявки ----------------------------------------------------------------
+  function appCardHtml(a) {
+    var rej = rejectLabel(a.status);
+    var idx = appStageIndex(a);
+    var isFinal = idx >= APP_STAGES.length - 1;
+    var timeline = rej ? rejectedTimelineHtml(2, rej) : statusTimelineHtml(idx);
+    var controls;
+    if (rej) {
+      controls = '<span style="font-size:12px;color:var(--danger,#d6336c);font-weight:600;">Заявка отклонена</span>';
+    } else if (isFinal) {
+      controls = '<span style="font-size:12px;color:var(--primary,#2b8a3e);font-weight:600;">Заявка прошла все этапы</span>';
+    } else {
+      controls =
+        '<button class="auth-btn auth-btn-primary" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', null, this)">Продвинуть этап →</button>' +
+        '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;color:var(--danger,#d6336c);" onclick="akkAdvanceApp(\'' + a.uid + '\', \'rejected\', this)">Отклонить</button>';
+    }
+    return '<div class="app-card" data-app-number="' + escHtml(a.number) + '" style="border:1px solid #e3e8e5;border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">' +
+        '<strong style="font-size:14px;">№ ' + escHtml(a.number) + '</strong>' +
+        '<span style="font-weight:600;">' + escHtml(fmtMoney(a.amount)) + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--text-3,#8a948f);margin-top:2px;">' + escHtml(programTitle(a.program_id)) + '</div>' +
+      timeline +
+      '<div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">' +
+        controls +
+        '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', \'new\', this)">Сбросить</button>' +
+      '</div>' +
+      '</div>';
+  }
+  function sectionTitle(txt) {
+    return '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8a948f;margin:18px 0 8px;">' + txt + '</div>';
+  }
+  function initials(name) {
+    var p = String(name || '').trim().split(/\s+/).filter(Boolean);
+    return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase();
+  }
+
+  // Загрузка заявок в кэш (для вкладок «Заявки»/«Уведомления» и бейджа).
+  function loadCabApps(cb) {
     callCredit('/applications', { method: 'GET', auth: true })
       .then(function (r) {
-        var host = document.getElementById('cab-apps');
-        if (!host) return;
-        if (!r.ok) { host.innerHTML = '<div class="auth-err">Не удалось загрузить заявки.</div>'; return; }
-        var apps = Array.isArray(r.data) ? r.data : [];
-        if (!apps.length) {
-          host.innerHTML = '<div class="auth-sub">У вас пока нет заявок. Подберите программу и подайте заявку.</div>';
-          return;
-        }
-        host.innerHTML = '<div class="cab-row" style="font-weight:600;border:none;"><span>Мои заявки</span><span>' + apps.length + '</span></div>' +
-          apps.map(function (a) {
-            var rej = rejectLabel(a.status);
-            var idx = appStageIndex(a);
-            var isFinal = idx >= APP_STAGES.length - 1;
-
-            // Лента: красная терминальная при отказе, иначе прогресс по этапам.
-            var timeline = rej
-              ? rejectedTimelineHtml(2, rej) // отказ показываем после «На рассмотрении»
-              : statusTimelineHtml(idx);
-
-            // Управление: при отказе/завершении прятать продвижение, оставлять «Сбросить».
-            var controls;
-            if (rej) {
-              controls = '<span style="font-size:12px;color:var(--danger,#d6336c);font-weight:600;">Заявка отклонена</span>';
-            } else if (isFinal) {
-              controls = '<span style="font-size:12px;color:var(--primary,#2b8a3e);font-weight:600;">Заявка прошла все этапы</span>';
-            } else {
-              controls =
-                '<button class="auth-btn auth-btn-primary" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', null, this)">Продвинуть этап →</button>' +
-                '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;color:var(--danger,#d6336c);" onclick="akkAdvanceApp(\'' + a.uid + '\', \'rejected\', this)">Отклонить</button>';
-            }
-
-            return '<div class="app-card" data-app-number="' + escHtml(a.number) + '" style="border:1px solid #e3e8e5;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
-              '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">' +
-                '<strong style="font-size:14px;">№ ' + escHtml(a.number) + '</strong>' +
-                '<span style="font-weight:600;">' + escHtml(fmtMoney(a.amount)) + '</span>' +
-              '</div>' +
-              '<div style="font-size:12px;color:var(--text-3,#8a948f);margin-top:2px;">' + escHtml(programTitle(a.program_id)) + '</div>' +
-              timeline +
-              '<div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">' +
-                controls +
-                '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', \'new\', this)">Сбросить</button>' +
-              '</div>' +
-              '</div>';
-          }).join('') +
-          '<p class="auth-sub" style="font-size:11px;color:var(--text-3,#8a948f);margin-top:4px;">Демо: этапы переключаются вручную. В рабочей системе статус обновляется автоматически по ходу workflow.</p>';
+        cabApps = (r.ok && Array.isArray(r.data)) ? r.data : [];
+        if (cb) cb();
       });
+  }
+
+  // Уведомления (демо) — выводятся из статусов заявок.
+  function notifEvents() {
+    var ev = [];
+    cabApps.forEach(function (a) {
+      var rej = rejectLabel(a.status);
+      if (rej) {
+        ev.push({ kind: 'danger', title: 'Заявка № ' + a.number + ' отклонена', text: rej });
+      } else {
+        var idx = appStageIndex(a);
+        if (idx > 0) ev.push({ kind: 'info', title: 'Заявка № ' + a.number, text: 'Текущий этап: ' + APP_STAGES[idx] });
+      }
+      ev.push({ kind: 'ok', title: 'Заявка № ' + a.number + ' принята', text: 'Данные подтянуты из госбаз (ГБД ФЛ, КГД, ПКБ)' });
+    });
+    if (!ev.length) ev.push({ kind: 'ok', title: 'Профиль подтверждён', text: 'Вход через eGov выполнен. Подайте заявку — статус будет виден здесь.' });
+    return ev;
+  }
+
+  // --- боковое меню кабинета --------------------------------------------------
+  function navBtn(tab, icon, label, badge) {
+    return '<button class="cab-navbtn ' + (cabTab === tab ? 'on' : '') + '" data-cab-tab="' + tab + '">' +
+      icon + '<span>' + label + '</span>' + (badge ? '<span class="nb-badge">' + badge + '</span>' : '') + '</button>';
+  }
+  function renderCabNav() {
+    var nav = document.getElementById('cab-nav');
+    if (!nav) return;
+    var unread = unreadCount();
+    nav.innerHTML =
+      '<button class="cab-navbtn cab-back" id="cab-home">' + NAV_ICONS.home + '<span>На главную</span></button>' +
+      '<div class="cab-navsep"></div>' +
+      navBtn('profile', NAV_ICONS.profile, 'Профиль') +
+      navBtn('apps', NAV_ICONS.apps, 'Мои заявки') +
+      navBtn('docs', NAV_ICONS.docs, 'Документы') +
+      navBtn('notif', NAV_ICONS.notif, 'Уведомления', unread) +
+      navBtn('support', NAV_ICONS.support, 'Поддержка') +
+      '<div class="cab-navsep"></div>' +
+      '<button class="cab-navbtn" id="cab-logout" style="color:#d6336c;">' + NAV_ICONS.logout + '<span>Выйти</span></button>';
+    var home = document.getElementById('cab-home');
+    if (home) home.addEventListener('click', function () { window.exitCabinet(); });
+    nav.querySelectorAll('[data-cab-tab]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        cabTab = b.getAttribute('data-cab-tab');
+        renderCabNav(); renderCabTab();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+    var lo = document.getElementById('cab-logout');
+    if (lo) lo.addEventListener('click', function () { logout(); });
+  }
+
+  // --- контент вкладок --------------------------------------------------------
+  function renderCabTab() {
+    var main = document.getElementById('cab-main');
+    if (!main) return;
+    if (cabTab === 'apps') return renderAppsTab(main);
+    if (cabTab === 'docs') return renderDocsTab(main);
+    if (cabTab === 'notif') return renderNotifTab(main);
+    if (cabTab === 'support') return renderSupportTab(main);
+    return renderProfileTab(main);
+  }
+
+  function renderProfileTab(main) {
+    var u = state.user || {};
+    var g = govDataFor(u);
+    var iin = onlyDigits(u.iin || '');
+    main.innerHTML =
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">' +
+        '<div style="flex:0 0 56px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#2b8a3e,#37b24d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;">' + escHtml(initials(u.name)) + '</div>' +
+        '<div style="min-width:0;">' +
+          '<h2 class="cab-h2">' + escHtml(u.name || 'Профиль') + '</h2>' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' + srcChip('Верифицирован через eGov', '#1c6fd6') +
+            '<span style="font-size:12px;color:#8a948f;">' + (u.phone ? formatPhone(onlyDigits(u.phone)) : '') + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      sectionTitle('Данные из госбаз') +
+      '<div id="cab-gov"></div>';
+    var govHost = document.getElementById('cab-gov');
+    if (govAnimatedFor[iin]) govHost.innerHTML = profileHtml(g);
+    else animateGov(govHost, g, iin);
+  }
+
+  function renderAppsTab(main) {
+    main.innerHTML = '<h2 class="cab-h2">Мои заявки</h2>' +
+      '<p class="auth-sub" style="margin:0 0 14px;">Отслеживайте движение заявки по этапам.</p>' +
+      '<div id="cab-apps"><div class="auth-sub" style="margin:0;">Загружаем ваши заявки…</div></div>';
+    renderApps();
+  }
+  function renderApps() {
+    var host = document.getElementById('cab-apps');
+    if (!host) return;
+    if (!cabApps.length) {
+      host.innerHTML = '<div class="auth-sub" style="margin:0;">У вас пока нет заявок. ' +
+        '<a onclick="exitCabinet(); startQuiz();" style="cursor:pointer;color:var(--primary,#2b8a3e);font-weight:600;">Подобрать программу</a> и подать заявку.</div>';
+      return;
+    }
+    host.innerHTML = cabApps.map(appCardHtml).join('') +
+      '<p class="auth-sub" style="font-size:11px;color:var(--text-3,#8a948f);margin-top:4px;">Демо: этапы переключаются вручную. В рабочей системе статус обновляется автоматически по ходу workflow.</p>';
+  }
+
+  function renderDocsTab(main) {
+    main.innerHTML = '<h2 class="cab-h2">Документы</h2>' +
+      '<p class="auth-sub" style="margin:0 0 14px;">Документы по заявке — получены из госбаз или подписаны онлайн.</p>' +
+      documentsHtml();
+  }
+
+  function renderNotifTab(main) {
+    notifRead = true;
+    renderCabNav();
+    try { window.renderAuthSlot(); } catch (e) {}
+    var ev = notifEvents();
+    var color = { ok: '#2b8a3e', info: '#1c6fd6', danger: '#d6336c' };
+    main.innerHTML = '<h2 class="cab-h2">Уведомления</h2>' +
+      '<div style="border:1px solid #e6ebe8;border-radius:12px;background:#fff;overflow:hidden;margin-top:4px;">' +
+      ev.map(function (n, i) {
+        var c = color[n.kind] || '#1c6fd6';
+        return '<div class="akk-fade" style="display:flex;gap:11px;padding:13px 14px;' + (i ? 'border-top:1px solid #f0f3f1;' : '') + '">' +
+          '<span style="flex:0 0 9px;width:9px;height:9px;border-radius:50%;background:' + c + ';margin-top:5px;"></span>' +
+          '<div style="min-width:0;"><div style="font-size:13.5px;font-weight:600;color:#14211b;">' + escHtml(n.title) + '</div>' +
+          '<div style="font-size:12.5px;color:#8a948f;margin-top:2px;">' + escHtml(n.text) + '</div></div></div>';
+      }).join('') + '</div>';
+  }
+
+  function renderSupportTab(main) {
+    main.innerHTML = '<h2 class="cab-h2">Поддержка</h2>' +
+      '<div class="akk-grid" style="margin-top:4px;">' +
+      infoCard('Контакт-центр', srcChip('пн–пт 09:00–18:00', '#0c8577'), [
+        ['Телефон', '<a href="tel:1408" style="color:var(--primary,#2b8a3e);font-weight:700;">1408</a>'],
+        ['Email', 'info@agrocredit.kz'],
+        ['Сайт', 'agrocredit.kz']
+      ]) +
+      infoCard('Частые вопросы', srcChip('FAQ', '#6741d9'), [
+        ['Сроки рассмотрения', 'до 10 раб. дней'],
+        ['Носить ли документы', 'нет — всё из госбаз'],
+        ['Как узнать статус', '«Мои заявки»']
+      ]) +
+      '</div>';
   }
 
   // Демо-управление движением заявки: продвинуть на следующий этап (status=null)
@@ -555,7 +1010,8 @@
             '<p class="auth-err" style="margin-top:6px;">' + errText(r, 'Не удалось обновить этап.') + '</p>');
           return;
         }
-        renderCabinet();
+        // обновляем кэш заявок и перерисовываем список + бейдж уведомлений
+        loadCabApps(function () { renderApps(); renderCabNav(); });
       });
   };
 
@@ -632,7 +1088,7 @@
           '. Статус заявки виден в личном кабинете.</p>' +
         '<p class="success-text" style="font-size: 13px; color: var(--text-3);">Если вопрос срочный — звоните 1408.</p>' +
         '<div class="success-actions">' +
-          '<button class="btn-ghost" onclick="openAuth(\'cabinet\')">Открыть личный кабинет</button>' +
+          '<button class="btn-ghost" onclick="openCabinet(\'apps\')">Открыть личный кабинет</button>' +
           '<button class="btn-ghost" onclick="resetAll()">Подобрать другую программу</button>' +
         '</div>' +
       '</div>';

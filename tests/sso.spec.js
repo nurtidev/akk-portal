@@ -19,9 +19,12 @@ for (const provider of ['egov', 'baiterek']) {
     // После входа в шапке появляется чип пользователя.
     await expect(page.locator('.user-chip')).toBeVisible({ timeout: 8000 });
 
-    // Кабинет открывается и грузит заявки (реальный токен).
+    // Дропдаун в шапке → Профиль: страница кабинета с данными «из госбаз».
     await page.locator('.user-chip').click();
-    await expect(page.getByText('Личный кабинет', { exact: false })).toBeVisible({ timeout: 5000 });
+    await page.locator('.auth-dd').getByRole('button', { name: 'Профиль' }).click();
+    await expect(page.getByText('Данные из госбаз', { exact: true })).toBeVisible({ timeout: 5000 });
+    // Переход на вкладку «Мои заявки» через боковое меню.
+    await page.locator('.cab-nav').getByText('Мои заявки').click();
     await expect(page.locator('#cab-apps')).toBeVisible({ timeout: 5000 });
   });
 }
