@@ -795,10 +795,42 @@
       '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>' +
       escHtml(label) + '</span>';
   }
-  function infoCard(title, chip, rows) {
-    return '<div class="akk-fade" style="border:1px solid #e6ebe8;border-radius:12px;padding:13px 14px;background:#fff;">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">' +
-        '<strong style="font-size:13px;color:#14211b;">' + title + '</strong>' + chip + '</div>' +
+  // Богатые стили кабинета: обложка профиля, фото-шапка заявки, иконки карточек.
+  function ensureRichStyle() {
+    if (document.getElementById('akk-rich-style')) return;
+    var st = document.createElement('style');
+    st.id = 'akk-rich-style';
+    st.textContent =
+      '.cab-cover{position:relative;overflow:hidden;border-radius:16px;background:linear-gradient(135deg,#2b8a3e,#1c5e2c);padding:24px 22px;margin-bottom:18px;}' +
+      '.cab-cover .ornament-tile-gold{opacity:.16;}' +
+      '.cab-cover-row{position:relative;z-index:1;display:flex;align-items:center;gap:16px;}' +
+      '.cab-cover-av{flex:0 0 66px;width:66px;height:66px;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:23px;font-weight:700;}' +
+      '.cab-cover h2{margin:0;font-size:22px;font-weight:700;color:#fff;line-height:1.2;}' +
+      '.cab-cc-sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;}' +
+      '.cab-cc-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.36);border-radius:999px;padding:3px 11px;font-size:11px;font-weight:700;}' +
+      '.cab-cc-phone{font-size:12.5px;color:rgba(255,255,255,.9);}' +
+      '.cab-card-ic{flex:0 0 30px;width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;}' +
+      '.appx-header{padding:0 !important;overflow:hidden;}' +
+      '.appx-cover{position:relative;height:128px;background:linear-gradient(135deg,#2b8a3e,#1c5e2c);}' +
+      '.appx-cover img{width:100%;height:100%;object-fit:cover;display:block;}' +
+      '.appx-cover-ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,33,27,0) 28%,rgba(20,33,27,.66));}' +
+      '.appx-cover-ttl{position:absolute;left:18px;right:18px;bottom:12px;z-index:1;color:#fff;}' +
+      '.appx-cover-ttl h2{margin:0;font-size:21px;font-weight:700;color:#fff;}' +
+      '.appx-head-body{padding:14px 18px;}';
+    document.head.appendChild(st);
+  }
+  var RICH_ICONS = {
+    identity: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c0-1.7 1.3-3 3-3s3 1.3 3 3"/><path d="M15 10h3M15 13h3"/></svg>',
+    income: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 6V4h12v2"/></svg>',
+    credit: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+    agro: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V11"/><path d="M12 13c0-3 2.5-5 5.5-5C17.5 11 15 13 12 13z"/><path d="M12 11C12 8 9.5 6 6.5 6C6.5 9 9 11 12 11z"/></svg>'
+  };
+
+  function infoCard(title, chip, rows, icon) {
+    var ic = icon ? '<span class="cab-card-ic" style="background:' + icon.color + '14;color:' + icon.color + ';">' + icon.svg + '</span>' : '';
+    return '<div class="akk-fade" style="border:1px solid #e6ebe8;border-radius:12px;padding:14px;background:#fff;box-shadow:0 1px 3px rgba(20,33,27,.05);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">' +
+        '<span style="display:flex;align-items:center;gap:9px;min-width:0;">' + ic + '<strong style="font-size:13px;color:#14211b;">' + title + '</strong></span>' + chip + '</div>' +
       rows.map(function (r) {
         return '<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:12.5px;">' +
           '<span style="color:#8a948f;">' + r[0] + '</span>' +
@@ -815,22 +847,22 @@
         ['Дата рождения', escHtml(g.identity.birth)],
         ['Удостоверение', escHtml(g.identity.docNumber + ' · ' + g.identity.issuedBy)],
         ['Адрес (прописка)', escHtml(g.identity.address)]
-      ]) +
+      ], { svg: RICH_ICONS.identity, color: '#1c6fd6' }) +
       infoCard('Доходы и налоги', srcChip('КГД · ЕНПФ', '#0c8577'), [
         ['Среднемесячный доход', fmtMoney(g.income.monthly)],
         ['Статус', escHtml(g.income.ip)],
         ['Налоговая задолженность', '<span style="color:#2b8a3e;">нет</span>']
-      ]) +
+      ], { svg: RICH_ICONS.income, color: '#0c8577' }) +
       infoCard('Кредитная история', srcChip('ПКБ', '#6741d9'), [
         ['Действующие займы', String(g.credit.active)],
         ['Просрочки', '<span style="color:#2b8a3e;">нет</span>'],
         ['Долговая нагрузка (ПДН)', g.credit.pdn + '%']
-      ]) +
+      ], { svg: RICH_ICONS.credit, color: '#6741d9' }) +
       infoCard('Агро-активы', srcChip('ИСЖИБ · кадастр', '#2f9e44'), [
         ['Поголовье КРС', g.agro.cattle + ' гол.'],
         ['Поголовье МРС', g.agro.smallCattle + ' гол.'],
         ['Земельные участки', g.agro.landHa + ' га']
-      ]) +
+      ], { svg: RICH_ICONS.agro, color: '#2f9e44' }) +
       '</div>';
   }
 
@@ -1003,13 +1035,19 @@
     var u = state.user || {};
     var g = govDataFor(u);
     var iin = onlyDigits(u.iin || '');
+    ensureRichStyle();
     main.innerHTML =
-      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">' +
-        '<div style="flex:0 0 56px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#2b8a3e,#37b24d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;">' + escHtml(initials(u.name)) + '</div>' +
-        '<div style="min-width:0;">' +
-          '<h2 class="cab-h2">' + escHtml(u.name || 'Профиль') + '</h2>' +
-          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' + srcChip('Верифицирован через eGov', '#1c6fd6') +
-            '<span style="font-size:12px;color:#8a948f;">' + (u.phone ? formatPhone(onlyDigits(u.phone)) : '') + '</span></div>' +
+      '<div class="cab-cover">' +
+        '<div class="ornament-tile-gold" aria-hidden="true"></div>' +
+        '<div class="cab-cover-row">' +
+          '<div class="cab-cover-av">' + escHtml(initials(u.name)) + '</div>' +
+          '<div style="min-width:0;">' +
+            '<h2>' + escHtml(u.name || 'Профиль') + '</h2>' +
+            '<div class="cab-cc-sub">' +
+              '<span class="cab-cc-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Верифицирован через eGov</span>' +
+              (u.phone ? '<span class="cab-cc-phone">' + formatPhone(onlyDigits(u.phone)) + '</span>' : '') +
+            '</div>' +
+          '</div>' +
         '</div>' +
       '</div>' +
       sectionTitle('Данные из госбаз') +
@@ -1213,13 +1251,26 @@
     var prog = (typeof PROGRAMS !== 'undefined') && PROGRAMS.find(function (p) { return p.id === a.program_id; });
     var cat = prog ? (prog.category || '') : '';
 
+    ensureRichStyle();
+    var pid = a.program_id || '';
+    var cover = pid
+      ? '<div class="appx-cover">' +
+          '<img src="img/programs/' + escHtml(pid) + '.jpg" alt="" onerror="this.style.display=\'none\'">' +
+          '<div class="appx-cover-ov"></div>' +
+          '<div class="appx-cover-ttl"><h2>' + escHtml(programTitle(pid)) + '</h2>' +
+            (cat ? '<div style="font-size:12px;opacity:.92;">' + escHtml(cat) + '</div>' : '') + '</div>' +
+        '</div>'
+      : '';
     var head = '<div class="appx-header">' +
-      '<h2>' + escHtml(programTitle(a.program_id)) + '</h2>' +
-      (cat ? '<div style="font-size:12px;color:#8a948f;">' + escHtml(cat) + '</div>' : '') +
-      '<div class="appx-meta">' +
-        '<span>Заявка <b>№ ' + escHtml(a.number) + '</b></span>' +
-        '<span>Сумма <b>' + escHtml(fmtMoney(a.amount)) + '</b></span>' +
-        (rej ? '' : '<span class="appx-stage-pill">● ' + escHtml(APP_STAGES[idx] || '') + '</span>') +
+      cover +
+      '<div class="appx-head-body">' +
+        (cover ? '' : '<h2>' + escHtml(programTitle(pid)) + '</h2>' +
+          (cat ? '<div style="font-size:12px;color:#8a948f;">' + escHtml(cat) + '</div>' : '')) +
+        '<div class="appx-meta">' +
+          '<span>Заявка <b>№ ' + escHtml(a.number) + '</b></span>' +
+          '<span>Сумма <b>' + escHtml(fmtMoney(a.amount)) + '</b></span>' +
+          (rej ? '' : '<span class="appx-stage-pill">● ' + escHtml(APP_STAGES[idx] || '') + '</span>') +
+        '</div>' +
       '</div></div>';
 
     var timeline = '<div class="appx-card"><div class="appx-card-title">Движение заявки</div>' +
