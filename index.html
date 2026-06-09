@@ -1346,7 +1346,8 @@ input[type=range]::-moz-range-thumb {
 }
 .rc-why-ic {
   flex-shrink: 0;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
 }
 .rc-why-fact {
@@ -3610,7 +3611,9 @@ function renderWhyMatch(explain, score) {
         : 'выше совпадение при ответе «' + f.bestLabel + '»';
       return '<div class="rc-why-row ' + (optimal ? 'ok' : 'warn') + '">' +
         '<div class="rc-why-head">' +
-          '<span class="rc-why-ic">' + (optimal ? '✅' : '⚠️') + '</span>' +
+          '<span class="rc-why-ic">' + (optimal
+            ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2b8a3e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+            : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8a317" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>') + '</span>' +
           '<span class="rc-why-fact">' + f.short + ': ' + f.label + '</span>' +
         '</div>' +
         '<div class="rc-why-sub">' + sub + '</div>' +
@@ -3622,7 +3625,7 @@ function renderWhyMatch(explain, score) {
         'Выше ' + score + '% она по вашему профилю подняться не может — это её максимум для таких заявок.</div>';
     } else if (score < 100) {
       body += '<div class="rc-why-note">100% — это когда профиль совпадает с программой по всем пунктам. ' +
-        'Пункты с «⚠️» подходят частично — это не ошибка, программа вам всё равно подходит.</div>';
+        'Пункты, отмеченные жёлтым, подходят частично — это не ошибка, программа вам всё равно подходит.</div>';
     } else if (explain.rawScore > 100) {
       body += '<div class="rc-why-note">Ваш профиль подходит программе с запасом — поэтому совпадение максимальное, 100%.</div>';
     }
