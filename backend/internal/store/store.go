@@ -83,6 +83,18 @@ CREATE TABLE IF NOT EXISTS applications (
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_applications_client ON applications(client_uid);
+
+CREATE TABLE IF NOT EXISTS application_documents (
+    id              UUID PRIMARY KEY,
+    application_uid UUID NOT NULL REFERENCES applications(uid),
+    requirement_key TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'uploaded',
+    file_name       TEXT,
+    uploaded_at     TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (application_uid, requirement_key)
+);
+CREATE INDEX IF NOT EXISTS idx_app_documents_app ON application_documents(application_uid);
 `
 
 func (s *Store) migrate(ctx context.Context) error {
@@ -272,13 +284,25 @@ func (s *Store) CreateApplication(ctx context.Context, a Application) (Applicati
 // Регистрация → Новая заявка → На рассмотрении → Одобрена → Средства выданы → Мониторинг → Завершена.
 // В прод поле = реальный workflow_status из Temporal; здесь — демо-лестница для ручного показа.
 var StatusLadder = []string{
-	"new",                 // Регистрация заявки
-	"scoring_in_progress", // Новая заявка
-	"expertise",           // На рассмотрении
-	"cc_approved",         // Одобрена
-	"disbursed",           // Средства выданы
-	"monitoring",          // Мониторинг
-	"completed",           // Завершена
+	"new",                  // Регистрация заявки
+	"scoring_in_progress",  // Новая заявка
+	"expertise",            // На рассмотрении
+	"cc_approved",          // Одобрена
+	"collateral_valuation", // Оценка залога
+	"contract_signing",     // Договор
+	"disbursed",            // Средства выданы
+	"monitoring",           // Мониторинг
+	"completed",            // Завершена
+}
+
+// StatusIndex возвращает позицию статуса в лестнице (или -1, если это не этап лестницы).
+func StatusIndex(status string) int {
+	for i, s := range StatusLadder {
+		if s == status {
+			return i
+		}
+	}
+	return -1
 }
 
 // StatusRejected — терминальный статус отказа (ветка вне основной лестницы).
@@ -370,4 +394,67 @@ func (s *Store) ListApplications(ctx context.Context, clientUID uuid.UUID) ([]Ap
 		out = append(out, a)
 	}
 	return out, rows.Err()
+}
+
+// --- Application documents ----------------------------------------------
+
+// AppDocument — действие пользователя по требованию (загрузка/подписание).
+// Каталог требований (название, источник, этап) живёт в коде; здесь — только факт действия.
+type AppDocument struct {
+	ID             uuid.UUID
+	ApplicationUID uuid.UUID
+	RequirementKey string
+	Status         string
+	FileName       *string
+	UploadedAt     *time.Time
+	CreatedAt      time.Time
+}
+
+// ListAppDocuments возвращает загруженные документы заявки (с проверкой владельца через JOIN).
+func (s *Store) ListAppDocuments(ctx context.Context, appUID, clientUID uuid.UUID) ([]AppDocument, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT d.id, d.application_uid, d.requirement_key, d.status, d.file_name, d.uploaded_at, d.created_at
+		  FROM application_documents d
+		  JOIN applications a ON a.uid = d.application_uid
+		 WHERE d.application_uid=$1 AND a.client_uid=$2`, appUID, clientUID)
+	if err != nil {
+		return nil, fmt.Errorf("store: list app documents: %w", err)
+	}
+	defer rows.Close()
+
+	var out []AppDocument
+	for rows.Next() {
+		var d AppDocument
+		if err := rows.Scan(&d.ID, &d.ApplicationUID, &d.RequirementKey, &d.Status,
+			&d.FileName, &d.UploadedAt, &d.CreatedAt); err != nil {
+			return nil, fmt.Errorf("store: scan app document: %w", err)
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
+// UpsertAppDocument помечает требование как загруженное (идемпотентно по requirement_key).
+// Сначала проверяет владельца заявки, затем INSERT ... ON CONFLICT.
+func (s *Store) UpsertAppDocument(ctx context.Context, appUID, clientUID uuid.UUID, reqKey, fileName string) (AppDocument, error) {
+	if _, err := s.GetApplication(ctx, appUID, clientUID); err != nil {
+		return AppDocument{}, err // ErrNotFound пробрасывается
+	}
+	var d AppDocument
+	var fn *string
+	if fileName != "" {
+		fn = &fileName
+	}
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO application_documents (id, application_uid, requirement_key, status, file_name, uploaded_at)
+		VALUES ($1,$2,$3,'uploaded',$4, now())
+		ON CONFLICT (application_uid, requirement_key)
+		DO UPDATE SET status='uploaded', file_name=EXCLUDED.file_name, uploaded_at=now()
+		RETURNING id, application_uid, requirement_key, status, file_name, uploaded_at, created_at`,
+		uuid.New(), appUID, reqKey, fn).
+		Scan(&d.ID, &d.ApplicationUID, &d.RequirementKey, &d.Status, &d.FileName, &d.UploadedAt, &d.CreatedAt)
+	if err != nil {
+		return AppDocument{}, fmt.Errorf("store: upsert app document: %w", err)
+	}
+	return d, nil
 }

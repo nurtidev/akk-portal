@@ -531,7 +531,7 @@
   // Лента движения заявки — полная клиентская проекция как в реальной системе
   // (credit-backend okaps_menu_status). 7 этапов + терминальная ветка отказа.
   var APP_STAGES = ['Регистрация заявки', 'Новая заявка', 'На рассмотрении', 'Одобрена',
-    'Средства выданы', 'Мониторинг', 'Завершена'];
+    'Оценка залога', 'Договор', 'Средства выданы', 'Мониторинг', 'Завершена'];
 
   // Полный маппинг реальных workflow-статусов credit-backend -> индекс клиентского этапа.
   // Так лента корректна и для демо-лестницы, и если бэкенд начнёт слать настоящие статусы Temporal.
@@ -542,10 +542,13 @@
     'manager_expertise': 2, 'inspections': 2, 'expertise': 2, 'aggregated': 2,
     'cc_pending': 2, 'cc_voting': 2,
     'cc_approved': 3, 'financing_conditions': 3, 'approval_letter_signing': 3,
-    'contract_generation': 3, 'contract_signing': 3, 'contracts_signed': 3, 'disbursement_pending': 3,
-    'disbursed': 4,
-    'monitoring': 5,
-    'completed': 6
+    // Этап 4 — Оценка залога
+    'collateral_valuation': 4, 'collateral_pledge': 4, 'valuation': 4, 'insurance': 4,
+    // Этап 5 — Договор (contract_* теперь живут здесь, а не в «Одобрена»)
+    'contract_generation': 5, 'contract_signing': 5, 'contracts_signed': 5, 'disbursement_pending': 5,
+    'disbursed': 6,
+    'monitoring': 7,
+    'completed': 8
   };
   // Статусы отказа/отмены — показываем красную терминальную ленту вместо прогресса.
   var REJECTED_STATUS = {
@@ -693,7 +696,38 @@
       '.auth-dd .dd-danger{color:#d6336c;}' +
       '.chip-badge{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;background:#e8413c;color:#fff;border-radius:999px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;padding:0 3px;}' +
       '.user-chip .ucaret{transition:transform .15s ease;}' +
-      '.user-chip[aria-expanded="true"] .ucaret{transform:rotate(180deg);}';
+      '.user-chip[aria-expanded="true"] .ucaret{transform:rotate(180deg);}' +
+      // страница заявки (трекер)
+      '.appx-page{max-width:760px;margin:0 auto;padding:28px 16px 64px;}' +
+      '.appx-back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:#3a463f;font-size:13px;font-weight:600;cursor:pointer;padding:0;margin-bottom:16px;}' +
+      '.appx-back:hover{color:var(--primary,#2b8a3e);}' +
+      '.appx-header{border:1px solid #e3e8e5;border-radius:14px;background:#fff;padding:16px 18px;margin-bottom:18px;}' +
+      '.appx-header h2{font-size:18px;font-weight:700;margin:0 0 2px;color:#14211b;}' +
+      '.appx-meta{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:#8a948f;margin-top:6px;}' +
+      '.appx-meta b{color:#14211b;font-weight:600;}' +
+      '.appx-stage-pill{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft,#e7f3ea);color:var(--primary,#2b8a3e);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;}' +
+      '.appx-card{border:1px solid #e3e8e5;border-radius:14px;background:#fff;padding:16px 18px;margin-bottom:14px;}' +
+      '.appx-card-title{font-size:13px;font-weight:700;letter-spacing:.02em;color:#14211b;margin:0 0 4px;}' +
+      '.appx-now{border:1px solid var(--primary,#2b8a3e);background:var(--primary-soft,#e7f3ea);}' +
+      '.appx-doc-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid #eef2f0;}' +
+      '.appx-doc-row:first-of-type{border-top:none;}' +
+      '.appx-doc-main{min-width:0;flex:1 1 auto;}' +
+      '.appx-doc-title{font-size:13.5px;color:#14211b;font-weight:500;}' +
+      '.appx-doc-file{font-size:11.5px;color:#8a948f;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+      '.appx-badge{flex:0 0 auto;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 9px;letter-spacing:.02em;}' +
+      '.appx-badge-gov{background:#e7f0fb;color:#1c6fd6;}' +
+      '.appx-badge-upload{background:#fff4e2;color:#b9770a;}' +
+      '.appx-badge-sign{background:#efeaff;color:#6741d9;}' +
+      '.appx-doc-act{flex:0 0 auto;}' +
+      '.appx-check{flex:0 0 18px;width:18px;height:18px;border-radius:50%;background:var(--primary,#2b8a3e);color:#fff;font-size:11px;line-height:18px;text-align:center;}' +
+      '.appx-up-btn{background:var(--primary,#2b8a3e);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}' +
+      '.appx-up-btn:hover{background:var(--primary-2,#26793a);}' +
+      '.appx-stage-collapsed{border:1px solid #eef2f0;border-radius:12px;background:#fafbfa;margin-bottom:10px;overflow:hidden;}' +
+      '.appx-stage-collapsed summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:13px;font-weight:600;color:#3a463f;}' +
+      '.appx-stage-collapsed summary::-webkit-details-marker{display:none;}' +
+      '.appx-stage-collapsed[open] summary{border-bottom:1px solid #eef2f0;}' +
+      '.appx-stage-collapsed .appx-stage-body{padding:4px 14px 12px;}' +
+      '.appx-stage-dot{flex:0 0 16px;width:16px;height:16px;border-radius:50%;font-size:9px;line-height:16px;text-align:center;color:#fff;}';
     document.head.appendChild(st);
   }
 
@@ -837,6 +871,7 @@
       '<div style="font-size:12px;color:var(--text-3,#8a948f);margin-top:2px;">' + escHtml(programTitle(a.program_id)) + '</div>' +
       timeline +
       '<div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">' +
+        '<button class="auth-btn auth-btn-primary" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="openApplication(\'' + a.uid + '\')">Открыть заявку →</button>' +
         controls +
         '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', \'new\', this)">Сбросить</button>' +
       '</div>' +
@@ -998,6 +1033,189 @@
 
   // Демо-управление движением заявки: продвинуть на следующий этап (status=null)
   // или сбросить на конкретный (status='new'). После ответа — перерисовать кабинет.
+  // =========================================================================
+  // СТРАНИЦА ЗАЯВКИ (трекер): этапы + чек-лист «что нужно сейчас» + загрузка.
+  // =========================================================================
+  function findApp(uid) {
+    for (var i = 0; i < cabApps.length; i++) { if (cabApps[i].uid === uid) return cabApps[i]; }
+    return null;
+  }
+
+  // Секцию-страницу заявки внедряем один раз (как и кабинет — не трогая index.html).
+  function ensureApplicationSection() {
+    if (document.getElementById('application-section')) return;
+    var sec = document.createElement('section');
+    sec.id = 'application-section';
+    sec.className = 'section';
+    sec.hidden = true;
+    sec.innerHTML = '<div class="appx-page" id="application-container"></div>';
+    var anchor = document.getElementById('cabinet-section') || document.getElementById('success-section');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(sec, anchor.nextSibling);
+    else document.body.appendChild(sec);
+  }
+
+  window.openApplication = function (uid) {
+    if (!state.user) { return origOpenAuth.call(window, 'login'); }
+    ensureCabStyle();
+    ensureApplicationSection();
+    closeAuth();
+    closeAuthDropdown();
+    LANDING_IDS.concat(FLOW_IDS).forEach(function (id) { setHidden(id, true); });
+    setHidden('cabinet-section', true);
+    setHidden('application-section', false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    var host = document.getElementById('application-container');
+    if (host) host.innerHTML = '<button class="appx-back" onclick="openCabinet(\'apps\')">← Назад к заявкам</button>' +
+      '<div class="auth-sub" style="margin:0;">Загружаем заявку…</div>';
+    if (findApp(uid)) renderApplication(uid);
+    else loadCabApps(function () { renderApplication(uid); });
+  };
+
+  function docBadge(source) {
+    if (source === 'gov') return '<span class="appx-badge appx-badge-gov">Из госбаз</span>';
+    if (source === 'sign') return '<span class="appx-badge appx-badge-sign">Подпись ЭЦП</span>';
+    return '<span class="appx-badge appx-badge-upload">Загрузка</span>';
+  }
+  function docDone(doc) { return doc.status === 'verified' || doc.status === 'uploaded'; }
+
+  // interactive — текущий этап (можно загружать/подписывать); иначе только статус.
+  function docRowHtml(uid, doc, interactive) {
+    var act;
+    if (docDone(doc)) {
+      act = '<span class="appx-check">✓</span>';
+    } else if (!interactive) {
+      act = '<span class="appx-badge" style="background:#f0f3f1;color:#9aa6a0;">ожидается</span>';
+    } else if (doc.source === 'sign') {
+      act = '<button class="appx-up-btn" onclick="akkSignDoc(\'' + uid + '\',\'' + doc.requirement_key + '\',this)">Подписать ЭЦП</button>';
+    } else {
+      var fid = 'appx-file-' + doc.requirement_key;
+      act = '<button class="appx-up-btn" onclick="document.getElementById(\'' + fid + '\').click()">Загрузить</button>' +
+        '<input type="file" id="' + fid + '" style="display:none" onchange="akkUploadDoc(\'' + uid + '\',\'' + doc.requirement_key + '\',this)">';
+    }
+    return '<div class="appx-doc-row">' +
+      '<div class="appx-doc-main"><div class="appx-doc-title">' + escHtml(doc.title) + '</div>' +
+        (doc.file_name ? '<div class="appx-doc-file">' + escHtml(doc.file_name) + '</div>' : '') + '</div>' +
+      docBadge(doc.source) +
+      '<div class="appx-doc-act">' + act + '</div>' +
+      '</div>';
+  }
+
+  // Свёрнутый блок прошлого/будущего этапа с документами.
+  function collapsedStageHtml(uid, stage, kind) {
+    var dot = kind === 'past'
+      ? '<span class="appx-stage-dot" style="background:var(--primary,#2b8a3e);">✓</span>'
+      : '<span class="appx-stage-dot" style="background:#cfd6d2;"></span>';
+    var rows = stage.documents.map(function (d) { return docRowHtml(uid, d, false); }).join('');
+    return '<details class="appx-stage-collapsed">' +
+      '<summary>' + dot + '<span>' + escHtml(stage.label) + '</span>' +
+        '<span style="margin-left:auto;font-size:11px;color:#9aa6a0;">' + stage.documents.length + ' док.</span></summary>' +
+      '<div class="appx-stage-body">' + rows + '</div></details>';
+  }
+
+  function applicationHtml(a, dto) {
+    var idx = appStageIndex(a);
+    var rej = rejectLabel(a.status);
+    var prog = (typeof PROGRAMS !== 'undefined') && PROGRAMS.find(function (p) { return p.id === a.program_id; });
+    var cat = prog ? (prog.category || '') : '';
+
+    var head = '<div class="appx-header">' +
+      '<h2>' + escHtml(programTitle(a.program_id)) + '</h2>' +
+      (cat ? '<div style="font-size:12px;color:#8a948f;">' + escHtml(cat) + '</div>' : '') +
+      '<div class="appx-meta">' +
+        '<span>Заявка <b>№ ' + escHtml(a.number) + '</b></span>' +
+        '<span>Сумма <b>' + escHtml(fmtMoney(a.amount)) + '</b></span>' +
+        (rej ? '' : '<span class="appx-stage-pill">● ' + escHtml(APP_STAGES[idx] || '') + '</span>') +
+      '</div></div>';
+
+    var timeline = '<div class="appx-card"><div class="appx-card-title">Движение заявки</div>' +
+      (rej ? rejectedTimelineHtml(Math.min(idx, APP_STAGES.length - 1), rej) : statusTimelineHtml(idx)) + '</div>';
+
+    if (rej) {
+      return head + timeline +
+        '<div class="appx-card"><p class="auth-sub" style="margin:0;">Заявка закрыта. По вопросам обратитесь в колл-центр 1408.</p></div>' +
+        controlsHtml(a);
+    }
+
+    var stages = (dto && dto.stages) || [];
+    var current = null, past = [], future = [];
+    stages.forEach(function (s) {
+      if (!s.documents || !s.documents.length) { if (s.stage_index === idx) current = s; return; }
+      if (s.stage_index === idx) current = s;
+      else if (s.stage_index < idx) past.push(s);
+      else future.push(s);
+    });
+
+    var nowBody;
+    if (current && current.documents && current.documents.length) {
+      nowBody = current.documents.map(function (d) { return docRowHtml(a.uid, d, true); }).join('');
+    } else {
+      nowBody = '<p class="auth-sub" style="margin:0;">На этом этапе загрузка документов не требуется — заявка обрабатывается специалистами АКК.</p>';
+    }
+    var now = '<div class="appx-card appx-now"><div class="appx-card-title">Что нужно сейчас · ' + escHtml(APP_STAGES[idx] || '') + '</div>' + nowBody + '</div>';
+
+    var pastHtml = past.length ? ('<div class="appx-card-title" style="margin-top:6px;">Пройденные этапы</div>' +
+      past.map(function (s) { return collapsedStageHtml(a.uid, s, 'past'); }).join('')) : '';
+    var futureHtml = future.length ? ('<div class="appx-card-title" style="margin-top:6px;">Впереди</div>' +
+      future.map(function (s) { return collapsedStageHtml(a.uid, s, 'future'); }).join('')) : '';
+
+    return head + timeline + now + pastHtml + futureHtml + controlsHtml(a);
+  }
+
+  // Демо-управление этапами на странице заявки (те же действия, что в карточке кабинета).
+  function controlsHtml(a) {
+    var rej = rejectLabel(a.status);
+    var idx = appStageIndex(a);
+    var isFinal = idx >= APP_STAGES.length - 1;
+    var buttons = '';
+    if (!rej && !isFinal) {
+      buttons += '<button class="auth-btn auth-btn-primary" style="padding:7px 13px;font-size:12px;" onclick="akkAdvanceApp(\'' + a.uid + '\', null, this)">Продвинуть этап →</button>' +
+        '<button class="auth-btn auth-btn-ghost" style="padding:7px 13px;font-size:12px;color:var(--danger,#d6336c);" onclick="akkAdvanceApp(\'' + a.uid + '\', \'rejected\', this)">Отклонить</button>';
+    }
+    buttons += '<button class="auth-btn auth-btn-ghost" style="padding:7px 13px;font-size:12px;" onclick="akkAdvanceApp(\'' + a.uid + '\', \'new\', this)">Сбросить</button>';
+    return '<div class="appx-card" style="background:#fafbfa;"><div class="appx-card-title">Демо-управление</div>' +
+      '<p class="auth-sub" style="margin:0 0 10px;font-size:11.5px;">В рабочей системе этапы переключаются автоматически по ходу workflow. Здесь — вручную для показа.</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + buttons + '</div></div>';
+  }
+
+  function renderApplication(uid) {
+    var host = document.getElementById('application-container');
+    if (!host) return;
+    var a = findApp(uid);
+    if (!a) {
+      host.innerHTML = '<button class="appx-back" onclick="openCabinet(\'apps\')">← Назад к заявкам</button>' +
+        '<p class="auth-sub" style="margin:0;">Заявка не найдена.</p>';
+      return;
+    }
+    var back = '<button class="appx-back" onclick="openCabinet(\'apps\')">← Назад к заявкам</button>';
+    callCredit('/applications/' + uid + '/documents', { method: 'GET', auth: true })
+      .then(function (r) {
+        var dto = (r.ok && r.data) ? r.data : null;
+        host.innerHTML = back + applicationHtml(a, dto);
+      });
+  }
+
+  // Загрузка файла по требованию текущего этапа (метаданные; файл-байты пока не храним).
+  window.akkUploadDoc = function (uid, reqKey, input) {
+    var f = input && input.files && input.files[0];
+    if (!f) return;
+    postDoc(uid, reqKey, f.name);
+  };
+  // Подписание ЭЦП (демо): отправляем синтетическое имя файла.
+  window.akkSignDoc = function (uid, reqKey, btn) {
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    postDoc(uid, reqKey, 'signed-' + reqKey + '.pdf');
+  };
+  function postDoc(uid, reqKey, fileName) {
+    callCredit('/applications/' + uid + '/documents', { method: 'POST', auth: true,
+      body: { requirement_key: reqKey, file_name: fileName } })
+      .then(function (r) {
+        if (r.ok) { renderApplication(uid); return; }
+        var host = document.getElementById('application-container');
+        if (host) host.insertAdjacentHTML('beforeend',
+          '<p class="auth-err" style="margin-top:8px;">' + errText(r, 'Не удалось сохранить документ.') + '</p>');
+      });
+  }
+
   window.akkAdvanceApp = function (uid, status, btn) {
     if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = '…'; }
     var body = status ? { status: status } : undefined;
@@ -1011,7 +1229,12 @@
           return;
         }
         // обновляем кэш заявок и перерисовываем список + бейдж уведомлений
-        loadCabApps(function () { renderApps(); renderCabNav(); });
+        var appSec = document.getElementById('application-section');
+        if (appSec && !appSec.hidden) {
+          loadCabApps(function () { renderApplication(uid); renderCabNav(); });
+        } else {
+          loadCabApps(function () { renderApps(); renderCabNav(); });
+        }
       });
   };
 

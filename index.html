@@ -2124,6 +2124,26 @@ function toggleTheme() {
   var dark = document.documentElement.classList.toggle('dark');
   try { localStorage.setItem('akk-theme', dark ? 'dark' : 'light'); } catch (e) {}
 }
+// Мобильное меню: бургер раскрывает выпадающую навигацию под шапкой.
+function setMobileNav(open) {
+  var nav = document.getElementById('mobile-nav');
+  var btn = document.querySelector('.nav-toggle');
+  if (!nav) return;
+  nav.classList.toggle('open', open);
+  if (btn) { btn.classList.toggle('open', open); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+}
+function toggleMobileNav() {
+  var nav = document.getElementById('mobile-nav');
+  setMobileNav(!(nav && nav.classList.contains('open')));
+}
+function closeMobileNav() { setMobileNav(false); }
+// Закрытие по клику вне шапки/меню.
+document.addEventListener('click', function (e) {
+  var nav = document.getElementById('mobile-nav');
+  if (!nav || !nav.classList.contains('open')) return;
+  if (e.target.closest('.site-header')) return;
+  closeMobileNav();
+});
 </script>
 </head>
 <body>
@@ -3151,8 +3171,7 @@ function openProgramModal(id) {
     '<div class="pm-section"><h4>Как погашать</h4><p>' + d.repayment + '</p></div>' +
     (d.note ? '<div class="pm-note"><strong>Важно знать.</strong> ' + d.note + '</div>' : '') +
     '<div class="pm-actions">' +
-      '<button class="btn-primary" onclick="applyForProgram(\'' + id + '\')">Подать заявку по этой программе</button>' +
-      '<button class="btn-ghost" onclick="closeProgramModal(); startQuiz();">Не уверен — подобрать</button>' +
+      '<button class="btn-primary" onclick="applyForProgram(\'' + id + '\')">Подать заявку</button>' +
     '</div>';
   const modal = document.getElementById('prog-modal');
   modal.classList.add('open');
