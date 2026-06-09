@@ -893,33 +893,33 @@
   }
 
   // --- заявки ----------------------------------------------------------------
-  function appCardHtml(a) {
+  // Статус-пилюля заявки (цветная) для быстрого считывания состояния.
+  function pill(text, color) {
+    return '<span style="display:inline-flex;align-items:center;gap:6px;background:' + color + '14;color:' + color +
+      ';border:1px solid ' + color + '33;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap;">' +
+      '<span style="width:6px;height:6px;border-radius:50%;background:' + color + ';"></span>' + escHtml(text) + '</span>';
+  }
+  function statusPill(a) {
     var rej = rejectLabel(a.status);
+    if (rej) return pill(rej, '#d6336c');
     var idx = appStageIndex(a);
-    var isFinal = idx >= APP_STAGES.length - 1;
-    var timeline = rej ? rejectedTimelineHtml(2, rej) : statusTimelineHtml(idx);
-    var controls;
-    if (rej) {
-      controls = '<span style="font-size:12px;color:var(--danger,#d6336c);font-weight:600;">Заявка отклонена</span>';
-    } else if (isFinal) {
-      controls = '<span style="font-size:12px;color:var(--primary,#2b8a3e);font-weight:600;">Заявка прошла все этапы</span>';
-    } else {
-      controls =
-        '<button class="auth-btn auth-btn-primary" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', null, this)">Продвинуть этап →</button>' +
-        '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;color:var(--danger,#d6336c);" onclick="akkAdvanceApp(\'' + a.uid + '\', \'rejected\', this)">Отклонить</button>';
-    }
-    return '<div class="app-card" data-app-number="' + escHtml(a.number) + '" style="border:1px solid #e3e8e5;border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff;">' +
-      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">' +
-        '<strong style="font-size:14px;">№ ' + escHtml(a.number) + '</strong>' +
-        '<span style="font-weight:600;">' + escHtml(fmtMoney(a.amount)) + '</span>' +
+    return pill(APP_STAGES[idx] || '', idx >= 3 ? '#2b8a3e' : '#1c6fd6');
+  }
+
+  // Компактная карточка заявки в списке (управление этапами — на странице-трекере).
+  function appCardHtml(a) {
+    return '<div class="app-card" data-app-number="' + escHtml(a.number) + '" onclick="openApplication(\'' + a.uid + '\')" ' +
+      'style="border:1px solid #e3e8e5;border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff;cursor:pointer;transition:border-color .15s,box-shadow .15s;" ' +
+      'onmouseover="this.style.borderColor=\'#bcd3c4\';this.style.boxShadow=\'0 4px 14px rgba(20,33,27,.06)\';" ' +
+      'onmouseout="this.style.borderColor=\'#e3e8e5\';this.style.boxShadow=\'none\';">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">' +
+        '<strong style="font-size:14px;">№ ' + escHtml(a.number) + '</strong>' + statusPill(a) +
       '</div>' +
-      '<div style="font-size:12px;color:var(--text-3,#8a948f);margin-top:2px;">' + escHtml(programTitle(a.program_id)) + '</div>' +
-      timeline +
-      '<div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">' +
-        '<button class="auth-btn auth-btn-primary" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="openApplication(\'' + a.uid + '\')">Открыть заявку →</button>' +
-        controls +
-        '<button class="auth-btn auth-btn-ghost" style="padding:6px 12px;font-size:12px;flex:0 0 auto;" onclick="akkAdvanceApp(\'' + a.uid + '\', \'new\', this)">Сбросить</button>' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:8px;">' +
+        '<span style="font-size:13px;color:var(--text-3,#8a948f);">' + escHtml(programTitle(a.program_id)) + '</span>' +
+        '<span style="font-weight:700;font-size:14px;">' + escHtml(fmtMoney(a.amount)) + '</span>' +
       '</div>' +
+      '<div style="margin-top:10px;font-size:12.5px;color:var(--primary,#2b8a3e);font-weight:600;">Открыть заявку →</div>' +
       '</div>';
   }
   function sectionTitle(txt) {
@@ -1019,22 +1019,72 @@
     else animateGov(govHost, g, iin);
   }
 
+  var showAllApps = false;
+  window.akkToggleApps = function () { showAllApps = !showAllApps; renderApps(); };
+
+  function appsSummary() {
+    var approved = 0, sum = 0;
+    cabApps.forEach(function (a) {
+      if (rejectLabel(a.status)) return;
+      var idx = appStageIndex(a);
+      if (idx >= 3) approved++;
+      if (idx < APP_STAGES.length - 1) sum += (a.amount || 0);
+    });
+    return { total: cabApps.length, approved: approved, sum: sum };
+  }
+  function summaryHtml() {
+    var s = appsSummary();
+    function stat(label, val) {
+      return '<div style="flex:1;min-width:110px;border:1px solid #e6ebe8;border-radius:10px;padding:10px 13px;background:#fff;">' +
+        '<div style="font-size:11px;color:#8a948f;">' + label + '</div>' +
+        '<div style="font-size:17px;font-weight:700;color:#14211b;margin-top:2px;">' + val + '</div></div>';
+    }
+    return '<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px;">' +
+      stat('Заявок', s.total) + stat('Одобрено', s.approved) + stat('Запрошено', fmtMoney(s.sum)) + '</div>';
+  }
+  var APPS_EMPTY_SVG =
+    '<svg width="120" height="86" viewBox="0 0 120 86" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="92" cy="24" r="14" fill="#37b24d" opacity="0.14"/><circle cx="92" cy="24" r="7" fill="#37b24d" opacity="0.45"/>' +
+    '<path d="M10 66h100" stroke="#9fc3ab" stroke-width="2" stroke-linecap="round"/>' +
+    '<g stroke="#2b8a3e" stroke-width="2.2" stroke-linecap="round" fill="none">' +
+    '<path d="M38 66V48"/><path d="M38 55c-6-2-9-8-9-8M38 53c5-2 8-7 8-7"/>' +
+    '<path d="M60 66V42"/><path d="M60 51c-7-2-10-9-10-9M60 49c6-2 10-8 10-8"/>' +
+    '<path d="M82 66V51"/><path d="M82 57c-6-2-8-6-8-6M82 55c5-2 7-6 7-6"/>' +
+    '</g></svg>';
+  function emptyAppsHtml() {
+    return '<div style="text-align:center;padding:34px 16px;border:1px dashed #d7e0db;border-radius:14px;background:#fafdfb;">' +
+      APPS_EMPTY_SVG +
+      '<div style="font-size:15px;font-weight:700;color:#14211b;margin-top:12px;">Заявок пока нет</div>' +
+      '<div class="auth-sub" style="margin:6px auto 16px;max-width:340px;">Подберите программу под вашу деятельность — расчёт займёт минуту, документы подтянем из госбаз.</div>' +
+      '<button class="auth-btn auth-btn-primary" style="display:inline-flex;width:auto;padding:0 22px;" onclick="exitCabinet(); startQuiz();">Подобрать программу</button>' +
+      '</div>';
+  }
+
   function renderAppsTab(main) {
-    main.innerHTML = '<h2 class="cab-h2">Мои заявки</h2>' +
-      '<p class="auth-sub" style="margin:0 0 14px;">Отслеживайте движение заявки по этапам.</p>' +
+    main.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">' +
+        '<h2 class="cab-h2" style="margin:0;">Мои заявки</h2>' +
+        '<button class="auth-btn auth-btn-primary" style="flex:0 0 auto;" onclick="exitCabinet(); startQuiz();">+ Подать заявку</button>' +
+      '</div>' +
+      '<div id="cab-apps-summary"></div>' +
       '<div id="cab-apps"><div class="auth-sub" style="margin:0;">Загружаем ваши заявки…</div></div>';
     renderApps();
   }
   function renderApps() {
     var host = document.getElementById('cab-apps');
     if (!host) return;
+    var sumHost = document.getElementById('cab-apps-summary');
     if (!cabApps.length) {
-      host.innerHTML = '<div class="auth-sub" style="margin:0;">У вас пока нет заявок. ' +
-        '<a onclick="exitCabinet(); startQuiz();" style="cursor:pointer;color:var(--primary,#2b8a3e);font-weight:600;">Подобрать программу</a> и подать заявку.</div>';
+      if (sumHost) sumHost.innerHTML = '';
+      host.innerHTML = emptyAppsHtml();
       return;
     }
-    host.innerHTML = cabApps.map(appCardHtml).join('') +
-      '<p class="auth-sub" style="font-size:11px;color:var(--text-3,#8a948f);margin-top:4px;">Демо: этапы переключаются вручную. В рабочей системе статус обновляется автоматически по ходу workflow.</p>';
+    if (sumHost) sumHost.innerHTML = summaryHtml();
+    var list = showAllApps ? cabApps : cabApps.slice(0, 3);
+    host.innerHTML = list.map(appCardHtml).join('') +
+      (cabApps.length > 3
+        ? '<button class="auth-btn auth-btn-ghost" style="width:100%;" onclick="akkToggleApps()">' + (showAllApps ? 'Свернуть' : 'Показать все (' + cabApps.length + ')') + '</button>'
+        : '');
   }
 
   function renderDocsTab(main) {
