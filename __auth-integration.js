@@ -606,9 +606,9 @@
     return '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">' +
       APP_STAGES.map(function (s, i) {
         var done = i < currentIdx, cur = i === currentIdx;
-        var bg = (done || cur) ? 'var(--primary,#2b8a3e)' : '#e3e8e5';
-        var dotColor = (done || cur) ? '#fff' : '#9aa6a0';
-        var textColor = cur ? 'var(--primary,#2b8a3e)' : (done ? 'var(--text,#14211b)' : '#9aa6a0');
+        var bg = (done || cur) ? 'var(--primary,#2b8a3e)' : 'var(--border)';
+        var dotColor = (done || cur) ? '#fff' : 'var(--text-3)';
+        var textColor = cur ? 'var(--primary,#2b8a3e)' : (done ? 'var(--text,var(--text))' : 'var(--text-3)');
         var icon = done ? '✓' : (cur ? '●' : '');
         return '<div class="' + (cur ? 'stage-current' : 'stage-row') + '" style="display:flex;align-items:center;gap:8px;font-size:12px;color:' + textColor + ';font-weight:' + (cur ? '700' : '400') + ';">' +
           '<span style="flex:0 0 16px;width:16px;height:16px;border-radius:50%;background:' + bg + ';color:' + dotColor + ';font-size:9px;line-height:16px;text-align:center;">' + icon + '</span>' +
@@ -621,8 +621,8 @@
   function rejectedTimelineHtml(reachedIdx, label) {
     var rows = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">' +
       APP_STAGES.slice(0, reachedIdx + 1).map(function (s) {
-        return '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#9aa6a0;">' +
-          '<span style="flex:0 0 16px;width:16px;height:16px;border-radius:50%;background:#cfd6d2;color:#fff;font-size:9px;line-height:16px;text-align:center;">✓</span>' +
+        return '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-3);">' +
+          '<span style="flex:0 0 16px;width:16px;height:16px;border-radius:50%;background:var(--border-strong);color:#fff;font-size:9px;line-height:16px;text-align:center;">✓</span>' +
           '<span>' + s + '</span></div>';
       }).join('') +
       '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--danger,#d6336c);font-weight:700;">' +
@@ -720,45 +720,45 @@
       // страница кабинета
       '.cab-page{max-width:1080px;margin:0 auto;padding:28px 16px 64px;display:grid;grid-template-columns:240px 1fr;gap:26px;}' +
       '.cab-nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:84px;align-self:start;}' +
-      '.cab-navbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:none;border-radius:10px;padding:10px 12px;font-size:14px;color:#3a463f;cursor:pointer;font-weight:500;line-height:1;}' +
+      '.cab-navbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:none;border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text-2);cursor:pointer;font-weight:500;line-height:1;}' +
       '.cab-navbtn svg{flex:0 0 18px;}' +
-      '.cab-navbtn:hover{background:#f0f5f1;color:#14211b;}' +
+      '.cab-navbtn:hover{background:var(--bg-tint);color:var(--text);}' +
       '.cab-navbtn.on{background:var(--primary-soft,#e7f3ea);color:var(--primary,#2b8a3e);font-weight:700;}' +
       '.cab-navbtn .nb-badge{margin-left:auto;background:#e8413c;color:#fff;border-radius:999px;font-size:10px;font-weight:700;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}' +
-      '.cab-navsep{height:1px;background:#eef2f0;margin:7px 8px;}' +
+      '.cab-navsep{height:1px;background:var(--border-soft);margin:7px 8px;}' +
       '.cab-main{min-width:0;}' +
-      '.cab-h2{font-size:21px;font-weight:700;margin:0 0 4px;color:#14211b;}' +
+      '.cab-h2{font-size:21px;font-weight:700;margin:0 0 4px;color:var(--text);}' +
       '@media(max-width:760px){.cab-page{grid-template-columns:1fr;gap:14px;padding-top:16px;}.cab-nav{flex-direction:row;overflow-x:auto;position:static;gap:6px;padding-bottom:4px;}.cab-navbtn{flex:0 0 auto;white-space:nowrap;}.cab-navbtn.cab-back,.cab-navsep{display:none;}}' +
       // дропдаун в шапке
       '#auth-slot{position:relative;}' +
-      '.auth-dd{position:absolute;right:0;top:calc(100% + 8px);min-width:216px;background:#fff;border:1px solid #e6ebe8;border-radius:12px;box-shadow:0 14px 34px rgba(20,33,27,.14);padding:6px;z-index:1300;display:none;}' +
+      '.auth-dd{position:absolute;right:0;top:calc(100% + 8px);min-width:216px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 34px rgba(20,33,27,.14);padding:6px;z-index:1300;display:none;}' +
       '.auth-dd.open{display:block;animation:akkfade .16s ease both;}' +
-      '.auth-dd button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-radius:8px;padding:9px 10px;font-size:13.5px;color:#14211b;cursor:pointer;}' +
+      '.auth-dd button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-radius:8px;padding:9px 10px;font-size:13.5px;color:var(--text);cursor:pointer;}' +
       '.auth-dd button svg{flex:0 0 17px;}' +
-      '.auth-dd button:hover{background:#f0f5f1;}' +
+      '.auth-dd button:hover{background:var(--bg-tint);}' +
       '.auth-dd .nb-badge{margin-left:auto;background:#e8413c;color:#fff;border-radius:999px;font-size:10px;font-weight:700;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}' +
-      '.auth-dd .dd-sep{height:1px;background:#eef2f0;margin:5px 4px;}' +
+      '.auth-dd .dd-sep{height:1px;background:var(--border-soft);margin:5px 4px;}' +
       '.auth-dd .dd-danger{color:#d6336c;}' +
       '.chip-badge{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;background:#e8413c;color:#fff;border-radius:999px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;padding:0 3px;}' +
       '.user-chip .ucaret{transition:transform .15s ease;}' +
       '.user-chip[aria-expanded="true"] .ucaret{transform:rotate(180deg);}' +
       // страница заявки (трекер)
       '.appx-page{max-width:760px;margin:0 auto;padding:28px 16px 64px;}' +
-      '.appx-back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:#3a463f;font-size:13px;font-weight:600;cursor:pointer;padding:0;margin-bottom:16px;}' +
+      '.appx-back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer;padding:0;margin-bottom:16px;}' +
       '.appx-back:hover{color:var(--primary,#2b8a3e);}' +
-      '.appx-header{border:1px solid #e3e8e5;border-radius:14px;background:#fff;padding:16px 18px;margin-bottom:18px;}' +
-      '.appx-header h2{font-size:18px;font-weight:700;margin:0 0 2px;color:#14211b;}' +
-      '.appx-meta{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:#8a948f;margin-top:6px;}' +
-      '.appx-meta b{color:#14211b;font-weight:600;}' +
+      '.appx-header{border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:16px 18px;margin-bottom:18px;}' +
+      '.appx-header h2{font-size:18px;font-weight:700;margin:0 0 2px;color:var(--text);}' +
+      '.appx-meta{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--text-3);margin-top:6px;}' +
+      '.appx-meta b{color:var(--text);font-weight:600;}' +
       '.appx-stage-pill{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft,#e7f3ea);color:var(--primary,#2b8a3e);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;}' +
-      '.appx-card{border:1px solid #e3e8e5;border-radius:14px;background:#fff;padding:16px 18px;margin-bottom:14px;}' +
-      '.appx-card-title{font-size:13px;font-weight:700;letter-spacing:.02em;color:#14211b;margin:0 0 4px;}' +
+      '.appx-card{border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:16px 18px;margin-bottom:14px;}' +
+      '.appx-card-title{font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--text);margin:0 0 4px;}' +
       '.appx-now{border:1px solid var(--primary,#2b8a3e);background:var(--primary-soft,#e7f3ea);}' +
-      '.appx-doc-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid #eef2f0;}' +
+      '.appx-doc-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--border-soft);}' +
       '.appx-doc-row:first-of-type{border-top:none;}' +
       '.appx-doc-main{min-width:0;flex:1 1 auto;}' +
-      '.appx-doc-title{font-size:13.5px;color:#14211b;font-weight:500;}' +
-      '.appx-doc-file{font-size:11.5px;color:#8a948f;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+      '.appx-doc-title{font-size:13.5px;color:var(--text);font-weight:500;}' +
+      '.appx-doc-file{font-size:11.5px;color:var(--text-3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
       '.appx-badge{flex:0 0 auto;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 9px;letter-spacing:.02em;}' +
       '.appx-badge-gov{background:#e7f0fb;color:#1c6fd6;}' +
       '.appx-badge-upload{background:#fff4e2;color:#b9770a;}' +
@@ -767,10 +767,10 @@
       '.appx-check{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;width:18px;height:18px;border-radius:50%;background:var(--primary,#2b8a3e);color:#fff;font-size:11px;}' +
       '.appx-up-btn{background:var(--primary,#2b8a3e);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}' +
       '.appx-up-btn:hover{background:var(--primary-2,#26793a);}' +
-      '.appx-stage-collapsed{border:1px solid #eef2f0;border-radius:12px;background:#fafbfa;margin-bottom:10px;overflow:hidden;}' +
-      '.appx-stage-collapsed summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:13px;font-weight:600;color:#3a463f;}' +
+      '.appx-stage-collapsed{border:1px solid var(--border-soft);border-radius:12px;background:var(--surface-warm);margin-bottom:10px;overflow:hidden;}' +
+      '.appx-stage-collapsed summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:13px;font-weight:600;color:var(--text-2);}' +
       '.appx-stage-collapsed summary::-webkit-details-marker{display:none;}' +
-      '.appx-stage-collapsed[open] summary{border-bottom:1px solid #eef2f0;}' +
+      '.appx-stage-collapsed[open] summary{border-bottom:1px solid var(--border-soft);}' +
       '.appx-stage-collapsed .appx-stage-body{padding:4px 14px 12px;}' +
       '.appx-stage-dot{flex:0 0 16px;width:16px;height:16px;border-radius:50%;font-size:9px;line-height:16px;text-align:center;color:#fff;}';
     document.head.appendChild(st);
@@ -828,13 +828,13 @@
 
   function infoCard(title, chip, rows, icon) {
     var ic = icon ? '<span class="cab-card-ic" style="background:' + icon.color + '14;color:' + icon.color + ';">' + icon.svg + '</span>' : '';
-    return '<div class="akk-fade" style="border:1px solid #e6ebe8;border-radius:12px;padding:14px;background:#fff;box-shadow:0 1px 3px rgba(20,33,27,.05);">' +
+    return '<div class="akk-fade" style="border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--surface);box-shadow:0 1px 3px rgba(20,33,27,.05);">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">' +
-        '<span style="display:flex;align-items:center;gap:9px;min-width:0;">' + ic + '<strong style="font-size:13px;color:#14211b;">' + title + '</strong></span>' + chip + '</div>' +
+        '<span style="display:flex;align-items:center;gap:9px;min-width:0;">' + ic + '<strong style="font-size:13px;color:var(--text);">' + title + '</strong></span>' + chip + '</div>' +
       rows.map(function (r) {
         return '<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:12.5px;">' +
-          '<span style="color:#8a948f;">' + r[0] + '</span>' +
-          '<span style="font-weight:600;text-align:right;color:#14211b;">' + r[1] + '</span></div>';
+          '<span style="color:var(--text-3);">' + r[0] + '</span>' +
+          '<span style="font-weight:600;text-align:right;color:var(--text);">' + r[1] + '</span></div>';
       }).join('') + '</div>';
   }
 
@@ -868,19 +868,19 @@
 
   // --- секция документов (всё получено/подписано, без ручной загрузки) -------
   function docRow(name, badgeText, color) {
-    return '<div class="akk-fade" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f3f1;">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a948f" stroke-width="1.8" style="flex:0 0 18px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>' +
-      '<span style="flex:1;font-size:12.5px;color:#14211b;">' + escHtml(name) + '</span>' +
+    return '<div class="akk-fade" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-soft);">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.8" style="flex:0 0 18px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>' +
+      '<span style="flex:1;font-size:12.5px;color:var(--text);">' + escHtml(name) + '</span>' +
       srcChip(badgeText, color) + '</div>';
   }
   function documentsHtml() {
-    return '<div style="border:1px solid #e6ebe8;border-radius:12px;padding:13px 14px;background:#fff;">' +
+    return '<div style="border:1px solid var(--border);border-radius:12px;padding:13px 14px;background:var(--surface);">' +
       docRow('Удостоверение личности', 'из ГБД ФЛ', '#1c6fd6') +
       docRow('Справка о доходах', 'из КГД · ЕНПФ', '#0c8577') +
       docRow('Согласие на обработку ПД', 'подписано ЭЦП', '#2b8a3e') +
       docRow('Согласие на запрос в ПКБ', 'подписано ЭЦП', '#2b8a3e') +
       docRow('Заявка-анкета', 'сформирована', '#2b8a3e') +
-      '<p style="margin:10px 0 0;font-size:11px;color:#8a948f;line-height:1.45;">' +
+      '<p style="margin:10px 0 0;font-size:11px;color:var(--text-3);line-height:1.45;">' +
       'Все документы получены из верифицированных госисточников или подписаны онлайн — ' +
       'загружать вручную ничего не нужно.</p>' +
       '</div>';
@@ -894,12 +894,12 @@
       ['ПКБ', 'кредитная история'],
       ['ИСЖИБ · кадастр', 'агро-активы']
     ];
-    return '<div style="border:1px solid #e6ebe8;border-radius:12px;padding:14px;background:#fafdfb;">' +
+    return '<div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--surface-warm);">' +
       '<div style="font-size:13px;font-weight:700;margin-bottom:10px;">Запрашиваем данные из госбаз…</div>' +
       steps.map(function (s, i) {
-        return '<div id="gov-step-' + i + '" style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12.5px;color:#8a948f;">' +
+        return '<div id="gov-step-' + i + '" style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12.5px;color:var(--text-3);">' +
           '<span class="akk-spin"></span>' +
-          '<span style="font-weight:600;color:#14211b;">' + s[0] + '</span>' +
+          '<span style="font-weight:600;color:var(--text);">' + s[0] + '</span>' +
           '<span>— ' + s[1] + '</span></div>';
       }).join('') + '</div>';
   }
@@ -941,21 +941,21 @@
   // Компактная карточка заявки в списке (управление этапами — на странице-трекере).
   function appCardHtml(a) {
     return '<div class="app-card" data-app-number="' + escHtml(a.number) + '" onclick="openApplication(\'' + a.uid + '\')" ' +
-      'style="border:1px solid #e3e8e5;border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff;cursor:pointer;transition:border-color .15s,box-shadow .15s;" ' +
+      'style="border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:var(--surface);cursor:pointer;transition:border-color .15s,box-shadow .15s;" ' +
       'onmouseover="this.style.borderColor=\'#bcd3c4\';this.style.boxShadow=\'0 4px 14px rgba(20,33,27,.06)\';" ' +
-      'onmouseout="this.style.borderColor=\'#e3e8e5\';this.style.boxShadow=\'none\';">' +
+      'onmouseout="this.style.borderColor=\'var(--border)\';this.style.boxShadow=\'none\';">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">' +
         '<strong style="font-size:14px;">№ ' + escHtml(a.number) + '</strong>' + statusPill(a) +
       '</div>' +
       '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:8px;">' +
-        '<span style="font-size:13px;color:var(--text-3,#8a948f);">' + escHtml(programTitle(a.program_id)) + '</span>' +
+        '<span style="font-size:13px;color:var(--text-3,var(--text-3));">' + escHtml(programTitle(a.program_id)) + '</span>' +
         '<span style="font-weight:700;font-size:14px;">' + escHtml(fmtMoney(a.amount)) + '</span>' +
       '</div>' +
       '<div style="margin-top:10px;font-size:12.5px;color:var(--primary,#2b8a3e);font-weight:600;">Открыть заявку →</div>' +
       '</div>';
   }
   function sectionTitle(txt) {
-    return '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8a948f;margin:18px 0 8px;">' + txt + '</div>';
+    return '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);margin:18px 0 8px;">' + txt + '</div>';
   }
   function initials(name) {
     var p = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -1073,9 +1073,9 @@
   function summaryHtml() {
     var s = appsSummary();
     function stat(label, val) {
-      return '<div style="flex:1;min-width:110px;border:1px solid #e6ebe8;border-radius:10px;padding:10px 13px;background:#fff;">' +
-        '<div style="font-size:11px;color:#8a948f;">' + label + '</div>' +
-        '<div style="font-size:17px;font-weight:700;color:#14211b;margin-top:2px;">' + val + '</div></div>';
+      return '<div style="flex:1;min-width:110px;border:1px solid var(--border);border-radius:10px;padding:10px 13px;background:var(--surface);">' +
+        '<div style="font-size:11px;color:var(--text-3);">' + label + '</div>' +
+        '<div style="font-size:17px;font-weight:700;color:var(--text);margin-top:2px;">' + val + '</div></div>';
     }
     return '<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px;">' +
       stat('Заявок', s.total) + stat('Одобрено', s.approved) + stat('Запрошено', fmtMoney(s.sum)) + '</div>';
@@ -1090,9 +1090,9 @@
     '<path d="M82 66V51"/><path d="M82 57c-6-2-8-6-8-6M82 55c5-2 7-6 7-6"/>' +
     '</g></svg>';
   function emptyAppsHtml() {
-    return '<div style="text-align:center;padding:34px 16px;border:1px dashed #d7e0db;border-radius:14px;background:#fafdfb;">' +
+    return '<div style="text-align:center;padding:34px 16px;border:1px dashed var(--border);border-radius:14px;background:var(--surface-warm);">' +
       APPS_EMPTY_SVG +
-      '<div style="font-size:15px;font-weight:700;color:#14211b;margin-top:12px;">Заявок пока нет</div>' +
+      '<div style="font-size:15px;font-weight:700;color:var(--text);margin-top:12px;">Заявок пока нет</div>' +
       '<div class="auth-sub" style="margin:6px auto 16px;max-width:340px;">Подберите программу под вашу деятельность — расчёт займёт минуту, документы подтянем из госбаз.</div>' +
       '<button class="auth-btn auth-btn-primary" style="display:inline-flex;width:auto;padding:0 22px;" onclick="exitCabinet(); startQuiz();">Подобрать программу</button>' +
       '</div>';
@@ -1138,13 +1138,13 @@
     var ev = notifEvents();
     var color = { ok: '#2b8a3e', info: '#1c6fd6', danger: '#d6336c' };
     main.innerHTML = '<h2 class="cab-h2">Уведомления</h2>' +
-      '<div style="border:1px solid #e6ebe8;border-radius:12px;background:#fff;overflow:hidden;margin-top:4px;">' +
+      '<div style="border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden;margin-top:4px;">' +
       ev.map(function (n, i) {
         var c = color[n.kind] || '#1c6fd6';
-        return '<div class="akk-fade" style="display:flex;gap:11px;padding:13px 14px;' + (i ? 'border-top:1px solid #f0f3f1;' : '') + '">' +
+        return '<div class="akk-fade" style="display:flex;gap:11px;padding:13px 14px;' + (i ? 'border-top:1px solid var(--border-soft);' : '') + '">' +
           '<span style="flex:0 0 9px;width:9px;height:9px;border-radius:50%;background:' + c + ';margin-top:5px;"></span>' +
-          '<div style="min-width:0;"><div style="font-size:13.5px;font-weight:600;color:#14211b;">' + escHtml(n.title) + '</div>' +
-          '<div style="font-size:12.5px;color:#8a948f;margin-top:2px;">' + escHtml(n.text) + '</div></div></div>';
+          '<div style="min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--text);">' + escHtml(n.title) + '</div>' +
+          '<div style="font-size:12.5px;color:var(--text-3);margin-top:2px;">' + escHtml(n.text) + '</div></div></div>';
       }).join('') + '</div>';
   }
 
@@ -1217,7 +1217,7 @@
     if (docDone(doc)) {
       act = '<span class="appx-check">✓</span>';
     } else if (!interactive) {
-      act = '<span class="appx-badge" style="background:#f0f3f1;color:#9aa6a0;">ожидается</span>';
+      act = '<span class="appx-badge" style="background:var(--border-soft);color:var(--text-3);">ожидается</span>';
     } else if (doc.source === 'sign') {
       act = '<button class="appx-up-btn" onclick="akkSignDoc(\'' + uid + '\',\'' + doc.requirement_key + '\',this)">Подписать ЭЦП</button>';
     } else {
@@ -1237,11 +1237,11 @@
   function collapsedStageHtml(uid, stage, kind) {
     var dot = kind === 'past'
       ? '<span class="appx-stage-dot" style="background:var(--primary,#2b8a3e);">✓</span>'
-      : '<span class="appx-stage-dot" style="background:#cfd6d2;"></span>';
+      : '<span class="appx-stage-dot" style="background:var(--border-strong);"></span>';
     var rows = stage.documents.map(function (d) { return docRowHtml(uid, d, false); }).join('');
     return '<details class="appx-stage-collapsed">' +
       '<summary>' + dot + '<span>' + escHtml(stage.label) + '</span>' +
-        '<span style="margin-left:auto;font-size:11px;color:#9aa6a0;">' + stage.documents.length + ' док.</span></summary>' +
+        '<span style="margin-left:auto;font-size:11px;color:var(--text-3);">' + stage.documents.length + ' док.</span></summary>' +
       '<div class="appx-stage-body">' + rows + '</div></details>';
   }
 
@@ -1265,7 +1265,7 @@
       cover +
       '<div class="appx-head-body">' +
         (cover ? '' : '<h2>' + escHtml(programTitle(pid)) + '</h2>' +
-          (cat ? '<div style="font-size:12px;color:#8a948f;">' + escHtml(cat) + '</div>' : '')) +
+          (cat ? '<div style="font-size:12px;color:var(--text-3);">' + escHtml(cat) + '</div>' : '')) +
         '<div class="appx-meta">' +
           '<span>Заявка <b>№ ' + escHtml(a.number) + '</b></span>' +
           '<span>Сумма <b>' + escHtml(fmtMoney(a.amount)) + '</b></span>' +
@@ -1318,7 +1318,7 @@
         '<button class="auth-btn auth-btn-ghost" style="padding:7px 13px;font-size:12px;color:var(--danger,#d6336c);" onclick="akkAdvanceApp(\'' + a.uid + '\', \'rejected\', this)">Отклонить</button>';
     }
     buttons += '<button class="auth-btn auth-btn-ghost" style="padding:7px 13px;font-size:12px;" onclick="akkAdvanceApp(\'' + a.uid + '\', \'new\', this)">Сбросить</button>';
-    return '<div class="appx-card" style="background:#fafbfa;"><div class="appx-card-title">Демо-управление</div>' +
+    return '<div class="appx-card" style="background:var(--surface-warm);"><div class="appx-card-title">Демо-управление</div>' +
       '<p class="auth-sub" style="margin:0 0 10px;font-size:11.5px;">В рабочей системе этапы переключаются автоматически по ходу workflow. Здесь — вручную для показа.</p>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + buttons + '</div></div>';
   }
@@ -1520,8 +1520,8 @@
       WIZ_STEPS.map(function (s, i) {
         var on = i <= wizStep;
         return '<div style="flex:1;text-align:center;">' +
-          '<div style="height:4px;border-radius:2px;background:' + (on ? 'var(--primary,#2b8a3e)' : '#e3e8e5') + ';"></div>' +
-          '<div style="font-size:10.5px;margin-top:5px;color:' + (i === wizStep ? 'var(--primary,#2b8a3e)' : '#9aa6a0') + ';font-weight:' + (i === wizStep ? '700' : '500') + ';">' + s + '</div></div>';
+          '<div style="height:4px;border-radius:2px;background:' + (on ? 'var(--primary,#2b8a3e)' : 'var(--border)') + ';"></div>' +
+          '<div style="font-size:10.5px;margin-top:5px;color:' + (i === wizStep ? 'var(--primary,#2b8a3e)' : 'var(--text-3)') + ';font-weight:' + (i === wizStep ? '700' : '500') + ';">' + s + '</div></div>';
       }).join('') + '</div>';
   }
 
@@ -1532,7 +1532,7 @@
     var st = document.createElement('style');
     st.id = 'akk-wiz-style';
     st.textContent =
-      ".wiz-select{width:100%;padding:12px 42px 12px 16px;background:var(--surface,#fff);border:1.5px solid var(--border,#e3e8e5);border-radius:10px;font-size:15px;color:var(--text,#14211b);font-family:inherit;appearance:none;-webkit-appearance:none;background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232b8a3e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\");}" +
+      ".wiz-select{width:100%;padding:12px 42px 12px 16px;background:var(--surface,#fff);border:1.5px solid var(--border,var(--border));border-radius:10px;font-size:15px;color:var(--text,var(--text));font-family:inherit;appearance:none;-webkit-appearance:none;background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232b8a3e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\");}" +
       '.wiz-select:focus{outline:none;border-color:var(--primary,#2b8a3e);}' +
       '.wiz-check{width:20px;height:20px;flex:0 0 20px;margin-top:1px;accent-color:var(--primary,#2b8a3e);cursor:pointer;}' +
       '.wiz-actions{display:flex;gap:10px;margin-top:22px;}' +
@@ -1540,9 +1540,9 @@
       '.wiz-btn-primary{flex:1;background:var(--primary,#2b8a3e);color:#fff;}' +
       '.wiz-btn-primary:hover{background:var(--primary-2,#247035);}' +
       '.wiz-btn-primary:disabled{opacity:.55;cursor:default;}' +
-      '.wiz-btn-ghost{flex:0 0 auto;padding:0 22px;background:#fff;border-color:var(--border,#dbe2dd);color:#3a463f;}' +
-      '.wiz-btn-ghost:hover{border-color:#9fc3ab;color:#14211b;}' +
-      '.wiz-pay{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #e6ebe8;border-radius:10px;padding:11px 14px;background:#fafdfb;}' +
+      '.wiz-btn-ghost{flex:0 0 auto;padding:0 22px;background:var(--surface);border-color:var(--border,var(--border));color:var(--text-2);}' +
+      '.wiz-btn-ghost:hover{border-color:#9fc3ab;color:var(--text);}' +
+      '.wiz-pay{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:11px 14px;background:var(--surface-warm);}' +
       '.wiz-pay-v{font-size:17px;font-weight:700;color:var(--primary,#2b8a3e);}';
     document.head.appendChild(st);
   }
@@ -1616,7 +1616,7 @@
       (hasRate
         ? '<div class="field" style="margin-bottom:6px;"><label>Примерный ежемесячный платёж</label>' +
           '<div class="wiz-pay"><span class="wiz-pay-v" id="wiz-pay-v">—</span>' +
-          '<span style="font-size:11.5px;color:#8a948f;text-align:right;">ставка ' + fmtRatePct(wiz.program.rate) + ' · аннуитет<br>ориентировочно</span></div></div>'
+          '<span style="font-size:11.5px;color:var(--text-3);text-align:right;">ставка ' + fmtRatePct(wiz.program.rate) + ' · аннуитет<br>ориентировочно</span></div></div>'
         : '') +
       wizNav('Далее')
     );
@@ -1635,13 +1635,13 @@
     var u = state.user || {};
     var g = govDataFor(u);
     function row(label, val, chip) {
-      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f0f3f1;">' +
-        '<span style="color:#8a948f;font-size:12.5px;">' + label + '</span>' +
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-soft);">' +
+        '<span style="color:var(--text-3);font-size:12.5px;">' + label + '</span>' +
         '<span style="display:flex;align-items:center;gap:8px;text-align:right;"><b style="font-weight:600;font-size:13px;">' + escHtml(val) + '</b>' + (chip || '') + '</span></div>';
     }
     wizShell(
       '<p class="stress-sub" style="margin:0 0 14px;">Данные заявителя подтянуты автоматически и подтверждены через eGov.</p>' +
-      '<div style="border:1px solid #e6ebe8;border-radius:12px;padding:6px 14px;background:#fff;">' +
+      '<div style="border:1px solid var(--border);border-radius:12px;padding:6px 14px;background:var(--surface);">' +
         row('ФИО', g.identity.fio, srcChip('ГБД ФЛ', '#1c6fd6')) +
         row('ИИН', g.identity.iin, '') +
         row('Дата рождения', g.identity.birth, '') +
@@ -1656,15 +1656,15 @@
   function wizConsents() {
     wizShell(
       '<p class="stress-sub" style="margin:0 0 12px;">Для рассмотрения заявки требуется ваше согласие:</p>' +
-      '<label style="display:flex;gap:12px;align-items:flex-start;border:1px solid #e6ebe8;border-radius:12px;padding:14px 16px;background:#fff;cursor:pointer;">' +
+      '<label style="display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface);cursor:pointer;">' +
         '<input type="checkbox" class="wiz-check" id="wiz-c-main"' + (wiz.consents.main ? ' checked' : '') + ' onchange="akkWizConsent(\'main\',this.checked)">' +
-        '<span><span style="font-size:14px;font-weight:700;color:#14211b;">Согласие на обработку персональных данных и получение сведений</span>' +
-        '<span style="display:block;font-size:12.5px;color:#8a948f;margin-top:5px;line-height:1.5;">' +
+        '<span><span style="font-size:14px;font-weight:700;color:var(--text);">Согласие на обработку персональных данных и получение сведений</span>' +
+        '<span style="display:block;font-size:12.5px;color:var(--text-3);margin-top:5px;line-height:1.5;">' +
           'Разрешаю АО «Аграрная кредитная корпорация» обрабатывать мои персональные данные и запрашивать сведения из ' +
           'государственных информационных систем (ГБД ФЛ, КГД, ЕНПФ, ИСЖИБ, земельный кадастр) и кредитного бюро (ПКБ/ГКБ) ' +
           'для рассмотрения настоящей заявки.</span></span>' +
       '</label>' +
-      '<p class="auth-sub" style="font-size:11.5px;margin:10px 2px 0;color:#8a948f;">Согласие подтверждается одноразовым кодом из SMS на следующем шаге.</p>' +
+      '<p class="auth-sub" style="font-size:11.5px;margin:10px 2px 0;color:var(--text-3);">Согласие подтверждается одноразовым кодом из SMS на следующем шаге.</p>' +
       wizNav('Далее')
     );
   }
@@ -1673,7 +1673,7 @@
   function wizSms() {
     var u = state.user || {};
     var phone = u.phone ? formatPhone(onlyDigits(u.phone)) : 'привязанный номер';
-    var info = '<div style="border:1px solid #dbe7f6;background:#f4f8fe;border-radius:12px;padding:13px 15px;font-size:12.5px;color:#2b4257;line-height:1.5;">' +
+    var info = '<div style="border:1px solid var(--border);background:var(--surface-warm);border-radius:12px;padding:13px 15px;font-size:12.5px;color:var(--text-2);line-height:1.5;">' +
       'Запрашиваем ваши сведения из <b>' + WIZ_SOURCES + '</b> для рассмотрения заявки по программе «' + escHtml(wiz.program ? wiz.program.title : '') + '». ' +
       'Подтвердите согласие кодом из SMS на <b>' + escHtml(phone) + '</b>.</div>';
     if (!wiz.otp.sent) {
