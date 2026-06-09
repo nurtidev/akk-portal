@@ -232,7 +232,7 @@ type demoUser struct{ iin, last, first, middle, phone string }
 
 func demoUserFor(provider string) demoUser {
 	switch strings.ToLower(strings.TrimSpace(provider)) {
-	case "bayterek", "bgov":
+	case "baiterek", "bayterek", "bgov":
 		return demoUser{iin: "020950000222", last: "Нурланова", first: "Айгуль", middle: "Сериковна", phone: "+77019876543"}
 	default: // egov
 		return demoUser{iin: "010640000111", last: "Сапаров", first: "Бауыржан", middle: "Канатович", phone: "+77011234567"}

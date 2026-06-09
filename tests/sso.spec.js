@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 
 const BASE = process.env.BASE_URL || 'http://localhost:8090';
 
-for (const provider of ['egov', 'bayterek']) {
+for (const provider of ['egov', 'baiterek']) {
   test('демо-вход через ' + provider + ' → кабинет', async ({ page }) => {
     await page.goto(BASE);
     await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });

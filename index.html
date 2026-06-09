@@ -3269,9 +3269,9 @@ function loginHtml() {
       '<div class="sso-or">или войдите через</div>' +
       '<div class="sso-grid">' +
         '<button class="btn-sso" id="sso-egov" onclick="ssoLogin(\'egov\')">' +
-          '<img class="sso-logo" src="img/programs/egov.png" alt="eGov" /><span>eGov</span></button>' +
-        '<button class="btn-sso" id="sso-bayterek" onclick="ssoLogin(\'bayterek\')">' +
-          '<img class="sso-logo" src="img/programs/baiterek.png" alt="Bayterek" /><span>Bayterek</span></button>' +
+          '<img class="sso-logo" src="img/egov-official.png" alt="eGov" /><span>eGov</span></button>' +
+        '<button class="btn-sso" id="sso-baiterek" onclick="ssoLogin(\'baiterek\')">' +
+          '<img class="sso-logo sso-logo-tall" src="img/baiterek-official.png" alt="Baiterek" /><span>Baiterek</span></button>' +
       '</div>' +
     '</div>' + asideHtml() + '</div>';
 }
@@ -4267,7 +4267,7 @@ window.renderAuth = renderAuth;
 // (локально без прокси). На проде его переопределяет __auth-integration.js (выдаёт токен).
 window.ssoLogin = window.ssoLogin || function (provider) {
   finishLogin({
-    name: provider === 'bayterek' ? 'Айгуль Нурланова' : 'Бауыржан Сапаров',
+    name: provider === 'baiterek' ? 'Айгуль Нурланова' : 'Бауыржан Сапаров',
     iin: '000000000000', phone: '77000000000', via: provider
   });
 };
@@ -4331,7 +4331,8 @@ track('page_loaded', { url: location.pathname });
     font-size:14px;font-weight:600;color:var(--text,#14211b);transition:.15s ease;}
   .btn-sso:hover{background:#f5f8f6;border-color:var(--primary,#2b8a3e);}
   .btn-sso:disabled{opacity:.6;cursor:default;}
-  .sso-logo{height:22px;width:auto;max-width:80px;object-fit:contain;}
+  .sso-logo{height:20px;width:auto;max-width:80px;object-fit:contain;}
+  .sso-logo-tall{height:26px;}
   @media(max-width:480px){.sso-grid{grid-template-columns:1fr;}}
 </style>
 
