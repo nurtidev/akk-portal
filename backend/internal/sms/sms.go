@@ -74,6 +74,10 @@ type kazGet struct {
 var (
 	reStatusCode = regexp.MustCompile(`(?is)<statuscode>\s*(.*?)\s*</statuscode>`)
 	reStatusMsg  = regexp.MustCompile(`(?is)<statusmessage>\s*(.*?)\s*</statusmessage>`)
+	// Ошибочный ответ: <response><action>error</action>...<errorcode>X</errorcode><errormessage>..</errormessage>
+	reActionErr = regexp.MustCompile(`(?is)<action>\s*error\s*</action>`)
+	reErrCode   = regexp.MustCompile(`(?is)<errorcode>\s*(.*?)\s*</errorcode>`)
+	reErrMsg    = regexp.MustCompile(`(?is)<errormessage>\s*(.*?)\s*</errormessage>`)
 )
 
 func (c *kazGet) Send(ctx context.Context, phone, message string) error {
@@ -110,17 +114,23 @@ func (c *kazGet) Send(ctx context.Context, phone, message string) error {
 		return fmt.Errorf("%s: HTTP %d: %s", op, resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 
-	// Зеркалим .NET: HTTP 200 = принято. statuscode/statusmessage логируем для диагностики.
-	code, msg := "", ""
-	if m := reStatusCode.FindSubmatch(body); len(m) == 2 {
-		code = string(m[1])
+	// Провайдер при HTTP 200 может вернуть ошибку (напр. <errorcode>1163</errorcode> No Balans).
+	if reActionErr.Match(body) || reErrCode.Match(body) {
+		ec, em := submatch(reErrCode, body), submatch(reErrMsg, body)
+		return fmt.Errorf("%s: provider error %s: %s", op, ec, em)
 	}
-	if m := reStatusMsg.FindSubmatch(body); len(m) == 2 {
-		msg = string(m[1])
-	}
-	c.logger.InfoContext(ctx, "sms: KazInfoTeh GET принят",
-		"phone", maskPhone(recipient), "statuscode", code, "statusmessage", msg)
+
+	// Успех: <acceptreport><statuscode>..</statuscode><statusmessage>..</statusmessage>
+	c.logger.InfoContext(ctx, "sms: KazInfoTeh GET принят", "phone", maskPhone(recipient),
+		"statuscode", submatch(reStatusCode, body), "statusmessage", submatch(reStatusMsg, body))
 	return nil
+}
+
+func submatch(re *regexp.Regexp, body []byte) string {
+	if m := re.FindSubmatch(body); len(m) == 2 {
+		return string(m[1])
+	}
+	return ""
 }
 
 // --- KazInfoTeh JSON (новый API) -----------------------------------------
