@@ -1873,21 +1873,25 @@ input[type=range]::-moz-range-thumb {
 }
 .prog-modal-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: none;
-  background: var(--bg-tint);
+  background: rgba(255, 255, 255, 0.92);
   color: var(--text-2);
   font-size: 15px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  z-index: 5;
+  box-shadow: 0 2px 10px rgba(20, 33, 27, 0.18);
+  cursor: pointer;
+  transition: background 140ms, color 140ms;
 }
-.prog-modal-close:hover { background: var(--border); }
+.prog-modal-close:hover { background: #fff; color: var(--text); }
 
 /* ===== Аутентификация (мок) ===== */
 .btn-login {
