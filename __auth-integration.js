@@ -149,8 +149,6 @@
   window.attachRegister = function () {
     var badge = document.querySelector('#auth-body .demo-badge');
     if (badge) badge.remove();
-    var nameEl = document.getElementById('reg-name');
-    if (nameEl) nameEl.placeholder = 'Фамилия Имя Отчество';
     var phone = document.getElementById('reg-phone');
     if (phone) phone.addEventListener('input', function (e) {
       e.target.value = formatPhone(onlyDigits(e.target.value).slice(0, 11));
@@ -162,18 +160,18 @@
     if (!btn) return;
     btn.addEventListener('click', function () {
       var err = document.getElementById('auth-err');
-      var name = document.getElementById('reg-name').value.trim();
+      var last = (document.getElementById('reg-last').value || '').trim();
+      var first = (document.getElementById('reg-first').value || '').trim();
       var iinV = onlyDigits(document.getElementById('reg-iin').value);
       var phoneV = onlyDigits(document.getElementById('reg-phone').value);
       err.textContent = '';
-      if (!name) { err.textContent = 'Введите ФИО.'; return; }
+      if (!last || !first) { err.textContent = 'Укажите фамилию и имя.'; return; }
       if (iinV.length !== 12) { err.textContent = 'ИИН должен состоять из 12 цифр.'; return; }
       if (phoneV.length !== 11) { err.textContent = 'Введите корректный номер телефона.'; return; }
 
-      var fio = splitFio(name);
       var ctx = {
         mode: 'register', iin: iinV, phone: '+' + phoneV,
-        lastName: fio.lastName, firstName: fio.firstName, middleName: fio.middleName
+        lastName: last, firstName: first, middleName: ''
       };
       btn.disabled = true; btn.textContent = 'Отправка SMS…';
       callAuth('/CheckBmgAndSendSmsForRegister', { body: { iin: iinV, phone: '+' + phoneV } })
@@ -411,6 +409,32 @@
     return (Math.round(n || 0)).toLocaleString('ru-RU') + ' ₸';
   }
 
+  // Лента движения заявки — клиентские этапы как в реальной системе (credit-backend
+  // okaps_menu_status: Регистрация → Новая заявка → На рассмотрении → Одобрена → Выдача).
+  var APP_STAGES = ['Регистрация заявки', 'Новая заявка', 'На рассмотрении', 'Одобрена', 'Средства выданы'];
+  function statusTimelineHtml(currentIdx) {
+    return '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">' +
+      APP_STAGES.map(function (s, i) {
+        var done = i < currentIdx, cur = i === currentIdx;
+        var bg = (done || cur) ? 'var(--primary,#2b8a3e)' : '#e3e8e5';
+        var dotColor = (done || cur) ? '#fff' : '#9aa6a0';
+        var textColor = cur ? 'var(--primary,#2b8a3e)' : (done ? 'var(--text,#14211b)' : '#9aa6a0');
+        var icon = done ? '✓' : (cur ? '●' : '');
+        return '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:' + textColor + ';font-weight:' + (cur ? '700' : '400') + ';">' +
+          '<span style="flex:0 0 16px;width:16px;height:16px;border-radius:50%;background:' + bg + ';color:' + dotColor + ';font-size:9px;line-height:16px;text-align:center;">' + icon + '</span>' +
+          '<span>' + s + '</span>' +
+          (cur ? '<span style="margin-left:auto;font-size:10px;">текущий этап</span>' : '') +
+          '</div>';
+      }).join('') + '</div>';
+  }
+  // Демо-этап заявки: показываем «На рассмотрении» (в проде — реальный workflow_status).
+  function appStageIndex(a) {
+    var s = (a && a.status) || 'new';
+    if (s === 'disbursed') return 4;
+    if (s === 'approved' || s === 'cc_approved') return 3;
+    return 2; // new и пр. → «На рассмотрении»
+  }
+
   function renderCabinet() {
     var body = document.getElementById('auth-body');
     if (!body) return;
@@ -443,9 +467,13 @@
         }
         host.innerHTML = '<div class="cab-row" style="font-weight:600;border:none;"><span>Мои заявки</span><span>' + apps.length + '</span></div>' +
           apps.map(function (a) {
-            return '<div class="cab-row">' +
-              '<span>№ ' + escHtml(a.number) + '<br><small style="color:var(--text-3);">' + escHtml(programTitle(a.program_id)) + '</small></span>' +
-              '<span style="text-align:right;">' + escHtml(fmtMoney(a.amount)) + '<br><small style="color:var(--text-3);">' + escHtml(a.status || 'new') + '</small></span>' +
+            return '<div style="border:1px solid #e3e8e5;border-radius:10px;padding:12px 14px;margin-bottom:10px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">' +
+                '<strong style="font-size:14px;">№ ' + escHtml(a.number) + '</strong>' +
+                '<span style="font-weight:600;">' + escHtml(fmtMoney(a.amount)) + '</span>' +
+              '</div>' +
+              '<div style="font-size:12px;color:var(--text-3,#8a948f);margin-top:2px;">' + escHtml(programTitle(a.program_id)) + '</div>' +
+              statusTimelineHtml(appStageIndex(a)) +
               '</div>';
           }).join('');
       });

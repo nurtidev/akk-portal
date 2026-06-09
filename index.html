@@ -3068,7 +3068,7 @@ function renderProgramsPreview() {
       '<div class="prog-tile-row"><span>Ставка</span><span>' + fmtRate(p) + '</span></div>' +
       '<div class="prog-tile-row"><span>Сумма до</span><span>' + fmtAmount(p.maxAmount) + '</span></div>' +
       '<div class="prog-tile-row"><span>Срок до</span><span>' + p.maxTerm + ' мес.</span></div>' +
-      '<div class="prog-tile-more">Подробнее о программе →</div>' +
+      '<div class="prog-tile-more">Подробнее · подать заявку →</div>' +
       '</div>' + // /.prog-tile-body
     '</div>'; // /.prog-tile
   }).join('');
@@ -3148,8 +3148,8 @@ function openProgramModal(id) {
     '<div class="pm-section"><h4>Как погашать</h4><p>' + d.repayment + '</p></div>' +
     (d.note ? '<div class="pm-note"><strong>Важно знать.</strong> ' + d.note + '</div>' : '') +
     '<div class="pm-actions">' +
-      '<button class="btn-primary" onclick="closeProgramModal(); startQuiz();">Подобрать программу</button>' +
-      '<a class="btn-ghost" href="tel:1408">Позвонить — 1408</a>' +
+      '<button class="btn-primary" onclick="applyForProgram(\'' + id + '\')">Подать заявку по этой программе</button>' +
+      '<button class="btn-ghost" onclick="closeProgramModal(); startQuiz();">Не уверен — подобрать</button>' +
     '</div>';
   const modal = document.getElementById('prog-modal');
   modal.classList.add('open');
@@ -3164,6 +3164,25 @@ function closeProgramModal() {
   modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
 }
+
+// Прямая подача заявки по выбранной программе — без опросника.
+// Инициализируем калькулятор (сумма/срок по умолчанию) и идём к подаче.
+function applyForProgram(id) {
+  const p = PROGRAMS.find(function(x) { return x.id === id; });
+  if (!p) return;
+  state.selectedProgram = id;
+  if (!state.calc[id]) {
+    const effMaxTerm = effectiveMaxTerm(p);
+    state.calc[id] = {
+      amount: defaultCalcAmount(p),
+      term: p.scheduleType === 'biannual_winter' ? effMaxTerm : pickInitialTerm(effMaxTerm)
+    };
+  }
+  closeProgramModal();
+  track('apply_direct', { program: id });
+  if (p.hasStressTest) showStress(); else showCallback();
+}
+window.applyForProgram = applyForProgram;
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') { closeProgramModal(); closeAuth(); }
@@ -3280,9 +3299,11 @@ function registerHtml() {
     '<div class="auth-grid"><div>' +
       '<h2 class="auth-head">Регистрация</h2>' +
       '<p class="auth-sub">Создайте личный кабинет, чтобы подать заявку. Уже есть аккаунт? <a onclick="renderAuth(\'login\')">Войти</a>.</p>' +
-      '<div class="auth-field"><label>ФИО</label>' +
+      '<div class="auth-field"><label>Фамилия</label>' +
         '<div class="auth-input-wrap"><span class="auth-input-ic">' + AUTH_ICONS.user + '</span>' +
-        '<input class="auth-input has-icon" id="reg-name" placeholder="Бауыржан Сапаров" /></div></div>' +
+        '<input class="auth-input has-icon" id="reg-last" placeholder="Сапаров" /></div></div>' +
+      '<div class="auth-field"><label>Имя</label>' +
+        '<input class="auth-input" id="reg-first" placeholder="Бауыржан" /></div>' +
       '<div class="auth-field"><label>ИИН</label>' +
         '<input class="auth-input" id="reg-iin" inputmode="numeric" maxlength="12" placeholder="Введите ИИН (12 цифр)" /></div>' +
       '<div class="auth-field"><label>Телефон</label>' +
@@ -3364,13 +3385,14 @@ function attachRegister() {
   const btn = document.getElementById('reg-btn');
   if (btn) btn.addEventListener('click', function () {
     const err = document.getElementById('auth-err');
-    const name = document.getElementById('reg-name').value.trim();
+    const last = (document.getElementById('reg-last').value || '').trim();
+    const first = (document.getElementById('reg-first').value || '').trim();
     const iinV = onlyDigits(document.getElementById('reg-iin').value);
     const phoneV = onlyDigits(document.getElementById('reg-phone').value);
-    if (!name) { err.textContent = 'Введите ФИО.'; return; }
+    if (!last || !first) { err.textContent = 'Укажите фамилию и имя.'; return; }
     if (iinV.length !== 12) { err.textContent = 'ИИН должен состоять из 12 цифр.'; return; }
     if (phoneV.length !== 11) { err.textContent = 'Введите корректный номер телефона.'; return; }
-    finishLogin({ name: name, iin: iinV, phone: phoneV, via: 'register' });
+    finishLogin({ name: last + ' ' + first, iin: iinV, phone: phoneV, via: 'register' });
   });
 }
 function attachEgov() {
