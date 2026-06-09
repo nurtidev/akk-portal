@@ -35,6 +35,19 @@ func main() {
 	}
 	defer db.Close()
 
+	// Разовая очистка заявок (для демо): включается env CLEAR_APPLICATIONS=true,
+	// после прогона флаг нужно снять. Клиентов/аккаунты не трогает.
+	if os.Getenv("CLEAR_APPLICATIONS") == "true" {
+		cctx, ccancel := context.WithTimeout(context.Background(), 15*time.Second)
+		n, cerr := db.ClearApplications(cctx)
+		ccancel()
+		if cerr != nil {
+			logger.Error("startup: очистка заявок не удалась", "err", cerr)
+		} else {
+			logger.Info("startup: заявки очищены (CLEAR_APPLICATIONS)", "deleted", n)
+		}
+	}
+
 	sender := sms.New(cfg.SMSProvider, cfg.SMSURL, cfg.SMSLogin, cfg.SMSPassword, cfg.SMSOriginator, logger)
 	otp := auth.NewOTP(db, sender, cfg.OTPTTL, cfg.OTPRateLimit, cfg.OTPMaxPerHr)
 	issuer := auth.NewIssuer(cfg.JWTSecret, cfg.JWTIssuer, cfg.AccessTTL)

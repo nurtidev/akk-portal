@@ -374,6 +374,21 @@ func (s *Store) SetApplicationStatus(ctx context.Context, uid, clientUID uuid.UU
 	return a, nil
 }
 
+// ClearApplications удаляет все заявки и их документы (разовая очистка демо).
+// Клиентов/аккаунты не трогает. Возвращает число удалённых заявок.
+func (s *Store) ClearApplications(ctx context.Context) (int64, error) {
+	if _, err := s.pool.Exec(ctx, `DELETE FROM application_documents`); err != nil {
+		return 0, fmt.Errorf("store: clear application_documents: %w", err)
+	}
+	ct, err := s.pool.Exec(ctx, `DELETE FROM applications`)
+	if err != nil {
+		return 0, fmt.Errorf("store: clear applications: %w", err)
+	}
+	// Сбрасываем нумерацию, чтобы демо начиналось с AKK-<год>-000001.
+	_, _ = s.pool.Exec(ctx, `ALTER SEQUENCE application_number_seq RESTART WITH 1`)
+	return ct.RowsAffected(), nil
+}
+
 // ListApplications возвращает заявки клиента (новые сверху).
 func (s *Store) ListApplications(ctx context.Context, clientUID uuid.UUID) ([]Application, error) {
 	rows, err := s.pool.Query(ctx, `
