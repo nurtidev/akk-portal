@@ -3287,10 +3287,10 @@ function loginHtml() {
       '</div>' +
       '<div class="sso-or">или войдите через</div>' +
       '<div class="sso-grid">' +
-        '<button class="btn-sso" id="sso-egov" onclick="ssoLogin(\'egov\')">' +
-          '<img class="sso-logo" src="img/egov-official.png" alt="eGov" /><span>eGov</span></button>' +
-        '<button class="btn-sso" id="sso-baiterek" onclick="ssoLogin(\'baiterek\')">' +
-          '<img class="sso-logo sso-logo-tall" src="img/baiterek-official.png" alt="Baiterek" /><span>Baiterek</span></button>' +
+        '<button class="btn-sso" id="sso-egov" onclick="ssoLogin(\'egov\')" aria-label="Войти через eGov">' +
+          '<img class="sso-logo" src="img/egov-official.png" alt="eGov" /></button>' +
+        '<button class="btn-sso" id="sso-baiterek" onclick="ssoLogin(\'baiterek\')" aria-label="Войти через Baiterek">' +
+          '<img class="sso-logo sso-logo-tall" src="img/baiterek-official.png" alt="Baiterek" /></button>' +
       '</div>' +
     '</div>' + asideHtml() + '</div>';
 }
@@ -4348,13 +4348,13 @@ track('page_loaded', { url: location.pathname });
 <style>
   .sso-or{margin:18px 0 8px;text-align:center;font-size:12px;color:var(--text-3,#8a948f);text-transform:uppercase;letter-spacing:.4px;}
   .sso-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .btn-sso{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;
+  .btn-sso{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;min-height:60px;
     border:1px solid var(--border,#dbe2de);border-radius:10px;background:#fff;cursor:pointer;
     font-size:14px;font-weight:600;color:var(--text,#14211b);transition:.15s ease;}
   .btn-sso:hover{background:#f5f8f6;border-color:var(--primary,#2b8a3e);}
   .btn-sso:disabled{opacity:.6;cursor:default;}
-  .sso-logo{height:20px;width:auto;max-width:80px;object-fit:contain;}
-  .sso-logo-tall{height:26px;}
+  .sso-logo{height:26px;width:auto;max-width:130px;object-fit:contain;}
+  .sso-logo-tall{height:46px;}
   @media(max-width:480px){.sso-grid{grid-template-columns:1fr;}}
 </style>
 
