@@ -85,7 +85,9 @@ func (o *OTP) Send(ctx context.Context, iin, phone, purpose string) (string, err
 	}
 	text := fmt.Sprintf("Код подтверждения АКК: %s. Никому не сообщайте его.", code)
 	if err := o.sender.Send(ctx, phone, text); err != nil {
-		return "", fmt.Errorf("auth: send sms: %w", err)
+		// Код уже сохранён в БД — возвращаем его даже при ошибке отправки
+		// (нужно для DEMO_MODE: демо не должно падать из-за SMS-провайдера).
+		return code, fmt.Errorf("auth: send sms: %w", err)
 	}
 	return code, nil
 }

@@ -116,6 +116,10 @@ func (h *Handler) sendCode(c echo.Context, iin, phone, purpose string) error {
 	switch {
 	case errors.Is(err, ErrRateLimit), errors.Is(err, ErrTooSoon):
 		return c.JSON(http.StatusTooManyRequests, errBody(err.Error()))
+	case err != nil && h.demoMode && code != "":
+		// Демо: отправка SMS не удалась (нет баланса/сендер/креды), но код сгенерён —
+		// продолжаем, фронт подставит demoCode. Демо не должно падать из-за провайдера.
+		h.logger.Warn("auth: SMS не отправлен, демо-фолбэк", "err", err)
 	case err != nil:
 		return h.serverError(c, err)
 	}
