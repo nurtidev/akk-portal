@@ -1325,9 +1325,12 @@
       var prof = profileFromTokens(loadTokens(), '');
       if (prof.iin || prof.name) {
         state.user = { name: prof.name, iin: prof.iin, phone: prof.phone, via: 'sms' };
-        try { renderAuthSlot(); } catch (e) {}
       }
     }
+    // index.html уже вызвал renderAuthSlot() (старой версией) ДО загрузки интеграции,
+    // поэтому у уже залогиненной сессии оставался старый чип без дропдауна.
+    // Перерисовываем шапку новой версией, если пользователь авторизован.
+    if (state.user) { try { window.renderAuthSlot(); } catch (e) {} }
   })();
 
   log('integration loaded; AUTH =', AUTH, '; CREDIT =', CREDIT);
