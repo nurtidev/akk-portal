@@ -764,7 +764,7 @@
       '.appx-badge-upload{background:#fff4e2;color:#b9770a;}' +
       '.appx-badge-sign{background:#efeaff;color:#6741d9;}' +
       '.appx-doc-act{flex:0 0 auto;}' +
-      '.appx-check{flex:0 0 18px;width:18px;height:18px;border-radius:50%;background:var(--primary,#2b8a3e);color:#fff;font-size:11px;line-height:18px;text-align:center;}' +
+      '.appx-check{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;width:18px;height:18px;border-radius:50%;background:var(--primary,#2b8a3e);color:#fff;font-size:11px;}' +
       '.appx-up-btn{background:var(--primary,#2b8a3e);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}' +
       '.appx-up-btn:hover{background:var(--primary-2,#26793a);}' +
       '.appx-stage-collapsed{border:1px solid #eef2f0;border-radius:12px;background:#fafbfa;margin-bottom:10px;overflow:hidden;}' +
