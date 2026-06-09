@@ -38,6 +38,7 @@ func (h *Handler) Register(g *echo.Group) {
 	g.POST("/VerifySmsCode", h.verifySMS)
 	g.POST("/smsRegister", h.smsRegister)
 	g.POST("/login", h.passwordLoginDisabled)
+	g.POST("/ssoDemoLogin", h.ssoDemoLogin)
 	g.GET("/me", h.me, h.Middleware)
 }
 
@@ -224,6 +225,53 @@ func (h *Handler) smsRegister(c echo.Context) error {
 // passwordLoginDisabled: в прототипе вход только по SMS.
 func (h *Handler) passwordLoginDisabled(c echo.Context) error {
 	return c.JSON(http.StatusBadRequest, errBody("Вход по паролю отключён — используйте вход по SMS"))
+}
+
+// demoUser — фиксированная демо-личность для SSO-входа (eGov/Bayterek).
+type demoUser struct{ iin, last, first, middle, phone string }
+
+func demoUserFor(provider string) demoUser {
+	switch strings.ToLower(strings.TrimSpace(provider)) {
+	case "bayterek", "bgov":
+		return demoUser{iin: "020950000222", last: "Нурланова", first: "Айгуль", middle: "Сериковна", phone: "+77019876543"}
+	default: // egov
+		return demoUser{iin: "010640000111", last: "Сапаров", first: "Бауыржан", middle: "Канатович", phone: "+77011234567"}
+	}
+}
+
+// ssoDemoLogin — демо-вход через eGov/Bayterek (без реального SSO): создаёт демо-клиента
+// и выдаёт токены, чтобы кабинет и подача заявки работали как при обычном входе.
+// Доступен только в DEMO_MODE.
+func (h *Handler) ssoDemoLogin(c echo.Context) error {
+	if !h.demoMode {
+		return c.JSON(http.StatusNotFound, errBody("демо-вход недоступен"))
+	}
+	var req struct {
+		Provider string `json:"provider"`
+	}
+	_ = c.Bind(&req)
+	du := demoUserFor(req.Provider)
+
+	client, err := h.store.UpsertClient(c.Request().Context(), hashIIN(du.iin), store.Client{
+		IIN: du.iin, LastName: du.last, FirstName: du.first, MiddleName: du.middle, Phone: du.phone,
+	})
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	tokens, err := h.issuer.Issue(client)
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	h.logger.Info("auth: демо-SSO вход", "provider", req.Provider, "uid", client.UID)
+	return c.JSON(http.StatusOK, map[string]any{
+		"uid":          client.UID.String(),
+		"accessToken":  tokens.AccessToken,
+		"refreshToken": tokens.RefreshToken,
+		"name":         client.FullName(),
+		"iin":          client.IIN,
+		"phone":        client.Phone,
+		"via":          req.Provider,
+	})
 }
 
 // me возвращает профиль текущего пользователя (для кабинета).

@@ -348,10 +348,27 @@
   window.attachEgov = function () {
     var btn = document.getElementById('egov-confirm');
     if (!btn) return;
-    btn.addEventListener('click', function () {
-      alert('Вход через eGov недоступен в демо-стенде. Используйте вход по SMS.');
-      renderAuth('login');
-    });
+    btn.addEventListener('click', function () { ssoLogin('egov'); });
+  };
+
+  // Демо-вход через eGov/Bayterek: бэкенд создаёт демо-клиента и выдаёт токен,
+  // поэтому после входа кабинет и подача заявки работают как при обычном входе.
+  window.ssoLogin = function (provider) {
+    var btn = document.getElementById('sso-' + provider);
+    var err = document.getElementById('auth-err');
+    if (err) err.textContent = '';
+    if (btn) { btn.dataset.label = btn.innerHTML; btn.disabled = true; btn.innerHTML = 'Вход…'; }
+    callAuth('/ssoDemoLogin', { body: { provider: provider } })
+      .then(function (r) {
+        if (!r.ok) throw new Error(errText(r, 'Не удалось войти (код ' + r.status + ').'));
+        var d = r.data || {};
+        saveTokens({ accessToken: d.accessToken, refreshToken: d.refreshToken });
+        finishLogin({ name: d.name, iin: d.iin, phone: d.phone, via: provider });
+      })
+      .catch(function (e) {
+        if (err) err.textContent = e.message || 'Ошибка сети.';
+        if (btn) { btn.disabled = false; if (btn.dataset.label) btn.innerHTML = btn.dataset.label; }
+      });
   };
 
   // =========================================================================

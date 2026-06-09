@@ -3266,9 +3266,13 @@ function loginHtml() {
         '<button class="auth-btn auth-btn-primary" id="auth-login-btn">Войти</button>' +
         '<button class="auth-btn auth-btn-ghost" onclick="renderAuth(\'register\')">Регистрация</button>' +
       '</div>' +
-      '<button class="btn-egov" onclick="renderAuth(\'egov\')">' +
-        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M12 4.5c-3.6 0-6.6 2.7-6.6 6.3 0 2.5 1.5 4.6 3.7 5.6l-.5 2.6 2.6-1.4c.27.03.54.05.8.05 3.6 0 6.6-2.7 6.6-6.3S15.6 4.5 12 4.5z" fill="#3b5bdb"/></svg>' +
-        'Войти через eGov</button>' +
+      '<div class="sso-or">или войдите через</div>' +
+      '<div class="sso-grid">' +
+        '<button class="btn-sso" id="sso-egov" onclick="ssoLogin(\'egov\')">' +
+          '<img class="sso-logo" src="img/programs/egov.png" alt="eGov" /><span>eGov</span></button>' +
+        '<button class="btn-sso" id="sso-bayterek" onclick="ssoLogin(\'bayterek\')">' +
+          '<img class="sso-logo" src="img/programs/baiterek.png" alt="Bayterek" /><span>Bayterek</span></button>' +
+      '</div>' +
     '</div>' + asideHtml() + '</div>';
 }
 function registerHtml() {
@@ -4259,6 +4263,14 @@ window.resetAll = resetAll;
 window.openAuth = openAuth;
 window.closeAuth = closeAuth;
 window.renderAuth = renderAuth;
+// Фолбэк демо-входа eGov/Bayterek, если слой интеграции с бэкендом не подключён
+// (локально без прокси). На проде его переопределяет __auth-integration.js (выдаёт токен).
+window.ssoLogin = window.ssoLogin || function (provider) {
+  finishLogin({
+    name: provider === 'bayterek' ? 'Айгуль Нурланова' : 'Бауыржан Сапаров',
+    iin: '000000000000', phone: '77000000000', via: provider
+  });
+};
 
 loadUser();
 renderAuthSlot();
@@ -4309,6 +4321,19 @@ track('page_loaded', { url: location.pathname });
   window.addEventListener('resize', hide);
 })();
 </script>
+
+<!-- Стили брендовых кнопок eGov / Bayterek -->
+<style>
+  .sso-or{margin:18px 0 8px;text-align:center;font-size:12px;color:var(--text-3,#8a948f);text-transform:uppercase;letter-spacing:.4px;}
+  .sso-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .btn-sso{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;
+    border:1px solid var(--border,#dbe2de);border-radius:10px;background:#fff;cursor:pointer;
+    font-size:14px;font-weight:600;color:var(--text,#14211b);transition:.15s ease;}
+  .btn-sso:hover{background:#f5f8f6;border-color:var(--primary,#2b8a3e);}
+  .btn-sso:disabled{opacity:.6;cursor:default;}
+  .sso-logo{height:22px;width:auto;max-width:80px;object-fit:contain;}
+  @media(max-width:480px){.sso-grid{grid-template-columns:1fr;}}
+</style>
 
 <!-- Реальный бэкенд (akk-railway/backend): SMS-авторизация + подача заявки.
      config.js отдаётся nginx из env AKK_BACKEND_URL (в проде) или статикой (локально, пусто).
