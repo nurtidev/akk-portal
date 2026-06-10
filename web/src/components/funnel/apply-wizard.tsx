@@ -16,17 +16,10 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PROGRAMS } from '@/data/programs';
 import { fmtAmount } from '@/lib/format';
+import { calculateSchedule } from '@/lib/schedule';
 import { useFunnel } from './funnel-context';
 
 const WIZ_TERMS = [12, 24, 36, 60, 84, 120];
-
-// Аннуитетный месячный платёж — annuityMonthly() из легаси (для блока «примерный платёж»).
-function annuityMonthly(P: number, annualPct: number, n: number): number {
-  if (!P || !n) return 0;
-  const r = annualPct / 100 / 12;
-  if (r <= 0) return P / n;
-  return (P * r) / (1 - Math.pow(1 + r, -n));
-}
 
 export function ApplyWizard() {
   const t = useTranslations('funnel.wizard');
@@ -48,10 +41,13 @@ export function ApplyWizard() {
   // сразу подаём как индивидуальную консультацию (submit мокнут).
   const steps = [t('stepParams'), t('stepApplicant'), t('stepConsents'), t('stepConfirm'), t('stepDone')];
 
-  const monthly =
-    program && program.rate != null && amount && term
-      ? annuityMonthly(amount, program.rate, term)
-      : 0;
+  // Реальный график программы (как в калькуляторе подбора): у программ АКК платежи
+  // полугодовые (Кең дала: 05 декабря / 05 марта) или годовые — НЕ месячный аннуитет.
+  // Точную периодичность утверждает Кредитный комитет (регламент П АКК 002-207-22).
+  const schedule =
+    program && program.rate != null && amount > 0 && term > 0
+      ? calculateSchedule(program, amount, term)
+      : null;
 
   const next = async () => {
     setError('');
@@ -171,13 +167,28 @@ export function ApplyWizard() {
               </select>
             </div>
             {program && program.rate != null && (
-              <div className="flex items-center justify-between rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-warm)] px-4 py-3">
-                <span className="text-lg font-bold text-[var(--primary)]">
-                  {monthly ? '≈ ' + fmtAmount(Math.round(monthly)) + t('perMonth') : '—'}
-                </span>
-                <span className="text-right text-[11px] text-[var(--text-3)]">
-                  {t('rateAnnuity', { rate: String(program.rate).replace('.', ',') })}
-                </span>
+              <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-warm)] px-4 py-3">
+                {schedule?.type === 'biannual' ? (
+                  <div className="flex flex-col gap-1">
+                    {schedule.payments.map((pm) => (
+                      <div key={pm.label} className="flex items-center justify-between">
+                        <span className="text-sm text-[var(--text-2)]">{pm.label}</span>
+                        <span className="font-bold text-[var(--primary)]">
+                          ≈ {fmtAmount(Math.round(pm.amount))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-[var(--primary)]">
+                      {schedule ? '≈ ' + fmtAmount(Math.round(schedule.firstYearPayment)) + t('perYear') : '—'}
+                    </span>
+                  </div>
+                )}
+                <div className="mt-1.5 text-right text-[11px] text-[var(--text-3)]">
+                  {t('rateSchedule', { rate: String(program.rate).replace('.', ',') })}
+                </div>
               </div>
             )}
           </div>

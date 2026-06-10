@@ -20,7 +20,17 @@ import { applyGlossary } from './glossary';
 import { WhyMatch } from './why-match';
 import { Calculator } from './calculator';
 
-function ResultCard({ program, score, isTop }: { program: Program; score: number; isTop: boolean }) {
+function ResultCard({
+  program,
+  score,
+  isTop,
+  isLowestRate,
+}: {
+  program: Program;
+  score: number;
+  isTop: boolean;
+  isLowestRate?: boolean;
+}) {
   const t = useTranslations('funnel.results');
   const { state, apply } = useFunnel();
   const p = program;
@@ -57,8 +67,15 @@ function ResultCard({ program, score, isTop }: { program: Program; score: number
             {t('bestMatch')}
           </span>
         )}
-        <span className="absolute bottom-3 left-4 z-10 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
-          {p.category}
+        <span className="absolute bottom-3 left-4 z-10 flex items-center gap-2">
+          <span className="rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
+            {p.category}
+          </span>
+          {isLowestRate && (
+            <span className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-bold text-[var(--text)]">
+              {t('lowestRate')}
+            </span>
+          )}
         </span>
         <span
           className={`absolute bottom-3 right-4 z-10 rounded-full px-3 py-1 text-sm font-bold ${
@@ -132,7 +149,16 @@ function ResultCard({ program, score, isTop }: { program: Program; score: number
 export function Results() {
   const t = useTranslations('funnel.results');
   const { state, startQuiz, requestConsultation } = useFunnel();
-  const scored = scoredPrograms(state.answers);
+  // Базовая сортировка — по % совпадения (бизнес-правило из легаси, lib не трогаем).
+  // UI-добивка: при равном score выше программа с меньшей ставкой — полезнее клиенту.
+  const scored = [...scoredPrograms(state.answers)].sort(
+    (a, b) => b.score - a.score || a.program.rate - b.program.rate,
+  );
+  // Бейдж «Самая низкая ставка» — на карточке с минимальной ставкой среди подобранных.
+  const lowestRateId =
+    scored.length > 1
+      ? scored.reduce((min, x) => (x.program.rate < min.program.rate ? x : min), scored[0]).program.id
+      : null;
 
   if (scored.length === 0) {
     return (
@@ -188,7 +214,13 @@ export function Results() {
 
       <div className="space-y-6">
         {scored.map((x, i) => (
-          <ResultCard key={x.program.id} program={x.program} score={x.score} isTop={i === 0} />
+          <ResultCard
+            key={x.program.id}
+            program={x.program}
+            score={x.score}
+            isTop={i === 0}
+            isLowestRate={x.program.id === lowestRateId}
+          />
         ))}
       </div>
     </div>
