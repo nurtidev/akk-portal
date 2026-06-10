@@ -63,7 +63,12 @@ function ResultCard({
           aria-hidden="true"
         />
         {isTop && (
-          <span className="absolute left-0 top-0 z-10 rounded-br-[var(--radius)] bg-[var(--accent)] px-3 py-1 text-[11px] font-bold text-[var(--text)]">
+          // Зелёная пилюля вместо жёлтой «ленты»: жёлтый+чёрный читается как
+          // предупреждение и плохо виден на фото. Зелёный = бренд, позитив.
+          <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)] px-3 py-1 text-[11px] font-bold text-white shadow-md">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
             {t('bestMatch')}
           </span>
         )}
@@ -72,7 +77,7 @@ function ResultCard({
             {p.category}
           </span>
           {isLowestRate && (
-            <span className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-bold text-[var(--text)]">
+            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-[var(--primary)] shadow backdrop-blur">
               {t('lowestRate')}
             </span>
           )}

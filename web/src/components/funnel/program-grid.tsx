@@ -62,8 +62,12 @@ function ProgramTile({ p, onOpen }: { p: Program; onOpen: (id: string) => void }
           }}
         />
         {p.featured && (
-          <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text)] shadow">
-            <StarIcon />
+          // Белая пилюля + зелёный текст (жёлтый фон+тёмный текст = «знак опасности»,
+          // на фото читался плохо). Звезда остаётся золотой — мягкий акцент.
+          <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-[var(--primary)] shadow backdrop-blur">
+            <span className="text-[var(--accent)]">
+              <StarIcon />
+            </span>
             {t('featured')}
           </span>
         )}

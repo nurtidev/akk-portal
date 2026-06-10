@@ -19,22 +19,32 @@ import { Success } from './success';
 import { useFunnel } from './funnel-context';
 
 export function Funnel() {
-  const { state, startQuiz } = useFunnel();
+  const { state, startQuiz, setScreen } = useFunnel();
   const screen = state.screen;
   const isLanding = screen === 'landing';
   const flowRef = useRef<HTMLDivElement | null>(null);
   const prevScreen = useRef(screen);
+  const screenRef = useRef(screen);
+  screenRef.current = screen;
 
-  // «Подбор» в шапке ведёт на /{locale}#quiz — секции с таким id на лендинге нет
-  // (квиз рендерится только после старта), поэтому запускаем подбор по якорю:
-  // на маунте (переход с контентной страницы) и по hashchange (клик на главной).
+  // Якоря из шапки: «Подбор» (#quiz) запускает квиз; «Программы» (#programs)
+  // с экранов воронки возвращают на лендинг и скроллят к сетке (раньше клик
+  // «в никуда»: секция была скрыта, браузеру некуда скроллить).
   useEffect(() => {
-    const maybeStart = () => {
-      if (window.location.hash === '#quiz') startQuiz();
+    const onHash = () => {
+      const h = window.location.hash;
+      if (h === '#quiz') startQuiz();
+      if (h === '#programs' && screenRef.current !== 'landing') {
+        setScreen('landing');
+        // ждём ремоунт лендинга, затем скроллим к сетке программ
+        setTimeout(() => {
+          document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' });
+        }, 60);
+      }
     };
-    maybeStart();
-    window.addEventListener('hashchange', maybeStart);
-    return () => window.removeEventListener('hashchange', maybeStart);
+    onHash();
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
