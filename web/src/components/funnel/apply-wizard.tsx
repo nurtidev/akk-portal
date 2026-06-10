@@ -18,11 +18,27 @@ import { PROGRAMS } from '@/data/programs';
 import { fmtAmount } from '@/lib/format';
 import { calculateSchedule } from '@/lib/schedule';
 import { useFunnel } from './funnel-context';
+import { AuthProvider, useAuth } from '@/components/auth/auth-provider';
+import { AuthModal } from '@/components/auth/auth-modal';
 
 const WIZ_TERMS = [12, 24, 36, 60, 84, 120];
 
+/**
+ * Визард обёрнут в AuthProvider: шаг «Заявитель» показывает реальные данные
+ * вошедшего пользователя, гостю — честное приглашение войти (раньше гость видел
+ * «данные подтверждены через eGov», что вводило в заблуждение).
+ */
 export function ApplyWizard() {
+  return (
+    <AuthProvider>
+      <ApplyWizardInner />
+    </AuthProvider>
+  );
+}
+
+function ApplyWizardInner() {
   const t = useTranslations('funnel.wizard');
+  const { user, openAuth } = useAuth();
   const { state, setScreen, submit } = useFunnel();
   const program = state.selectedProgram ? PROGRAMS.find((p) => p.id === state.selectedProgram) : null;
   const calc = state.selectedProgram ? state.calc[state.selectedProgram] : undefined;
@@ -60,6 +76,11 @@ export function ApplyWizard() {
       return;
     }
     if (step === 1) {
+      if (!user) {
+        setError(t('errNeedLogin'));
+        openAuth('login');
+        return;
+      }
       setStep(2);
       return;
     }
@@ -109,6 +130,9 @@ export function ApplyWizard() {
       >
         {t('backToPrograms')}
       </button>
+
+      {/* Модалка входа: монтируется здесь, открывается openAuth('login') с шага «Заявитель» */}
+      <AuthModal />
 
       <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6 md:p-8">
         <div className="mb-1 text-sm font-semibold uppercase tracking-wide text-[var(--accent-2)]">
@@ -194,16 +218,36 @@ export function ApplyWizard() {
           </div>
         )}
 
-        {/* Шаг 2 — заявитель (демо: данные из госбаз) */}
+        {/* Шаг 2 — заявитель: реальные данные профиля; гость — приглашение войти */}
         {step === 1 && (
           <div>
-            <p className="mb-4 text-sm text-[var(--text-2)]">{t('applicantSub')}</p>
-            {/* TODO(трек D): реальные данные заявителя из профиля (eGov/госбазы). */}
-            <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-4">
-              <Row label={t('applicantFio')} value={t('applicantFioDemo')} chip="ГБД ФЛ" />
-              <Row label={t('applicantIin')} value="••• •••• ••" />
-              <Row label={t('applicantPhone')} value="+7 (•••) •••-••-••" chip="БМГ" />
-            </div>
+            {user ? (
+              <>
+                <p className="mb-4 text-sm text-[var(--text-2)]">{t('applicantSub')}</p>
+                <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-4">
+                  <Row label={t('applicantFio')} value={user.name || '—'} chip="ГБД ФЛ" />
+                  <Row
+                    label={t('applicantIin')}
+                    value={user.iin ? user.iin.slice(0, 6) + ' ••••••' : '—'}
+                  />
+                  <Row label={t('applicantPhone')} value={user.phone || '—'} chip="БМГ" />
+                </div>
+              </>
+            ) : (
+              <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5 text-center">
+                <div className="font-semibold text-[var(--text)]">{t('applicantLoginTitle')}</div>
+                <p className="mx-auto mt-1.5 max-w-sm text-sm text-[var(--text-2)]">
+                  {t('applicantLoginText')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => openAuth('login')}
+                  className="mt-4 inline-flex h-11 items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] px-6 font-semibold text-white transition hover:bg-[var(--primary-2)]"
+                >
+                  {t('applicantLoginButton')}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

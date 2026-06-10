@@ -8,6 +8,7 @@
 // Расчёт — @/lib/stress (НЕ переписываем).
 // =====================================================
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PROGRAMS } from '@/data/programs';
 import { FAJR_NORMS, type AnimalType } from '@/data/fajr-norms';
@@ -39,10 +40,24 @@ const VERDICT_STYLES: Record<string, string> = {
 export function StressTest() {
   const t = useTranslations('funnel.stress');
   const { state, setStressField, runStress, skipStress } = useFunnel();
+  const [herdError, setHerdError] = useState('');
   const p = PROGRAMS.find((x) => x.id === state.selectedProgram);
   if (!p) return null;
 
   const r = state.stress.result;
+
+  // Пустая форма раньше «считалась» по нулям и пугала красным вердиктом (ratio 999%).
+  // Без поголовья расчёт не имеет смысла — просим заполнить, а не пугаем.
+  const onCalc = () => {
+    const total =
+      (Number(state.stress.existingHerd) || 0) + (Number(state.stress.plannedHerd) || 0);
+    if (total <= 0) {
+      setHerdError(t('errNoHerd'));
+      return;
+    }
+    setHerdError('');
+    runStress();
+  };
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -129,9 +144,12 @@ export function StressTest() {
       )}
 
       <div className="mt-6 flex flex-wrap gap-3">
+        {herdError && (
+          <div className="w-full text-sm font-medium text-[var(--danger)]">{herdError}</div>
+        )}
         <button
           type="button"
-          onClick={runStress}
+          onClick={onCalc}
           className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius)] bg-[var(--primary)] px-6 font-semibold text-white transition hover:bg-[var(--primary-2)]"
         >
           {r ? t('recalc') : t('calc')}

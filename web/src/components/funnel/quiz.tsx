@@ -87,6 +87,9 @@ export function Quiz() {
               type="button"
               disabled={!canGoto}
               onClick={() => canGoto && goToStep(i)}
+              // aria-label разводит accessible name чипа с кнопками-вариантами ответа
+              // (например, чип «Импорт» и вариант «Импортное племенное поголовье»)
+              aria-label={`${t('stepLabel', { current: i + 1, total: qs.length })}: ${question.short}`}
               className={cls + (canGoto ? ' cursor-pointer hover:opacity-90' : '')}
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/10 text-[11px] font-bold">
