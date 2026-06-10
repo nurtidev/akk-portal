@@ -63,13 +63,15 @@
 
 | Задача | Статус | Кто | Дата | Итог |
 | --- | --- | --- | --- | --- |
-| E1 Dockerfile + Railway (ждёт F1) | todo | — | — | — |
+| E1 Dockerfile + Railway (ждёт F1) | done | оркестратор | 2026-06-10 | сервис akk-portal-web (root=web, из репо akk-portal), https://akk-portal-web-production.up.railway.app — все маршруты 200, NEXT_PUBLIC_API_BASE вшит в бандл |
 | E2 Перенос Playwright E2E (ждёт B) | todo | — | — | — |
 | E3 Аналитика track() (ждёт B7) | todo | — | — | — |
 | E4 Перенос в репо akk-portal | done | оркестратор | 2026-06-10 | вся история запушена в github.com/nurtidev/akk-portal; akk-railway = архив/демо |
 | E5 Переключение прод-домена | blocked | — | — | финал, после приёмки; Railway-сервисы перевести на репо akk-portal |
 
 ## Журнал
+
+- 2026-06-10 — E1 выполнен: Railway-сервис `akk-portal-web` в проекте akk (root directory `web/`, деплой из github.com/nurtidev/akk-portal, Dockerfile standalone). Первый деплой Railway заблокировал из-за CVE в next@15.3.3 → обновлён до ^15.5.19 (70/70 тестов, build зелёный). Прод: https://akk-portal-web-production.up.railway.app — 10 маршрутов 200 на 3 локалях, NEXT_PUBLIC_API_BASE=https://akk-backend-production.up.railway.app вшит в бандл, Go-бэк /health ok.
 
 - 2026-06-10 — приёмка треков B/C/D (оркестратор): 70/70 тестов, build 67 SSG-страниц, smoke 200 на всех маршрутах (/ru, /ru/about, /ru/faq, /ru/contacts, /ru/press, /kk/insurance, /en/investors, /ru/cabinet). Стыковка B↔D: funnel-home.tsx передаёт funnelSubmitAdapter (трек D) в FunnelRoot. Исправления при приёмке: реэкспорт QuestionKey из data/questions.ts (B импортировал его оттуда); 3 неиспользуемых импорта (lint) в contacts/press/application-view. Зоны владения соблюдены, src/data и src/lib логики не тронуты. Открытые хвосты: навигация на контентные страницы из шапки (не добавлена сознательно — зона F); AuthProvider смонтирован дважды (шапка+кабинет, синхронизация через localStorage — для демо ок); мобильный «Войти» в бургере — заглушка; TODO-данные трека C (адреса филиалов, состав СД).
 - 2026-06-10 — трек C выполнен (sonnet-C): создано 15 файлов — 12 страниц Next.js SSG (about, reporting, investors, press, press/[slug], faq, contacts, insurance, collateral, procurement, careers + (content)/layout), компонент-библиотека content-page.tsx (ContentPage/Section/Card/CardGrid/AccordionItem/DocumentList/Prose), press-data.ts (8 записей), content.json×3 локали. WebFetch заблокирован — адреса 16 филиалов и состав СД/Правления помечены TODO в JSON; остальное реальное (телефоны, email, адрес ЦА Астана).
