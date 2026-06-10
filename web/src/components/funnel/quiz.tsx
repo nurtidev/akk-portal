@@ -25,11 +25,17 @@ export function Quiz() {
     if (step >= qs.length) {
       showResults();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, qs.length]);
+
+  // Таймер автоперехода гасим ТОЛЬКО при размонтировании.
+  // Нельзя в cleanup эффекта выше: ответ меняет qs.length (условные ветки),
+  // эффект перезапускается и cleanup убивал ещё не сработавший переход.
+  useEffect(() => {
     return () => {
       if (advanceTimer.current) clearTimeout(advanceTimer.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, qs.length]);
+  }, []);
 
   if (step >= qs.length) return null;
 
