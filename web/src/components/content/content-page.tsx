@@ -35,21 +35,22 @@ export function ContentPage({
   return (
     <main id="main-content" className="flex-1">
       {/* Hero-шапка страницы */}
-      <div className="relative overflow-hidden bg-[var(--primary)] text-white" style={{ minHeight: "var(--content-hero-min, 200px)" }}>
+      <div className="relative overflow-hidden bg-[var(--primary)] text-white min-h-[200px] md:min-h-[300px] md:flex md:items-center">
         {/* Фоновое изображение (клиентский компонент: graceful-фолбэк по onError) */}
         {imageSlug && <HeroImage slug={imageSlug} />}
-        {/* Градиент поверх картинки (и как основной фон при её отсутствии) */}
+        {/* Градиент поверх картинки: на десктопе — плотный слева (зона текста),
+            справа почти прозрачный, чтобы фото читалось. На мобиле — равномернее. */}
         <div
-          className="absolute inset-0"
-          style={{
-            background: imageSlug
-              ? "linear-gradient(to right, rgba(7,102,61,0.85) 0%, rgba(4,60,36,0.70) 60%, rgba(4,60,36,0.50) 100%)"
-              : "linear-gradient(135deg, var(--primary) 0%, #043c24 100%)",
-          }}
+          className={imageSlug ? "content-hero-overlay absolute inset-0" : "absolute inset-0"}
+          style={
+            imageSlug
+              ? undefined
+              : { background: "linear-gradient(135deg, var(--primary) 0%, #043c24 100%)" }
+          }
           aria-hidden="true"
         />
-        {/* Орнамент-паттерн (декоративный) */}
-        <div className="ornament-tile absolute inset-0 opacity-30" aria-hidden="true" />
+        {/* Орнамент-паттерн (декоративный) — на десктопе затухает над фото-стороной */}
+        <div className="ornament-tile content-hero-ornament absolute inset-0 opacity-30" aria-hidden="true" />
 
         <div className="container relative mx-auto px-4 py-12 md:py-16">
           {/* Хлебные крошки */}
