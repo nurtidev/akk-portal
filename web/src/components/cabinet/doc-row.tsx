@@ -45,8 +45,10 @@ export function DocRow({ doc, interactive, onUpload, onSign }: DocRowProps) {
     setBusy(false);
   }
 
+  // Мобайл: название+бейдж в строку, действие — отдельной строкой на всю ширину
+  // (палец попадает); ≥sm — прежняя одна строка.
   return (
-    <div className="flex items-center gap-3 border-t border-[var(--border-soft)] py-2.5 first:border-t-0">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[var(--border-soft)] py-3 first:border-t-0 sm:flex-nowrap sm:py-2.5">
       <div className="min-w-0 flex-1">
         <div className="text-[13.5px] text-[var(--text)]">{doc.title}</div>
         {doc.file_name && (
@@ -58,7 +60,7 @@ export function DocRow({ doc, interactive, onUpload, onSign }: DocRowProps) {
 
       <DocBadge source={doc.source} t={t} />
 
-      <div className="flex-shrink-0">
+      <div className="w-full flex-shrink-0 sm:w-auto">
         {done ? (
           <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--primary)] text-[11px] text-white">
             ✓
@@ -72,7 +74,7 @@ export function DocRow({ doc, interactive, onUpload, onSign }: DocRowProps) {
             type="button"
             onClick={handleSign}
             disabled={busy}
-            className="whitespace-nowrap rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--primary-2)] disabled:opacity-60"
+            className="w-full whitespace-nowrap rounded-[var(--radius-sm)] bg-[var(--primary)] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[var(--primary-2)] disabled:opacity-60 sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs"
           >
             {busy ? "…" : t("appx.sign")}
           </button>
@@ -82,7 +84,7 @@ export function DocRow({ doc, interactive, onUpload, onSign }: DocRowProps) {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={busy}
-              className="whitespace-nowrap rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--primary-2)] disabled:opacity-60"
+              className="w-full whitespace-nowrap rounded-[var(--radius-sm)] bg-[var(--primary)] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[var(--primary-2)] disabled:opacity-60 sm:w-auto sm:px-3 sm:py-1.5 sm:text-xs"
             >
               {busy ? "…" : t("appx.upload")}
             </button>

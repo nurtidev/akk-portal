@@ -6,6 +6,7 @@
 // Пункты: Профиль / Мои заявки / Документы / Уведомления / Поддержка / Выйти.
 // =====================================================
 
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { CABINET_TABS, type CabinetTab } from "./tabs";
 
@@ -26,9 +27,23 @@ export function CabinetSidebar({
   unread = 0,
 }: CabinetSidebarProps) {
   const t = useTranslations("cabinet");
+  const activeRef = useRef<HTMLButtonElement | null>(null);
+
+  // Мобайл: активная вкладка всегда в зоне видимости горизонтального скролла.
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [active]);
 
   return (
-    <aside className="flex flex-row gap-1.5 overflow-x-auto pb-1 md:sticky md:top-20 md:flex-col md:gap-1 md:overflow-visible md:pb-0 md:self-start">
+    // relative-обёртка нужна только мобильному фейду; на десктопе display:contents,
+    // чтобы aside остался прямым ребёнком грида (sticky работает как раньше).
+    <div className="relative md:contents">
+      {/* Фейд у правого края — подсказка, что вкладки скроллятся */}
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[var(--bg)] to-transparent md:hidden"
+        aria-hidden="true"
+      />
+    <aside className="flex flex-row gap-1.5 overflow-x-auto pb-1 snap-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:sticky md:top-20 md:flex-col md:gap-1 md:overflow-visible md:pb-0 md:self-start">
       {/* «На главную» — скрыта на мобильном */}
       <button
         type="button"
@@ -45,10 +60,11 @@ export function CabinetSidebar({
         return (
           <button
             key={tab.id}
+            ref={on ? activeRef : undefined}
             type="button"
             onClick={() => onSelect(tab.id)}
             aria-current={on ? "page" : undefined}
-            className={`flex flex-shrink-0 items-center gap-2.5 whitespace-nowrap rounded-[var(--radius)] px-3 py-2.5 text-left text-sm font-medium transition-colors ${
+            className={`flex flex-shrink-0 snap-start items-center gap-2.5 whitespace-nowrap rounded-[var(--radius)] px-4 py-2.5 text-left text-sm font-medium transition-colors md:px-3 ${
               on
                 ? "bg-[var(--primary-soft)] text-[var(--primary)] font-semibold"
                 : "text-[var(--text-2)] hover:bg-[var(--bg-tint)] hover:text-[var(--text)]"
@@ -75,6 +91,7 @@ export function CabinetSidebar({
         <span>{t("nav.logout")}</span>
       </button>
     </aside>
+    </div>
   );
 }
 

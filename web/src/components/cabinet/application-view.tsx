@@ -181,7 +181,10 @@ export function ApplicationView({ uid }: { uid: string }) {
         {rej ? (
           <RejectedTimeline reachedIdx={Math.min(idx, APP_STAGES.length - 1)} label={rej} />
         ) : (
-          <StageTimeline currentIdx={idx} />
+          <StageTimeline
+            currentIdx={idx}
+            progressLabel={t("appx.progressOf", { n: Math.min(idx + 1, APP_STAGES.length), total: APP_STAGES.length })}
+          />
         )}
       </Card>
 
