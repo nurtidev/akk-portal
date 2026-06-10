@@ -1,5 +1,17 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+
+/** Ссылки колонки «Разделы» (slug страницы → ключ footer.sections). */
+const SECTION_LINKS = [
+  { slug: "about", key: "about" },
+  { slug: "sustainability", key: "sustainability" },
+  { slug: "how-to-get", key: "howToGet" },
+  { slug: "problem-debt", key: "problemDebt" },
+  { slug: "investment-projects", key: "investmentProjects" },
+  { slug: "press", key: "press" },
+  { slug: "faq", key: "faq" },
+  { slug: "contacts", key: "contacts" },
+] as const;
 
 /**
  * SiteFooter — подвал по образцу index.html:2325–2363.
@@ -11,6 +23,7 @@ import { useTranslations } from "next-intl";
  */
 export function SiteFooter() {
   const t = useTranslations("footer");
+  const locale = useLocale();
 
   return (
     <footer
@@ -29,7 +42,7 @@ export function SiteFooter() {
       />
 
       <div className="container relative mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Колонка 1 — О корпорации */}
           <div>
             <h4 className="font-display font-semibold text-white text-base mb-3">
@@ -105,6 +118,26 @@ export function SiteFooter() {
                     style={{ color: "rgba(255,255,255,0.7)" }}
                   >
                     {t(`programs.${key}`)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Колонка 4 — Разделы сайта (F5) */}
+          <div>
+            <h4 className="font-display font-semibold text-white text-base mb-3">
+              {t("sectionsTitle")}
+            </h4>
+            <ul className="flex flex-col gap-2 text-sm">
+              {SECTION_LINKS.map((item) => (
+                <li key={item.slug}>
+                  <Link
+                    href={`/${locale}/${item.slug}`}
+                    className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                    style={{ color: "rgba(255,255,255,0.7)" }}
+                  >
+                    {t(`sections.${item.key}`)}
                   </Link>
                 </li>
               ))}

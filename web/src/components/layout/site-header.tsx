@@ -1,13 +1,101 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { AkkMark } from "@/components/icons/akk-mark";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LangSwitcher } from "@/components/layout/lang-switcher";
-import { AuthSlot } from "@/components/auth/auth-slot";
+import { AuthSlot, MobileAuthSlot } from "@/components/auth/auth-slot";
+
+/** Пункты выпадающих меню (slug → ключ перевода в nav.corpItems / nav.clientsItems). */
+const CORP_ITEMS = [
+  { slug: "about", key: "about" },
+  { slug: "sustainability", key: "sustainability" },
+  { slug: "investors", key: "investors" },
+  { slug: "reporting", key: "reporting" },
+  { slug: "press", key: "press" },
+  { slug: "procurement", key: "procurement" },
+  { slug: "careers", key: "careers" },
+] as const;
+
+const CLIENTS_ITEMS = [
+  { slug: "how-to-get", key: "howToGet" },
+  { slug: "problem-debt", key: "problemDebt" },
+  { slug: "investment-projects", key: "investmentProjects" },
+  { slug: "insurance", key: "insurance" },
+  { slug: "collateral", key: "collateral" },
+  { slug: "faq", key: "faq" },
+  { slug: "blog", key: "blog" },
+] as const;
+
+/** Выпадающее меню навигации (паттерн как в LangSwitcher: клик + закрытие по клику вне). */
+function NavDropdown({
+  label,
+  items,
+  locale,
+}: {
+  label: string;
+  items: ReadonlyArray<{ slug: string; label: string }>;
+  locale: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="inline-flex items-center gap-1 text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+      >
+        {label}
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          aria-hidden="true"
+          className={`transition-transform ${open ? "rotate-180" : ""}`}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute left-0 top-full mt-2 min-w-[230px] rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] py-1.5 shadow-[var(--shadow-lg)] z-50"
+        >
+          {items.map((item) => (
+            <Link
+              key={item.slug}
+              role="menuitem"
+              href={`/${locale}/${item.slug}`}
+              onClick={() => setOpen(false)}
+              className="block px-3.5 py-2 text-sm text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * SiteHeader — шапка сайта по образцу index.html:2167–2204.
@@ -30,8 +118,10 @@ export function SiteHeader() {
   const navLinks = [
     { href: `/${locale}#programs`, label: nav("programs") },
     { href: `/${locale}#quiz`, label: nav("selection") },
-    { href: `/${locale}#contacts`, label: nav("contacts") },
   ];
+
+  const corpItems = CORP_ITEMS.map((i) => ({ slug: i.slug, label: nav(`corpItems.${i.key}`) }));
+  const clientsItems = CLIENTS_ITEMS.map((i) => ({ slug: i.slug, label: nav(`clientsItems.${i.key}`) }));
 
   return (
     <header
@@ -85,6 +175,14 @@ export function SiteHeader() {
                 {link.label}
               </Link>
             ))}
+            <NavDropdown label={nav("corp")} items={corpItems} locale={locale} />
+            <NavDropdown label={nav("clients")} items={clientsItems} locale={locale} />
+            <Link
+              href={`/${locale}/contacts`}
+              className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+            >
+              {nav("contacts")}
+            </Link>
           </nav>
 
           {/* Действия справа */}
@@ -178,7 +276,7 @@ export function SiteHeader() {
         }`}
         aria-label="Мобильная навигация"
       >
-        <div className="container mx-auto px-4 py-3 flex flex-col gap-1">
+        <div className="container mx-auto px-4 py-3 flex flex-col gap-1 max-h-[75vh] overflow-y-auto">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -189,14 +287,42 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
-          {/* Войти — в мобильном меню */}
-          <div className="mt-2 pt-2 border-t border-[var(--border-soft)]">
-            <button
-              type="button"
-              className="w-full text-left rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-            >
-              {nav("login")}
-            </button>
+
+          {/* Группы разделов */}
+          {(
+            [
+              { title: nav("corp"), items: corpItems },
+              { title: nav("clients"), items: clientsItems },
+            ] as const
+          ).map((group) => (
+            <div key={group.title} className="mt-1 pt-2 border-t border-[var(--border-soft)]">
+              <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-3)]">
+                {group.title}
+              </div>
+              {group.items.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={`/${locale}/${item.slug}`}
+                  className="block rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          ))}
+
+          <Link
+            href={`/${locale}/contacts`}
+            className="mt-1 pt-2 border-t border-[var(--border-soft)] block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {nav("contacts")}
+          </Link>
+
+          {/* Войти / кабинет — в мобильном меню (рабочий, через AuthProvider) */}
+          <div className="mt-1 pt-2 border-t border-[var(--border-soft)]">
+            <MobileAuthSlot onNavigate={() => setMobileOpen(false)} />
           </div>
         </div>
       </nav>

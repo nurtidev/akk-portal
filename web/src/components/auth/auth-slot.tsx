@@ -29,6 +29,56 @@ export function AuthSlot() {
   );
 }
 
+/**
+ * MobileAuthSlot — вход/кабинет для мобильного бургер-меню (F5).
+ * Гость → полноширинная кнопка «Войти» (модалка SMS-входа);
+ * пользователь → ссылка «Личный кабинет». onNavigate закрывает бургер.
+ */
+export function MobileAuthSlot({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <AuthProvider>
+      <MobileAuthSlotInner onNavigate={onNavigate} />
+    </AuthProvider>
+  );
+}
+
+function MobileAuthSlotInner({ onNavigate }: { onNavigate?: () => void }) {
+  const t = useTranslations("cabinet");
+  const nav = useTranslations("nav");
+  const { user, openAuth } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const locale = pathname.split("/")[1] || "ru";
+
+  if (!user) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => openAuth("login")}
+          className="w-full text-left rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-semibold text-[var(--primary)] hover:bg-[var(--primary-soft)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+        >
+          {nav("login")}
+        </button>
+        <AuthModal />
+      </>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onNavigate?.();
+        router.push(`/${locale}/cabinet`);
+      }}
+      className="w-full text-left rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-semibold text-[var(--primary)] hover:bg-[var(--primary-soft)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+    >
+      {initials(user.name)} · {firstWord(user.name) || t("nav.profile")}
+    </button>
+  );
+}
+
 function AuthSlotInner() {
   const t = useTranslations("cabinet");
   const nav = useTranslations("nav");
