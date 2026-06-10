@@ -1,3 +1,297 @@
 {
-  "content": {}
+  "content": {
+    "breadcrumbs": {
+      "home": "Home"
+    },
+    "about": {
+      "meta": {
+        "title": "About — ACC",
+        "description": "JSC Agrarian Credit Corporation — Kazakhstan's national agricultural development finance institution. Strategy, mission, governance structure."
+      },
+      "title": "About the Company",
+      "subtitle": "JSC «Agrarian Credit Corporation»",
+      "mission": {
+        "title": "Mission & Strategy",
+        "mission": "To promote the sustainable development of Kazakhstan's agro-industrial complex by providing accessible financing.",
+        "vision": "To become the leading financial institution supporting the agri-sector in Central Asia, ensuring the country's food security.",
+        "strategyTitle": "Strategic Priorities",
+        "strategy": [
+          "Expanding access to financing for small and medium agribusiness",
+          "Supporting import substitution and export potential of the agri-sector",
+          "Digitalisation of lending processes and customer service",
+          "Developing the partner network: credit partnerships, MFIs, commercial banks",
+          "Promoting sustainable and environmentally responsible agriculture"
+        ],
+        "foundedLabel": "Founded",
+        "founded": "2003",
+        "ownerLabel": "Shareholder",
+        "owner": "Baiterek NMH (100%)",
+        "staffLabel": "Employees",
+        "staff": "TODO: actual number",
+        "branchesLabel": "Regional branches",
+        "branches": "16"
+      },
+      "structure": {
+        "title": "Governance Structure",
+        "boardTitle": "Board of Directors",
+        "boardMembers": [
+          { "name": "TODO: Chairman of the Board name", "role": "Chairman of the Board of Directors" },
+          { "name": "TODO: Board member name", "role": "Independent Director" },
+          { "name": "TODO: Board member name", "role": "Independent Director" }
+        ],
+        "boardNote": "Current Board composition — on the official website agrocredit.kz",
+        "managementTitle": "Management Board",
+        "managementMembers": [
+          { "name": "TODO: CEO name", "role": "Chairman of the Management Board (CEO)" },
+          { "name": "TODO: Deputy CEO name", "role": "Deputy Chairman of the Management Board" }
+        ],
+        "managementNote": "Current Management Board composition — on the official website agrocredit.kz",
+        "subsidiariesTitle": "Subsidiaries and Affiliated Entities",
+        "subsidiaries": [
+          { "name": "TODO: Subsidiary 1 name", "description": "TODO: brief description of activities" },
+          { "name": "TODO: Subsidiary 2 name", "description": "TODO: brief description of activities" }
+        ]
+      },
+      "governance": {
+        "title": "Corporate Governance",
+        "description": "ACC builds its corporate governance system in accordance with best practices and the requirements of the legislation of the Republic of Kazakhstan.",
+        "items": [
+          { "title": "Charter of JSC «ACC»", "description": "The principal founding document defining objectives, scope of activities and governance procedures." },
+          { "title": "Corporate Governance Code", "description": "A set of principles and norms of conduct for governance bodies aimed at protecting the interests of shareholders and stakeholders." },
+          { "title": "Anti-Corruption Policy", "description": "Zero-tolerance policy on corruption; procedures for preventing, detecting and eliminating corruption risks." },
+          { "title": "Risk Management Policy", "description": "A comprehensive system for identifying, assessing and controlling credit business risks." }
+        ]
+      },
+      "compliance": {
+        "title": "Compliance",
+        "description": "The Compliance function ensures ACC's operations conform to legislation, regulations and internal policies.",
+        "hotlineTitle": "Compliance Hotline",
+        "hotlineNumber": "+7 775 007 27 01",
+        "hotlineDesc": "A confidential line for reporting violations, corruption or unethical conduct. Available 24/7.",
+        "emailLabel": "Compliance E-mail",
+        "email": "TODO: compliance@agrocredit.kz"
+      },
+      "ombudsman": {
+        "title": "Banking Ombudsman",
+        "description": "The Banking Ombudsman resolves disputes between clients of financial organisations and banks/credit institutions out of court.",
+        "website": "https://www.bankingombudsman.kz",
+        "websiteLabel": "bankingombudsman.kz",
+        "note": "Recourse to the Ombudsman is available after a prior complaint directly to ACC has not been resolved within the prescribed timeframe."
+      }
+    },
+    "reporting": {
+      "meta": {
+        "title": "Reports — ACC",
+        "description": "Financial and annual reports of JSC Agrarian Credit Corporation. Audited financial statements, annual reports, ratings."
+      },
+      "title": "Reports",
+      "financial": {
+        "title": "Financial Statements",
+        "description": "Audited financial statements of ACC prepared in accordance with IFRS.",
+        "items": [
+          { "year": "2023", "title": "Consolidated Financial Statements for 2023", "auditor": "TODO: auditor name", "url": "#TODO" },
+          { "year": "2022", "title": "Consolidated Financial Statements for 2022", "auditor": "TODO: auditor name", "url": "#TODO" },
+          { "year": "2021", "title": "Consolidated Financial Statements for 2021", "auditor": "TODO: auditor name", "url": "#TODO" },
+          { "year": "2020", "title": "Consolidated Financial Statements for 2020", "auditor": "TODO: auditor name", "url": "#TODO" }
+        ]
+      },
+      "annual": {
+        "title": "Annual Reports",
+        "description": "The Annual Report discloses ACC's performance for the year: key indicators, programmes, social impact.",
+        "items": [
+          { "year": "2023", "title": "ACC Annual Report 2023", "url": "#TODO" },
+          { "year": "2022", "title": "ACC Annual Report 2022", "url": "#TODO" },
+          { "year": "2021", "title": "ACC Annual Report 2021", "url": "#TODO" },
+          { "year": "2020", "title": "ACC Annual Report 2020", "url": "#TODO" }
+        ]
+      },
+      "downloadLabel": "Download PDF",
+      "sizeLabel": "PDF"
+    },
+    "investors": {
+      "meta": {
+        "title": "Investors — ACC",
+        "description": "Investor information for JSC Agrarian Credit Corporation: ratings, bonds, disclosure."
+      },
+      "title": "Investors",
+      "ratings": {
+        "title": "Credit Ratings",
+        "description": "ACC undergoes regular assessment by international and national rating agencies.",
+        "items": [
+          { "agency": "S&P Global Ratings", "rating": "TODO", "outlook": "TODO", "date": "TODO", "url": "#TODO" },
+          { "agency": "Moody's", "rating": "TODO", "outlook": "TODO", "date": "TODO", "url": "#TODO" },
+          { "agency": "Fitch Ratings", "rating": "TODO", "outlook": "TODO", "date": "TODO", "url": "#TODO" }
+        ]
+      },
+      "bonds": {
+        "title": "Bonds",
+        "description": "ACC places bonds on the Kazakhstan Stock Exchange (KASE). See bond prospectuses for full details.",
+        "kaseLink": "https://kase.kz",
+        "kaseLinkLabel": "Go to KASE"
+      },
+      "disclosure": {
+        "title": "Disclosure",
+        "description": "In accordance with Kazakhstan legislation, ACC discloses material facts and other mandatory information on the KASE website.",
+        "items": [
+          { "title": "Disclosure of Material Facts", "url": "#TODO" },
+          { "title": "Bond Prospectuses", "url": "#TODO" },
+          { "title": "List of Affiliated Persons", "url": "#TODO" }
+        ]
+      }
+    },
+    "press": {
+      "meta": {
+        "title": "Press Centre — ACC",
+        "description": "News of JSC Agrarian Credit Corporation, media publications, and borrower success stories."
+      },
+      "title": "Press Centre",
+      "tabs": {
+        "news": "News",
+        "media": "Media about us",
+        "stories": "Success Stories"
+      },
+      "readMore": "Read more",
+      "backToPress": "← Back to Press Centre",
+      "publishedLabel": "Published",
+      "sourceLabel": "Source",
+      "allNews": "All news",
+      "allMedia": "All publications",
+      "allStories": "All stories"
+    },
+    "faq": {
+      "meta": {
+        "title": "FAQ — ACC",
+        "description": "Answers to frequently asked questions on ACC lending programmes: terms, documents, timelines, collateral, subsidies."
+      },
+      "title": "Frequently Asked Questions",
+      "subtitle": "Answers to the most common questions on agri-financing",
+      "items": [
+        { "q": "How do I apply for a loan at ACC?", "a": "You can apply online through your personal account on the website, through ACC partners (credit partnerships, MFIs, partner banks), or in person at the nearest regional ACC branch. Online applications require an EDS or eGov Mobile authorisation." },
+        { "q": "What documents are required?", "a": "Standard package: identity document, IIN, documents for land plot or collateral, livestock certificate (for livestock lending), business plan or feasibility study for large loans. The full list depends on the programme — check in your personal account or with a manager." },
+        { "q": "How long does the application review take?", "a": "Up to 15 working days from submission of a complete document package. For microcredits (Іскер programme) — up to 7 working days. Application status is available in real time in the personal account." },
+        { "q": "Is collateral required?", "a": "Most programmes require collateral: land, agricultural machinery, animals, future crops. For Іскер and microcredits, a guarantee or pledge of movable property is possible. Some programmes accept guarantees from the Damu Entrepreneurship Development Fund." },
+        { "q": "How does interest rate subsidisation work?", "a": "The state compensates part of the interest rate on ACC loans under Ministry of Agriculture subsidisation programmes. The effective rate for borrowers starts from 5% per annum on subsidised programmes. The subsidy is paid directly to ACC; the borrower pays only the subsidised portion." },
+        { "q": "Which programmes are available for beginning farmers?", "a": "The Іскер programme is designed for new farmers: up to 5,000 MCI, simplified document requirements, shorter review period. Igіlik and Bereke programmes are also available for small-scale livestock farming. Try the programme selector on the home page." },
+        { "q": "Can I get a loan without registering a legal entity?", "a": "Yes. ACC loans are available to peasant (farmer) households, individual entrepreneurs, and individuals — owners of personal subsidiary farms (under certain programmes). Check the legal form requirements for the specific programme." },
+        { "q": "What is a credit partnership and how do I get a loan through one?", "a": "A credit partnership (CP) is a non-commercial association of farmers that receives wholesale funding from ACC and distributes it among its members. To get a loan through a CP, you must become a member of the partnership in your district. The list of accredited credit partnerships is in the Contacts section." },
+        { "q": "What is the maximum loan amount and term?", "a": "Under the Agrobusiness 2.0 programme: up to 15 billion tenge, up to 120 months. Other programmes range from 5,000 MCI (Іскер) to 7 billion ₸ (Кең дала 2). The maximum term for most programmes is 84–120 months. Use the calculator on the website." },
+        { "q": "How does the farm stress test work?", "a": "For livestock programmes, ACC runs an express economic assessment using Fajr norms: income (milk, meat, additional sales), expenses (feed, veterinary, wages, rent) and the ratio of annual payment to net income are evaluated. If the payment exceeds 50% of net income — adjusting the loan amount or term is recommended." }
+      ]
+    },
+    "contacts": {
+      "meta": {
+        "title": "Contacts — ACC",
+        "description": "Contacts of JSC Agrarian Credit Corporation: headquarters in Astana, 16 regional branches, credit partners."
+      },
+      "title": "Contacts",
+      "hqTitle": "Head Office",
+      "hqAddress": "010000, Astana, Imanova str., 11, BC «Nursaulet»",
+      "hqPhone": "+7 (7172) 57-77-77",
+      "hqCallCenter": "1408",
+      "hqCallCenterLabel": "Unified Call Centre (free)",
+      "hqEmail": "info@agrocredit.kz",
+      "hqHotline": "+7 775 007 27 01",
+      "hqHotlineLabel": "Hotline",
+      "hqWorkHours": "Mon–Fri, 09:00–18:00 (GMT+5)",
+      "branchesTitle": "Regional Branches",
+      "branchesNote": "ACC is represented in all 17 regions of Kazakhstan.",
+      "creditPartnersTitle": "Credit Partnerships",
+      "creditPartnersDesc": "ACC finances farmers through a network of accredited credit partnerships, MFIs and partner banks. The full partner registry is on the official website agrocredit.kz.",
+      "creditPartnersLink": "https://agrocredit.kz",
+      "creditPartnersLinkLabel": "Partner registry at agrocredit.kz",
+      "mapNote": "Interactive map — on the official website agrocredit.kz",
+      "branches": [
+        { "region": "Akmola region", "city": "Kokshetau", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Aktobe region", "city": "Aktobe", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Almaty region", "city": "Taldykorgan", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Atyrau region", "city": "Atyrau", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "East Kazakhstan region", "city": "Ust-Kamenogorsk", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Zhambyl region", "city": "Taraz", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "West Kazakhstan region", "city": "Uralsk", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Karaganda region", "city": "Karaganda", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Kostanay region", "city": "Kostanay", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Kyzylorda region", "city": "Kyzylorda", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Mangystau region", "city": "Aktau", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Pavlodar region", "city": "Pavlodar", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "North Kazakhstan region", "city": "Petropavlovsk", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Turkestan region", "city": "Turkestan", "address": "TODO: branch address", "phone": "TODO: phone" },
+        { "region": "Almaty city", "city": "Almaty", "address": "TODO: representative office address", "phone": "TODO: phone" },
+        { "region": "Abai region", "city": "Semey", "address": "TODO: branch address", "phone": "TODO: phone" }
+      ]
+    },
+    "insurance": {
+      "meta": {
+        "title": "Agricultural Insurance — ACC",
+        "description": "Mandatory and voluntary crop insurance under ACC lending programmes."
+      },
+      "title": "Agricultural Insurance",
+      "subtitle": "Crop and agri-property protection",
+      "description": "Crop insurance is a mandatory condition for obtaining loans under a number of ACC programmes. ACC cooperates with accredited insurance companies of the Republic of Kazakhstan.",
+      "sections": [
+        { "title": "Mandatory Crop Insurance", "text": "Under the Law of the Republic of Kazakhstan «On Mandatory Crop Insurance», borrowers engaged in growing agricultural crops are required to insure their harvest. Insurance compensation is also applied towards loan repayment upon an insured event." },
+        { "title": "Voluntary Property Insurance", "text": "ACC recommends insuring collateral (machinery, buildings, livestock) with accredited insurance companies. This reduces borrower risk and positively affects lending terms." },
+        { "title": "Accredited Insurers", "text": "The list of accredited ACC partner insurance companies is published on the official website agrocredit.kz. The borrower may choose any accredited insurer." }
+      ],
+      "linkLabel": "More at agrocredit.kz",
+      "link": "https://agrocredit.kz"
+    },
+    "collateral": {
+      "meta": {
+        "title": "Collateral Property Sales — ACC",
+        "description": "Registry of collateral property of JSC Agrarian Credit Corporation offered for sale."
+      },
+      "title": "Collateral Property Sales",
+      "subtitle": "Disposal of repossessed and unclaimed assets",
+      "description": "ACC sells collateral property that has passed into the corporation's ownership in lieu of loan debt repayment. Items for sale include agricultural machinery, equipment, land plots and real estate.",
+      "sections": [
+        { "title": "Purchase Procedure", "text": "Property is sold via electronic trading platforms and through direct negotiation. To participate in an auction, submit an application of the prescribed form with copies of identity and legal capacity documents." },
+        { "title": "Current Registry", "text": "The current list of collateral property for sale is published on the official website agrocredit.kz and on the electronic trading platform." }
+      ],
+      "registryLinkLabel": "Registry at agrocredit.kz",
+      "registryLink": "https://agrocredit.kz",
+      "contactNote": "For purchase enquiries: info@agrocredit.kz or 1408"
+    },
+    "procurement": {
+      "meta": {
+        "title": "Procurement — ACC",
+        "description": "Information on procurement of goods, works and services by JSC Agrarian Credit Corporation."
+      },
+      "title": "Procurement",
+      "subtitle": "Procurement of goods, works and services",
+      "description": "ACC procures goods, works and services in accordance with the Law of the Republic of Kazakhstan «On Public Procurement» and internal regulatory documents. Information on ongoing procurement is published on the public procurement portal.",
+      "sections": [
+        { "title": "Public Procurement Portal", "text": "All current ACC tenders and competitions are posted on the official public procurement portal of Kazakhstan (goszakup.gov.kz) and on the corporation's website." },
+        { "title": "Supplier Requirements", "text": "Participation is open to legal entities and individual entrepreneurs registered in Kazakhstan, not included in the register of unscrupulous suppliers, and holding required licences and certificates." },
+        { "title": "Procurement Contact", "text": "For procurement enquiries: info@agrocredit.kz, +7 (7172) 57-77-77." }
+      ],
+      "goszakupLink": "https://goszakup.gov.kz",
+      "goszakupLinkLabel": "goszakup.gov.kz portal",
+      "akkLink": "https://agrocredit.kz",
+      "akkLinkLabel": "Procurement at agrocredit.kz"
+    },
+    "careers": {
+      "meta": {
+        "title": "Careers — ACC",
+        "description": "Open vacancies at JSC Agrarian Credit Corporation. Join the team of Kazakhstan's agricultural development finance institution."
+      },
+      "title": "Careers",
+      "subtitle": "Join the ACC Team",
+      "description": "ACC is a national agricultural development finance institution within the Baiterek holding. We are looking for professionals who share the values of sustainable development of Kazakhstan's agro-industrial complex.",
+      "whyTitle": "Why ACC?",
+      "whyItems": [
+        { "title": "Social Mission", "text": "Working at ACC means making a real contribution to agricultural development and food security of the country." },
+        { "title": "Professional Growth", "text": "Training, rotation and career development programmes. Support for obtaining professional certifications." },
+        { "title": "Stability", "text": "ACC is a 100% state-owned institution with stable funding and a guaranteed benefits package." },
+        { "title": "16 Regions", "text": "Opportunities are not only in Astana — vacancies exist in all regional branches." }
+      ],
+      "openPositionsTitle": "Open Positions",
+      "openPositionsNote": "The current list of vacancies is posted on hh.kz and on the official website agrocredit.kz.",
+      "hhLink": "https://hh.kz/employer/TODO",
+      "hhLinkLabel": "Vacancies at hh.kz",
+      "akkLink": "https://agrocredit.kz",
+      "akkLinkLabel": "Vacancies at agrocredit.kz",
+      "contactNote": "CVs and employment enquiries: hr@agrocredit.kz",
+      "contactEmail": "hr@agrocredit.kz"
+    }
+  }
 }
