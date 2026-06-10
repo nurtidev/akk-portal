@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { createRequire } from 'node:module';
-import { PROGRAMS } from '../src/data/programs';
-import type { Answers } from '../src/data/questions';
-import { scoreProgram, explainProgram, scoredPrograms } from '../src/lib/scoring';
+import { PROGRAMS } from '@/data/programs';
+import type { Answers } from '@/data/questions';
+import { scoreProgram, explainProgram, scoredPrograms } from '@/lib/scoring';
 
 const require = createRequire(import.meta.url);
 const legacy = require('./fixtures/legacy.cjs');

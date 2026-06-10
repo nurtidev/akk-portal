@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PROGRAMS, PROGRAM_DETAILS } from '../src/data/programs';
+import { PROGRAMS, PROGRAM_DETAILS } from '@/data/programs';
 
 describe('A1 PROGRAMS', () => {
   it('содержит ровно 7 программ', () => {

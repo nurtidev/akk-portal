@@ -9,7 +9,7 @@ import {
   optionLabel,
   questionShort,
   type Answers
-} from '../src/data/questions';
+} from '@/data/questions';
 
 const require = createRequire(import.meta.url);
 const legacy = require('./fixtures/legacy.cjs');

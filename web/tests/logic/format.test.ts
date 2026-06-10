@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createRequire } from 'node:module';
-import { PROGRAMS } from '../src/data/programs';
-import { fmtAmount, fmtRate, declension } from '../src/lib/format';
+import { PROGRAMS } from '@/data/programs';
+import { fmtAmount, fmtRate, declension } from '@/lib/format';
 
 const require = createRequire(import.meta.url);
 const legacy = require('./fixtures/legacy.cjs');

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createRequire } from 'node:module';
-import { PROGRAMS } from '../src/data/programs';
-import { calculateStress, type StressInput } from '../src/lib/stress';
+import { PROGRAMS } from '@/data/programs';
+import { calculateStress, type StressInput } from '@/lib/stress';
 
 const require = createRequire(import.meta.url);
 const legacy = require('./fixtures/legacy.cjs');

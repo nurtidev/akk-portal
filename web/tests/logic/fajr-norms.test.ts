@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createRequire } from 'node:module';
-import { FAJR_NORMS, type AnimalType } from '../src/data/fajr-norms';
+import { FAJR_NORMS, type AnimalType } from '@/data/fajr-norms';
 
 const require = createRequire(import.meta.url);
 const legacy = require('./fixtures/legacy.cjs');

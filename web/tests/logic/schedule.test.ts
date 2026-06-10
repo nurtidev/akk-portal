@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { createRequire } from 'node:module';
-import { PROGRAMS } from '../src/data/programs';
-import type { Answers } from '../src/data/questions';
-import { calculateSchedule, effectiveMaxTerm, pickInitialTerm } from '../src/lib/schedule';
+import { PROGRAMS } from '@/data/programs';
+import type { Answers } from '@/data/questions';
+import { calculateSchedule, effectiveMaxTerm, pickInitialTerm } from '@/lib/schedule';
 
 const require = createRequire(import.meta.url);
 const legacy = require('./fixtures/legacy.cjs');
