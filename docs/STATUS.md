@@ -78,6 +78,8 @@
 
 ## Журнал
 
+- 2026-06-10 — E2/E3 приняты: 53/53 Playwright-тестов зелёные локально И против прода (chromium + mobile-эмуляция; webkit не ставили — browserName: chromium). E2E сразу нашли боевой баг: квиз застревал после ответов, меняющих список вопросов (cleanup эффекта гасил таймер автоперехода) — починено (quiz.tsx), задеплоено. E3: beacon-коллектор через NEXT_PUBLIC_ANALYTICS_ENDPOINT. Хрупкие места селекторов задокументированы агентом (главное: добавить data-testid на корень result-card при следующей правке results.tsx). Остаётся: E5 (домен), картинки от владельца (IMAGE_PROMPTS.md), адреса 15 филиалов, переводы kk/en.
+
 - 2026-06-10 — приёмка итерации 2 (C8–C13 + F5): 70/70 тестов, build 82 SSG-страницы, smoke 200 по всем новым маршрутам. Первый агент C8–C13 завис (watchdog 600s) — страницы создал, i18n не дописал; агент-продолжатель дописал ключи в 3 локали. Исправление при приёмке: onError на <img> в серверных компонентах (RSC не сериализует обработчики) → клиентские HeroImage/FallbackImage. Слоты картинок подключены ко всем страницам — имена файлов и промты в docs/IMAGE_PROMPTS.md.
 
 - 2026-06-10 — E1 выполнен: Railway-сервис `akk-portal-web` в проекте akk (root directory `web/`, деплой из github.com/nurtidev/akk-portal, Dockerfile standalone). Первый деплой Railway заблокировал из-за CVE в next@15.3.3 → обновлён до ^15.5.19 (70/70 тестов, build зелёный). Прод: https://akk-portal-web-production.up.railway.app — 10 маршрутов 200 на 3 локалях, NEXT_PUBLIC_API_BASE=https://akk-backend-production.up.railway.app вшит в бандл, Go-бэк /health ok.
