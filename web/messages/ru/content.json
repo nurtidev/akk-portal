@@ -666,17 +666,20 @@
         {
           "name": "Halyk Bank",
           "description": "Открытие расчётного счёта онлайн через портал АКК для получения финансирования.",
-          "url": "https://halykbank.kz"
+          "url": "https://halykbank.kz",
+          "logo": "halyk"
         },
         {
           "name": "Банк ЦентрКредит",
           "description": "Открытие расчётного счёта онлайн через портал АКК для получения финансирования.",
-          "url": "https://bcc.kz"
+          "url": "https://bcc.kz",
+          "logo": "bcc"
         },
         {
           "name": "ForteBank",
           "description": "Открытие расчётного счёта онлайн через портал АКК для получения финансирования.",
-          "url": "https://forte.kz"
+          "url": "https://forte.kz",
+          "logo": "forte"
         }
       ],
       "channelOpenAccountLabel": "Открыть счёт",

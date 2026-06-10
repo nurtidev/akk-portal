@@ -8,6 +8,7 @@ import {
   CardGrid,
   ContentCard,
 } from "@/components/content/content-page";
+import { BankLogo } from "@/components/content/bank-logo";
 
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -48,6 +49,7 @@ export default async function HowToGetPage({
     name: string;
     description: string;
     url: string;
+    logo?: string;
   }>;
 
   return (
@@ -101,9 +103,12 @@ export default async function HowToGetPage({
         <CardGrid cols={3}>
           {channels.map((channel, i) => (
             <ContentCard key={i}>
-              <h3 className="font-semibold text-[var(--primary)] mb-2">
-                {channel.name}
-              </h3>
+              <div className="mb-2 flex items-center gap-3">
+                {channel.logo && <BankLogo slug={channel.logo} name={channel.name} />}
+                <h3 className="font-semibold text-[var(--primary)]">
+                  {channel.name}
+                </h3>
+              </div>
               <p className="text-sm text-[var(--text-2)] leading-relaxed mb-4">
                 {channel.description}
               </p>
