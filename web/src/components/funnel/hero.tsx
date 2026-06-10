@@ -7,6 +7,7 @@
 // статистика «от 5% / 6 программ / 15 млрд ₸».
 // =====================================================
 
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AkkMark } from '@/components/icons/akk-mark';
 import { useFunnel } from './funnel-context';
@@ -14,6 +15,17 @@ import { useFunnel } from './funnel-context';
 export function Hero() {
   const t = useTranslations('funnel.hero');
   const { startQuiz } = useFunnel();
+  // Фото в hero (банковский паттерн): /img/content/hero-main.jpg.
+  // Пока файла нет — фолбэк на анимированную эмблему (прежний вид).
+  const [photoOk, setPhotoOk] = useState(true);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  // onError может сработать ДО гидратации (SSR) и потеряться — проверяем
+  // naturalWidth уже смонтированной картинки.
+  useEffect(() => {
+    const el = imgRef.current;
+    if (el && el.complete && el.naturalWidth === 0) setPhotoOk(false);
+  }, []);
 
   const scrollToPrograms = () => {
     document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' });
@@ -66,16 +78,39 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Эмблема-радар */}
-          <div className="relative hidden aspect-square items-center justify-center lg:flex">
-            <div className="absolute inset-[10%] rounded-full bg-[var(--primary-soft)] blur-3xl" aria-hidden="true" />
-            <svg className="absolute inset-0 h-full w-full text-[var(--accent)] opacity-40" viewBox="0 0 400 400" fill="none" aria-hidden="true">
-              <circle cx="200" cy="200" r="196" stroke="currentColor" strokeWidth={1} strokeDasharray="2 7" />
-              <circle cx="200" cy="200" r="150" stroke="currentColor" strokeWidth={1} strokeDasharray="2 7" />
-              <circle cx="200" cy="200" r="104" stroke="currentColor" strokeWidth={1} />
-            </svg>
-            <AkkMark className="relative h-2/5 w-2/5" />
-          </div>
+          {/* Визуал: фото (если положен hero-main.jpg) либо эмблема-радар */}
+          {photoOk ? (
+            <div className="relative hidden lg:block">
+              <div className="relative overflow-hidden rounded-[var(--radius-lg)] shadow-[var(--shadow-lg)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  ref={imgRef}
+                  src="/img/content/hero-main.jpg"
+                  alt=""
+                  className="aspect-[4/3] w-full object-cover"
+                  onError={() => setPhotoOk(false)}
+                />
+                <div
+                  className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent"
+                  aria-hidden="true"
+                />
+                <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-xs font-semibold text-[var(--primary)] shadow backdrop-blur">
+                  <AkkMark className="h-4 w-4" />
+                  {t('photoChip')}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative hidden aspect-square items-center justify-center lg:flex">
+              <div className="absolute inset-[10%] rounded-full bg-[var(--primary-soft)] blur-3xl" aria-hidden="true" />
+              <svg className="absolute inset-0 h-full w-full text-[var(--accent)] opacity-40" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+                <circle cx="200" cy="200" r="196" stroke="currentColor" strokeWidth={1} strokeDasharray="2 7" />
+                <circle cx="200" cy="200" r="150" stroke="currentColor" strokeWidth={1} strokeDasharray="2 7" />
+                <circle cx="200" cy="200" r="104" stroke="currentColor" strokeWidth={1} />
+              </svg>
+              <AkkMark className="relative h-2/5 w-2/5" />
+            </div>
+          )}
         </div>
       </div>
     </section>

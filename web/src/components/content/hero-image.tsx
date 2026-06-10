@@ -1,5 +1,19 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
+/** SSR-надёжный фолбэк: onError может сработать до гидратации и потеряться —
+    дополнительно проверяем naturalWidth после монтирования. */
+function useBrokenImageFallback(hide: (el: HTMLImageElement) => void) {
+  const ref = useRef<HTMLImageElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (el && el.complete && el.naturalWidth === 0) hide(el);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return ref;
+}
+
 /**
  * HeroImage — фоновое изображение шапки контентной страницы.
  * Клиентский компонент: onError нельзя передавать из серверного компонента
@@ -16,9 +30,12 @@ export function FallbackImage({
   alt: string;
   className?: string;
 }) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const ref = useBrokenImageFallback((el) => { el.style.display = "none"; });
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
+      ref={ref}
       src={src}
       alt={alt}
       className={className}
@@ -38,9 +55,11 @@ export function HeroImage({
       (например object-top — когда смысловой центр картинки сверху). */
   position?: string;
 }) {
+  const ref = useBrokenImageFallback((el) => { el.style.display = "none"; });
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
+      ref={ref}
       src={`/img/content/${slug}.jpg`}
       alt=""
       aria-hidden="true"

@@ -10,6 +10,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Hero } from './hero';
+import { WhyAkk } from './why-akk';
 import { ProgramGrid } from './program-grid';
 import { Quiz } from './quiz';
 import { Results } from './results';
@@ -62,6 +63,7 @@ export function Funnel() {
       {/* Лендинг: hero + сетка программ — скрыты, когда воронка активна */}
       <div hidden={!isLanding}>
         <Hero />
+        <WhyAkk />
         <ProgramGrid />
       </div>
 
