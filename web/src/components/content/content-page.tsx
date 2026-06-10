@@ -13,6 +13,8 @@ interface ContentPageProps {
   eyebrow?: string;
   /** Слаг изображения шапки: ищем /img/content/{imageSlug}.jpg. Graceful-фолбэк — градиент токенов + орнамент */
   imageSlug?: string;
+  /** object-position шапки (Tailwind-класс), напр. "object-top" для контактов. */
+  imagePosition?: string;
   children: React.ReactNode;
 }
 
@@ -30,6 +32,7 @@ export function ContentPage({
   breadcrumbs,
   eyebrow,
   imageSlug,
+  imagePosition,
   children,
 }: ContentPageProps) {
   return (
@@ -37,7 +40,7 @@ export function ContentPage({
       {/* Hero-шапка страницы */}
       <div className="relative overflow-hidden bg-[var(--primary)] text-white min-h-[200px] md:min-h-[340px] xl:min-h-[400px] md:flex md:items-center">
         {/* Фоновое изображение (клиентский компонент: graceful-фолбэк по onError) */}
-        {imageSlug && <HeroImage slug={imageSlug} />}
+        {imageSlug && <HeroImage slug={imageSlug} position={imagePosition} />}
         {/* Градиент поверх картинки: на десктопе — плотный слева (зона текста),
             справа почти прозрачный, чтобы фото читалось. На мобиле — равномернее. */}
         <div

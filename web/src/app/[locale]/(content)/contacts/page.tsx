@@ -50,6 +50,7 @@ export default async function ContactsPage({
     <ContentPage
       title={tC("title")}
       imageSlug="contacts"
+      imagePosition="object-top"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tC("title") },

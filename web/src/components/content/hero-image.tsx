@@ -29,14 +29,22 @@ export function FallbackImage({
   );
 }
 
-export function HeroImage({ slug }: { slug: string }) {
+export function HeroImage({
+  slug,
+  position = "object-center",
+}: {
+  slug: string;
+  /** Tailwind-класс object-position: какую часть кадра показывать в узкой шапке
+      (например object-top — когда смысловой центр картинки сверху). */
+  position?: string;
+}) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={`/img/content/${slug}.jpg`}
       alt=""
       aria-hidden="true"
-      className="content-hero-img absolute inset-0 h-full w-full object-cover object-center"
+      className={`content-hero-img absolute inset-0 h-full w-full object-cover ${position}`}
       onError={(e) => {
         (e.currentTarget as HTMLImageElement).style.display = "none";
       }}

@@ -11,10 +11,13 @@ import { APP_STAGES } from "@/lib/api";
 export function StageTimeline({
   currentIdx,
   progressLabel,
+  currentLabel = "текущий этап",
 }: {
   currentIdx: number;
   /** Строка «Этап N из M» (перевод передаёт родитель) — крупный якорь для мобилы. */
   progressLabel?: string;
+  /** Подпись активного этапа (i18n передаёт родитель). */
+  currentLabel?: string;
 }) {
   return (
     <div className="mt-2.5 flex flex-col gap-2.5 md:gap-1.5">
@@ -45,7 +48,7 @@ export function StageTimeline({
               {icon}
             </span>
             <span>{s}</span>
-            {cur && <span className="ml-auto text-[11px] md:text-[10px]">текущий этап</span>}
+            {cur && <span className="ml-auto text-[11px] md:text-[10px]">{currentLabel}</span>}
           </div>
         );
       })}

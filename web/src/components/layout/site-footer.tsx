@@ -21,6 +21,34 @@ const SECTION_LINKS = [
  *   3. Программы (список)
  * + строка-дисклеймер
  */
+/**
+ * SlimFooter — однострочный подвал для служебных страниц (кабинет).
+ * Большой футер после короткого контента на мобиле «съедал» экран.
+ */
+export function SlimFooter() {
+  const t = useTranslations("footer");
+  const locale = useLocale();
+
+  return (
+    <footer
+      className="relative"
+      style={{ background: "var(--primary)", color: "rgba(255,255,255,0.75)" }}
+    >
+      <div className="container mx-auto flex flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs">
+        <span>{t("orgTitle")}</span>
+        <span className="flex items-center gap-4">
+          <a href="tel:1408" className="hover:text-white transition-colors">
+            {t("callCenterLabel")}
+          </a>
+          <Link href={`/${locale}`} className="hover:text-white transition-colors">
+            {t("toHome")}
+          </Link>
+        </span>
+      </div>
+    </footer>
+  );
+}
+
 export function SiteFooter() {
   const t = useTranslations("footer");
   const locale = useLocale();

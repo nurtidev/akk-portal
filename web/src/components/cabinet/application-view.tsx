@@ -184,6 +184,7 @@ export function ApplicationView({ uid }: { uid: string }) {
           <StageTimeline
             currentIdx={idx}
             progressLabel={t("appx.progressOf", { n: Math.min(idx + 1, APP_STAGES.length), total: APP_STAGES.length })}
+            currentLabel={t("appx.currentStage")}
           />
         )}
       </Card>

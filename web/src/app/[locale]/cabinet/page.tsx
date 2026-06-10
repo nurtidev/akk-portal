@@ -10,7 +10,7 @@ import { CabinetView } from "@/components/cabinet/cabinet-view";
 
 export default function CabinetPage() {
   return (
-    <SiteLayout>
+    <SiteLayout footer="slim">
       <main id="main-content" className="flex-1">
         <Suspense fallback={null}>
           <CabinetView />

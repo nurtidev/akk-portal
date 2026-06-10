@@ -1,15 +1,18 @@
 import { SiteHeader } from "./site-header";
-import { SiteFooter } from "./site-footer";
+import { SiteFooter, SlimFooter } from "./site-footer";
 
 interface SiteLayoutProps {
   children: React.ReactNode;
+  /** slim — однострочный подвал для служебных страниц (кабинет): большой футер
+      на мобиле занимал большую часть экрана после короткого контента. */
+  footer?: "full" | "slim";
 }
 
 /**
  * SiteLayout — оболочка с шапкой и подвалом.
  * Используется в [locale]/layout.tsx для каждой страницы.
  */
-export function SiteLayout({ children }: SiteLayoutProps) {
+export function SiteLayout({ children, footer = "full" }: SiteLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Skip-link для доступности (WCAG 2.4.1) */}
@@ -22,7 +25,7 @@ export function SiteLayout({ children }: SiteLayoutProps) {
       </a>
       <SiteHeader />
       <div className="flex-1">{children}</div>
-      <SiteFooter />
+      {footer === "slim" ? <SlimFooter /> : <SiteFooter />}
     </div>
   );
 }

@@ -123,7 +123,14 @@ export default async function InvestmentProjectsPage({
       </ContentSection>
 
       {/* CTA */}
-      <div className="rounded-[var(--radius)] bg-[var(--primary)] p-8 text-center text-white">
+      <div className="relative overflow-hidden rounded-[var(--radius)] bg-[var(--primary)] p-8 text-center text-white">
+        {/* Орнамент-паттерн — как в футере (декоративный) */}
+        <div
+          className="ornament-tile absolute inset-0 pointer-events-none"
+          aria-hidden="true"
+          style={{ opacity: 0.08, filter: "brightness(3) saturate(0.5)" }}
+        />
+        <div className="relative">
         <h2 className="font-display text-xl font-bold mb-2">
           {tI("ctaTitle")}
         </h2>
@@ -147,6 +154,7 @@ export default async function InvestmentProjectsPage({
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
         </Link>
+        </div>
       </div>
     </ContentPage>
   );

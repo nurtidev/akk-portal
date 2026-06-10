@@ -138,7 +138,8 @@
       "reject": "Отклонить",
       "reset": "Сбросить",
       "advanceErr": "Не удалось обновить этап.",
-      "progressOf": "Этап {n} из {total}"
+      "progressOf": "Этап {n} из {total}",
+      "currentStage": "текущий этап"
     }
   }
 }

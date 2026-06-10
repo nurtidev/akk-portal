@@ -187,11 +187,13 @@ export function SiteHeader() {
 
           {/* Действия справа */}
           <div className="header-actions flex items-center gap-2">
-            {/* Переключатель темы */}
-            <ThemeToggle />
-
-            {/* Переключатель языка */}
-            <LangSwitcher />
+            {/* Тема и язык — на мобиле переезжают в бургер (шапка была перегружена) */}
+            <span className="hidden md:inline-flex">
+              <ThemeToggle />
+            </span>
+            <span className="hidden md:inline-flex">
+              <LangSwitcher />
+            </span>
 
             {/* CTA: Колл-центр */}
             <a
@@ -323,6 +325,12 @@ export function SiteHeader() {
           {/* Войти / кабинет — в мобильном меню (рабочий, через AuthProvider) */}
           <div className="mt-1 pt-2 border-t border-[var(--border-soft)]">
             <MobileAuthSlot onNavigate={() => setMobileOpen(false)} />
+          </div>
+
+          {/* Тема и язык — внизу бургера (на мобиле скрыты из шапки) */}
+          <div className="mt-1 flex items-center gap-3 border-t border-[var(--border-soft)] px-3 pt-3 pb-1">
+            <ThemeToggle />
+            <LangSwitcher />
           </div>
         </div>
       </nav>

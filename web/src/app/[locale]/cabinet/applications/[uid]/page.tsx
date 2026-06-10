@@ -13,7 +13,7 @@ export default async function ApplicationPage({
 }) {
   const { uid } = await params;
   return (
-    <SiteLayout>
+    <SiteLayout footer="slim">
       <main id="main-content" className="flex-1">
         <ApplicationView uid={uid} />
       </main>
