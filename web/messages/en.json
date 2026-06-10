@@ -1,0 +1,72 @@
+{
+  "nav": {
+    "programs": "Программы",
+    "selection": "Подбор",
+    "contacts": "Контакты",
+    "login": "Войти",
+    "menu": "Menu",
+    "close": "Close menu"
+  },
+  "header": {
+    "logoName": "Agrarian Credit Corporation",
+    "logoSubtitle": "JSC, 100% subsidiary of Baiterek NMH",
+    "logoAbbr": "ACC",
+    "callCenter": "1408 · Call Centre",
+    "callCenterShort": "1408",
+    "toggleTheme": "Toggle dark theme",
+    "toggleLang": "Language"
+  },
+  "footer": {
+    "orgTitle": "JSC «Agrarian Credit Corporation»",
+    "orgDescription": "Kazakhstan's agricultural development finance institution. Subsidiary of Baiterek NMH.",
+    "orgAddress": "Astana, Imanova str., 11, BC «Nursaulet»",
+    "supportTitle": "Support",
+    "callCenterLabel": "1408 — Call Centre",
+    "emailLabel": "info@agrocredit.kz",
+    "messengerLabel": "WhatsApp / Telegram",
+    "programsTitle": "Programs",
+    "programs": {
+      "kenDala2": "Кең дала 2",
+      "agrobusiness": "Agrobusiness",
+      "agrobusiness2": "Agrobusiness 2.0",
+      "igilikBereke": "Igіlik and Bereke",
+      "feedlot": "Feedlots and poultry farms",
+      "isker": "Іскер"
+    },
+    "disclaimer": "Демо-прототип онбординга. Параметры программ соответствуют положению П АКК 002-207-22. Ставки приведены типовые для субсидированных программ (РБ/НФ РК/ПСС); финальная ставка зависит от источника средств, канала продаж и решения Кредитного комитета. Расчёт платежа и стресс-тест экономики — ориентировочные. Это не предложение публичной оферты."
+  },
+  "home": {
+    "title": "ACC — Financing Program Selection",
+    "description": "Select an Agrarian Credit Corporation lending program in a few questions. No registration required.",
+    "heroEyebrow": "Подбор за 30 секунд · без регистрации",
+    "heroTitle": "Финансирование аграрного бизнеса за несколько вопросов",
+    "heroTitleEm": "аграрного бизнеса",
+    "heroLede": "Все программы кредитования АКК — от микрокредита Іскер до инвестиционного займа Агробизнес 2.0 до 15 млрд ₸. Подбираем подходящую и рассчитываем платёж до подачи заявки.",
+    "heroCta": "Начать подбор",
+    "heroCtaAlt": "Все программы",
+    "stat1Value": "from 5%",
+    "stat1Label": "Rate for subsidised programs",
+    "stat2Value": "6",
+    "stat2Label": "Programs for agri-business goals",
+    "stat3Value": "15B ₸",
+    "stat3Label": "Maximum loan amount"
+  },
+  "tokens": {
+    "title": "Design Tokens",
+    "paletteTitle": "Palette",
+    "typographyTitle": "Typography",
+    "buttonsTitle": "Buttons",
+    "themeLabel": "Current theme",
+    "lightTheme": "Light",
+    "darkTheme": "Dark",
+    "displayFont": "Montserrat — Display / Headings",
+    "bodyFont": "Onest — Body / Text",
+    "btnPrimary": "Primary button",
+    "btnSecondary": "Secondary button",
+    "btnGhost": "Ghost button",
+    "btnDestructive": "Destructive button"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content"
+  }
+}

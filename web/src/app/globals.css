@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Токены АКК (перенесены из index.html:21–96) =====
+   Палитра холдинга «Байтерек» / АКК (фирстиль baiterek.gov.kz):
+     green-deep #07663D — primary, заголовки
+     green      #007D44 — links/hover
+     gold       #D3B961 — фирменный золотой акцент
+     gold-deep  #C9A21C — насыщенный золотой (бордеры, fill)
+     gold-text  #8A6A14 — затемнённый gold для ТЕКСТА (≥4.5:1 на белом, WCAG AA)
+     cream      #FAF6EC — кремовый фон секций
+*/
+:root {
+  --bg: #FAF6EC;            /* cream — фон страницы */
+  --bg-tint: #F3ECD9;
+  --surface: #FFFFFF;
+  --surface-warm: #FCFAF2;
+  --on-primary: #FFFFFF;    /* текст на зелёных/золотых плашках — белый в обеих темах */
+  --primary: #07663D;       /* bt-green-deep */
+  --primary-2: #054E2E;     /* темнее для hover */
+  --primary-soft: #E0EDE5;
+  --primary-tint: #F1F7F3;
+  --accent: #C9A21C;        /* bt-gold-deep — золотой fill/бордеры */
+  --accent-2: #8A6A14;      /* bt-gold-text — золотой для текста (AA) */
+  --accent-soft: #F6EDCF;
+  --gold: #D3B961;          /* bt-gold — мягкий золотой */
+  --gold-deep: #C9A21C;
+  --gold-text: #8A6A14;
+  --text: #103A26;          /* глубокий зелёно-чёрный */
+  --text-2: #45524C;
+  --text-3: #78857E;
+  --border: #E4DECB;        /* тёплый кремовый бордер */
+  --border-soft: #EFEADC;
+  --border-strong: #D8CFB4;
+  --success: #07663D;
+  --success-soft: #E0EDE5;
+  --warning: #B45309;
+  --warning-soft: #FEF3C7;
+  --danger: #991B1B;
+  --danger-soft: #FEE2E2;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --shadow-sm: 0 1px 2px rgba(16,58,38,0.05), 0 0 0 0.5px rgba(16,58,38,0.06);
+  --shadow: 0 4px 16px rgba(16,58,38,0.07), 0 0 0 0.5px rgba(16,58,38,0.06);
+  --shadow-lg: 0 12px 48px rgba(16,58,38,0.12), 0 0 0 0.5px rgba(16,58,38,0.08);
+  --font-display: var(--font-montserrat), 'Montserrat', 'Onest', system-ui, sans-serif;
+  --font-body: var(--font-onest), 'Onest', system-ui, sans-serif;
+}
+
+/* ===== Тёмная тема (Байтерек, dark) ===== */
+.dark {
+  --bg: #0E1512;
+  --bg-tint: #131C18;
+  --surface: #17211B;
+  --surface-warm: #1B251F;
+  --on-primary: #FFFFFF;
+  --primary: #0A7A47;       /* глубокий зелёный: белый текст проходит AA, пятно «живёт» на тёмном */
+  --primary-2: #0C8C51;
+  --primary-soft: #163223;  /* зелёная полупрозрачная подложка */
+  --primary-tint: #14241C;
+  --accent: #D9B94A;        /* gold ярче для тёмного фона */
+  --accent-2: #E6CD78;      /* gold-text на тёмном */
+  --accent-soft: #2B2614;
+  --gold: #D9B94A;
+  --gold-deep: #C9A21C;
+  --gold-text: #E6CD78;
+  --text: #EAF1EC;
+  --text-2: #AEBAB2;
+  --text-3: #8A968F;
+  --border: #2A332E;
+  --border-soft: #222A26;
+  --border-strong: #3A453D;
+  --success: #2FA968;
+  --success-soft: #163223;
+  --warning: #E0A53D;
+  --warning-soft: #3A2E14;
+  --danger: #E5736B;
+  --danger-soft: #3A1E1C;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.04);
+  --shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 0.5px rgba(255,255,255,0.05);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(255,255,255,0.06);
+}
+
+/* ===== Base styles ===== */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  /* focus-visible для доступности (WCAG AA) */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ===== Орнамент-тайл (паттерн из легаси) ===== */
+.ornament-tile {
+  background-image: url('/ornament.svg');
+  background-repeat: repeat;
+  background-size: 120px 120px;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.dark .ornament-tile {
+  filter: brightness(2.4) saturate(0.6);
+  opacity: 0.07;
+}
+
+/* ===== Утилиты ===== */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
