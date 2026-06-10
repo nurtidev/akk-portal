@@ -85,3 +85,41 @@ export function track(name: FunnelEventName | string, payload: TrackPayload = {}
 export function getEvents(): AnalyticsEvent[] {
   return buffer.slice();
 }
+
+// =====================================================
+// ===== E3: коллектор событий ==========================
+// Включается переменной NEXT_PUBLIC_ANALYTICS_ENDPOINT (Railway variable):
+// события уходят POST'ом (sendBeacon — не блокирует уход со страницы;
+// фолбэк — fetch keepalive). Эндпоинт не задан → стока нет, поведение прежнее.
+// GA4/Метрика при необходимости подключаются вторым registerSink().
+// =====================================================
+
+const ANALYTICS_ENDPOINT = (process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT || '').trim();
+
+function beaconSink(event: AnalyticsEvent): void {
+  const body = JSON.stringify({
+    name: event.name,
+    payload: event.payload,
+    at: event.at.toISOString(),
+    page: typeof location !== 'undefined' ? location.pathname : null,
+  });
+  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+    navigator.sendBeacon(ANALYTICS_ENDPOINT, new Blob([body], { type: 'application/json' }));
+    return;
+  }
+  if (typeof fetch !== 'undefined') {
+    void fetch(ANALYTICS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => {
+      // аналитика не должна ронять воронку
+    });
+  }
+}
+
+// Автоподключение стока — только в браузере и только если эндпоинт задан.
+if (ANALYTICS_ENDPOINT && typeof window !== 'undefined') {
+  registerSink(beaconSink);
+}

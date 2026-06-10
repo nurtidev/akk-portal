@@ -71,8 +71,8 @@
 | Задача | Статус | Кто | Дата | Итог |
 | --- | --- | --- | --- | --- |
 | E1 Dockerfile + Railway (ждёт F1) | done | оркестратор | 2026-06-10 | сервис akk-portal-web (root=web, из репо akk-portal), https://akk-portal-web-production.up.railway.app — все маршруты 200, NEXT_PUBLIC_API_BASE вшит в бандл |
-| E2 Перенос Playwright E2E (ждёт B) | todo | — | — | — |
-| E3 Аналитика track() (ждёт B7) | todo | — | — | — |
+| E2 Перенос Playwright E2E (ждёт B) | done | оркестратор | 2026-06-10 | web/playwright.config.ts (chromium 1280×800 + mobile iPhone 14, baseURL :3777, webServer npm run start) + web/tests/e2e/{onboarding,content,mobile}.spec.ts (28 тестов): 7 квиз-сценариев, калькулятор, стресс-тест, объяснимость, контент about/investors/how-to-get/contacts, навигация, форма блога, мобильный квиз+скриншот. Селекторы — по ролям/видимым текстам на /ru |
+| E3 Аналитика track() (ждёт B7) | done | оркестратор | 2026-06-10 | beacon-сток: NEXT_PUBLIC_ANALYTICS_ENDPOINT → sendBeacon/fetch keepalive; без переменной — прежнее поведение (console+буфер) |
 | E4 Перенос в репо akk-portal | done | оркестратор | 2026-06-10 | вся история запушена в github.com/nurtidev/akk-portal; akk-railway = архив/демо |
 | E5 Переключение прод-домена | blocked | — | — | финал, после приёмки; Railway-сервисы перевести на репо akk-portal |
 
