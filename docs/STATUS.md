@@ -48,6 +48,13 @@
 | C5 FAQ | done | sonnet-C | 2026-06-10 | /faq: 10 реальных Q&A по кредитованию АКК; нативный details/summary аккордеон; CTA колл-центра |
 | C6 Контакты / филиалы | done | sonnet-C | 2026-06-10 | /contacts: ЦА (1408/email/hotline), 16 филиалов-карточек по областям, блок КТ; адреса — TODO (WebFetch недоступен) |
 | C7 Страхование/залоги/закупки/вакансии | done | sonnet-C | 2026-06-10 | /insurance /collateral /procurement /careers — каждая: заголовок+описание+3 секции+внешние ссылки |
+| C8 /sustainability | todo | — | — | — |
+| C9 /how-to-get (механизм кредита) | todo | — | — | — |
+| C10 /problem-debt | todo | — | — | — |
+| C11 /investment-projects | todo | — | — | — |
+| C12 /blog (председатель) | todo | — | — | — |
+| C13 Актуализация данных (СД/рейтинги/Астана) | todo | — | — | — |
+| F5 Навигация шапка/футер + мобильный «Войти» | todo | — | — | — |
 
 ## Трек D — Auth + кабинет (ждёт F4)
 
