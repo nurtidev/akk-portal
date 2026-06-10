@@ -29,35 +29,35 @@
 
 | Задача | Статус | Кто | Дата | Итог |
 | --- | --- | --- | --- | --- |
-| B1 ProgramGrid + ProgramModal | todo | — | — | — |
-| B2 Quiz | todo | — | — | — |
-| B3 Results | todo | — | — | — |
-| B4 Calculator | todo | — | — | — |
-| B5 StressTest | todo | — | — | — |
-| B6 ApplyWizard + Success | todo | — | — | — |
-| B7 Главная (Hero + сборка) | todo | — | — | — |
+| B1 ProgramGrid + ProgramModal | done | opus-B | 2026-06-10 | сетка (featured-первым, indirect-бейдж, фото+иконка-фолбэк), Radix-модалка PROGRAM_DETAILS + CTA «Подать заявку» |
+| B2 Quiz | done | opus-B | 2026-06-10 | единый FunnelProvider (context+reducer), прогресс 5/6/7, getQuestions, задержка 180мс, назад/переход по пройденным |
+| B3 Results | done | opus-B | 2026-06-10 | карточки scoredPrograms, «Лучшее совпадение», раскрывашка «Почему N%» (explainProgram, «до +N»), пустое состояние |
+| B4 Calculator | done | opus-B | 2026-06-10 | слайдер+ручной ввод (старт из ответа), кнопки сроков ≤ effectiveMaxTerm, график обеих схем, событие calculator_amount/term |
+| B5 StressTest | done | opus-B | 2026-06-10 | форма Fajr-lite + вердикт-пилюля ok/warn/bad + метрики; только hasStressTest; «Пропустить»; расчёт из @/lib/stress |
+| B6 ApplyWizard + Success | done | opus-B | 2026-06-10 | визард Параметры→Заявитель→Согласия→SMS→Готово; submit через submitApplication (мок, TODO трек D); экран успеха с номером |
+| B7 Главная (Hero + сборка) | done | opus-B | 2026-06-10 | Hero (эмблема/статы/CTA) + сборка hero→programs→quiz→results→stress→wizard→success через FunnelProvider; analytics.ts track() по таблице README |
 
 ## Трек C — Контент (ждёт F3/F4)
 
 | Задача | Статус | Кто | Дата | Итог |
 | --- | --- | --- | --- | --- |
-| C1 Шаблон контентной страницы | todo | — | — | — |
-| C2 О компании / управление | todo | — | — | — |
-| C3 Отчётность / инвесторам | todo | — | — | — |
-| C4 Пресс-центр | todo | — | — | — |
-| C5 FAQ | todo | — | — | — |
-| C6 Контакты / филиалы | todo | — | — | — |
-| C7 Страхование/залоги/закупки/вакансии | todo | — | — | — |
+| C1 Шаблон контентной страницы | done | sonnet-C | 2026-06-10 | ContentPage/ContentSection/AccordionItem/DocumentList/CardGrid — SSG, breadcrumbs, prose, нет хардкода строк |
+| C2 О компании / управление | done | sonnet-C | 2026-06-10 | /about: миссия+стратегия, СД/правление/ДО, корп.управление, комплаенс (+7 775 007 27 01), омбудсмен |
+| C3 Отчётность / инвесторам | done | sonnet-C | 2026-06-10 | /reporting (финотч 4 года + годовые); /investors (3 рейтинга-карточки + KASE + раскрытие) |
+| C4 Пресс-центр | done | sonnet-C | 2026-06-10 | /press (4 новости + 2 СМИ + 2 истории); /press/[slug] SSG generateStaticParams; press-data.ts 8 записей |
+| C5 FAQ | done | sonnet-C | 2026-06-10 | /faq: 10 реальных Q&A по кредитованию АКК; нативный details/summary аккордеон; CTA колл-центра |
+| C6 Контакты / филиалы | done | sonnet-C | 2026-06-10 | /contacts: ЦА (1408/email/hotline), 16 филиалов-карточек по областям, блок КТ; адреса — TODO (WebFetch недоступен) |
+| C7 Страхование/залоги/закупки/вакансии | done | sonnet-C | 2026-06-10 | /insurance /collateral /procurement /careers — каждая: заголовок+описание+3 секции+внешние ссылки |
 
 ## Трек D — Auth + кабинет (ждёт F4)
 
 | Задача | Статус | Кто | Дата | Итог |
 | --- | --- | --- | --- | --- |
-| D1 API-клиент к Go-бэку | todo | — | — | — |
-| D2 SMS-auth UI | todo | — | — | — |
-| D3 Кабинет: список заявок | todo | — | — | — |
-| D4 Страница заявки + документы | todo | — | — | — |
-| D5 SSO demo (eGov/Baiterek) | todo | — | — | — |
+| D1 API-клиент к Go-бэку | done | opus-D | 2026-06-10 | lib/api: config(NEXT_PUBLIC_API_BASE, demo-fallback unavailable)/http/tokens(JWT-claims, akk-tokens)/auth/credit/status(APP_STAGES+STATUS_INDEX)/text; submitApplication + funnelSubmitAdapter для трека B; README с контрактом |
+| D2 SMS-auth UI | done | opus-D | 2026-06-10 | AuthProvider(context, восстановление сессии через me()), AuthModal (логин ИИН→OTP, регистрация ФИО+ИИН+тел→OTP), OtpInput(6 ячеек, demoCode-автоподстановка), маска +7 без жёсткой валидации |
+| D3 Кабинет: список заявок | done | opus-D | 2026-06-10 | /cabinet: боковое меню (desktop sticky / mobile-вкладки), профиль, список заявок (статус-пилюли, сводка, пустое состояние+CTA), документы/уведомления/поддержка; вкладка из ?tab= |
+| D4 Страница заявки + документы | done | opus-D | 2026-06-10 | /cabinet/applications/[uid]: трекер 9 этапов + ветка отказа (STATUS_INDEX), «Что нужно сейчас», каталог требований gov/upload/sign по этапам (past/current/future), демо advance (продвинуть/отклонить/сбросить) + upload/sign |
+| D5 SSO demo (eGov/Baiterek) | done | opus-D | 2026-06-10 | SsoButtons (логотипы скопированы в web/public/img/{egov,baiterek}.png, onError-фолбэк на текст) → ssoDemoLogin → completeLogin |
 
 ## Трек E — Инфра
 
@@ -66,10 +66,14 @@
 | E1 Dockerfile + Railway (ждёт F1) | todo | — | — | — |
 | E2 Перенос Playwright E2E (ждёт B) | todo | — | — | — |
 | E3 Аналитика track() (ждёт B7) | todo | — | — | — |
-| E4 Переименование репо → akk-portal | blocked | — | — | нужно подтверждение владельца |
-| E5 Переключение прод-домена | blocked | — | — | финал, после приёмки |
+| E4 Перенос в репо akk-portal | done | оркестратор | 2026-06-10 | вся история запушена в github.com/nurtidev/akk-portal; akk-railway = архив/демо |
+| E5 Переключение прод-домена | blocked | — | — | финал, после приёмки; Railway-сервисы перевести на репо akk-portal |
 
 ## Журнал
+
+- 2026-06-10 — приёмка треков B/C/D (оркестратор): 70/70 тестов, build 67 SSG-страниц, smoke 200 на всех маршрутах (/ru, /ru/about, /ru/faq, /ru/contacts, /ru/press, /kk/insurance, /en/investors, /ru/cabinet). Стыковка B↔D: funnel-home.tsx передаёт funnelSubmitAdapter (трек D) в FunnelRoot. Исправления при приёмке: реэкспорт QuestionKey из data/questions.ts (B импортировал его оттуда); 3 неиспользуемых импорта (lint) в contacts/press/application-view. Зоны владения соблюдены, src/data и src/lib логики не тронуты. Открытые хвосты: навигация на контентные страницы из шапки (не добавлена сознательно — зона F); AuthProvider смонтирован дважды (шапка+кабинет, синхронизация через localStorage — для демо ок); мобильный «Войти» в бургере — заглушка; TODO-данные трека C (адреса филиалов, состав СД).
+- 2026-06-10 — трек C выполнен (sonnet-C): создано 15 файлов — 12 страниц Next.js SSG (about, reporting, investors, press, press/[slug], faq, contacts, insurance, collateral, procurement, careers + (content)/layout), компонент-библиотека content-page.tsx (ContentPage/Section/Card/CardGrid/AccordionItem/DocumentList/Prose), press-data.ts (8 записей), content.json×3 локали. WebFetch заблокирован — адреса 16 филиалов и состав СД/Правления помечены TODO в JSON; остальное реальное (телефоны, email, адрес ЦА Астана).
+- 2026-06-10 — репозиторий: владелец создал отдельный github.com/nurtidev/akk-portal (вместо переименования). Полная история akk-railway запушена туда (`git push portal main`), локальная папка `~/Desktop/agrocredit/akk-portal` синхронизирована. До завершения треков B/C/D работа продолжается в папке akk-railway (там идут параллельные сессии), затем канон — папка akk-portal.
 
 - 2026-06-10 — приёмка треков A и F (оркестратор): web-logic 67/67 тестов (golden-сверка с легаси), web build зелёный, прод-сервер отдаёт 200 на /ru /kk /en. Исправления при приёмке: убран несуществующий пакет @radix-ui/react-sheet; next-intl 3.27.0→^3.26.5 (3.27.0 не существует); починены 3 рукописных теста (sector показывается при investments; toBeCloseTo для float-процентов; добавлен annualRevenue в стресс-кейс — чистый КРС по нормативам Fajr убыточен, ratio=999 это поведение легаси). Реализация во всех трёх случаях совпадала с легаси.
 - 2026-06-10 — план и доска созданы; разработка не начата. Каноничная копия репо — эта (`~/Desktop/agrocredit/akk-railway`, origin/main = 5e9482f); копия в `~/Desktop/personal/` устарела (уникальных коммитов нет).

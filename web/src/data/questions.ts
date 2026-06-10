@@ -5,6 +5,8 @@
 
 import type { QuestionKey } from './programs';
 
+export type { QuestionKey };
+
 export interface QuestionOption {
   value: string;
   label: string;
