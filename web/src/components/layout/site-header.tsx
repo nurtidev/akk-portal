@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { AkkMark } from "@/components/icons/akk-mark";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LangSwitcher } from "@/components/layout/lang-switcher";
+import { AuthSlot } from "@/components/auth/auth-slot";
 
 /**
  * SiteHeader — шапка сайта по образцу index.html:2167–2204.
@@ -123,13 +124,8 @@ export function SiteHeader() {
               {t("callCenterShort")}
             </a>
 
-            {/* Слот авторизации — заглушка «Войти» */}
-            <button
-              type="button"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-            >
-              {nav("login")}
-            </button>
+            {/* Слот авторизации — вход по SMS / SSO + кабинет (трек D) */}
+            <AuthSlot />
 
             {/* Бургер — только ≤md */}
             <button
