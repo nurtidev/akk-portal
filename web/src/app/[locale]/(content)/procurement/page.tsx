@@ -46,6 +46,7 @@ export default async function ProcurementPage({
     <ContentPage
       title={tP("title")}
       subtitle={tP("subtitle")}
+      imageSlug="procurement"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tP("title") },

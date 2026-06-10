@@ -49,6 +49,7 @@ export default async function ContactsPage({
   return (
     <ContentPage
       title={tC("title")}
+      imageSlug="contacts"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tC("title") },
@@ -68,7 +69,7 @@ export default async function ContactsPage({
               </span>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)] mb-1">
-                  Адрес
+                  {tC("hqAddressLabel")}
                 </p>
                 <p className="text-sm text-[var(--text)]">
                   {tC("hqAddress")}

@@ -46,6 +46,7 @@ export default async function InsurancePage({
     <ContentPage
       title={tI("title")}
       subtitle={tI("subtitle")}
+      imageSlug="insurance"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tI("title") },

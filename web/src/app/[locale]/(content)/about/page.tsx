@@ -60,6 +60,7 @@ export default async function AboutPage({
     <ContentPage
       title={tAbout("title")}
       subtitle={tAbout("subtitle")}
+      imageSlug="about"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tAbout("title") },
@@ -70,7 +71,7 @@ export default async function AboutPage({
         <div className="grid gap-6 md:grid-cols-2 mb-6">
           <ContentCard>
             <h3 className="font-semibold text-[var(--primary)] mb-2 text-sm uppercase tracking-wide">
-              Миссия
+              {tAbout("mission.missionLabel")}
             </h3>
             <p className="text-[var(--text-2)] leading-relaxed">
               {tAbout("mission.mission")}
@@ -78,7 +79,7 @@ export default async function AboutPage({
           </ContentCard>
           <ContentCard>
             <h3 className="font-semibold text-[var(--accent-2)] mb-2 text-sm uppercase tracking-wide">
-              Видение
+              {tAbout("mission.visionLabel")}
             </h3>
             <p className="text-[var(--text-2)] leading-relaxed">
               {tAbout("mission.vision")}

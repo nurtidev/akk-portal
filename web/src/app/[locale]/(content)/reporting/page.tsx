@@ -52,6 +52,7 @@ export default async function ReportingPage({
   return (
     <ContentPage
       title={tR("title")}
+      imageSlug="reporting"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tR("title") },

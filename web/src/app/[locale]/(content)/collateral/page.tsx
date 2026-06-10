@@ -46,6 +46,7 @@ export default async function CollateralPage({
     <ContentPage
       title={tC("title")}
       subtitle={tC("subtitle")}
+      imageSlug="collateral"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tC("title") },

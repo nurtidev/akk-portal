@@ -54,6 +54,7 @@ export default async function InvestorsPage({
   return (
     <ContentPage
       title={tI("title")}
+      imageSlug="investors"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tI("title") },
@@ -84,7 +85,7 @@ export default async function InvestorsPage({
                   rel="noopener noreferrer"
                   className="mt-3 inline-block text-xs text-[var(--primary)] hover:underline"
                 >
-                  Подробнее →
+                  {tI("readMoreLabel")}
                 </a>
               )}
             </ContentCard>
@@ -118,7 +119,7 @@ export default async function InvestorsPage({
           {tI("disclosure.description")}
         </p>
         <DocumentList
-          downloadLabel="Перейти →"
+          downloadLabel={tI("goToLabel")}
           items={disclosureItems.map((item) => ({
             title: item.title,
             url: item.url,

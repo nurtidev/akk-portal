@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeroImage } from "./hero-image";
 
 export interface BreadcrumbItem {
   label: string;
@@ -10,6 +11,8 @@ interface ContentPageProps {
   subtitle?: string;
   breadcrumbs?: BreadcrumbItem[];
   eyebrow?: string;
+  /** Слаг изображения шапки: ищем /img/content/{imageSlug}.jpg. Graceful-фолбэк — градиент токенов + орнамент */
+  imageSlug?: string;
   children: React.ReactNode;
 }
 
@@ -17,6 +20,7 @@ interface ContentPageProps {
  * ContentPage — базовый шаблон контентной страницы (C1).
  * - Хлебные крошки (опционально)
  * - Заголовок h1 + подзаголовок
+ * - imageSlug → шапка с фото /img/content/{slug}.jpg поверх градиента
  * - prose-контент через children
  * SSG: никаких runtime-данных, generateStaticParams в каждой странице.
  */
@@ -25,15 +29,29 @@ export function ContentPage({
   subtitle,
   breadcrumbs,
   eyebrow,
+  imageSlug,
   children,
 }: ContentPageProps) {
   return (
     <main id="main-content" className="flex-1">
       {/* Hero-шапка страницы */}
-      <div className="relative overflow-hidden bg-[var(--primary)] text-white">
+      <div className="relative overflow-hidden bg-[var(--primary)] text-white" style={{ minHeight: "var(--content-hero-min, 200px)" }}>
+        {/* Фоновое изображение (клиентский компонент: graceful-фолбэк по onError) */}
+        {imageSlug && <HeroImage slug={imageSlug} />}
+        {/* Градиент поверх картинки (и как основной фон при её отсутствии) */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: imageSlug
+              ? "linear-gradient(to right, rgba(7,102,61,0.85) 0%, rgba(4,60,36,0.70) 60%, rgba(4,60,36,0.50) 100%)"
+              : "linear-gradient(135deg, var(--primary) 0%, #043c24 100%)",
+          }}
+          aria-hidden="true"
+        />
         {/* Орнамент-паттерн (декоративный) */}
-        <div className="ornament-tile absolute inset-0" aria-hidden="true" />
-        <div className="container relative mx-auto px-4 py-10 md:py-14">
+        <div className="ornament-tile absolute inset-0 opacity-30" aria-hidden="true" />
+
+        <div className="container relative mx-auto px-4 py-12 md:py-16">
           {/* Хлебные крошки */}
           {breadcrumbs && breadcrumbs.length > 0 && (
             <nav
@@ -79,13 +97,13 @@ export function ContentPage({
           )}
 
           {/* Заголовок */}
-          <h1 className="font-display text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl">
+          <h1 className="font-display text-2xl font-bold leading-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] sm:text-3xl md:text-4xl">
             {title}
           </h1>
 
           {/* Подзаголовок */}
           {subtitle && (
-            <p className="mt-2 text-base text-white/75 md:text-lg">{subtitle}</p>
+            <p className="mt-2 text-base text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)] md:text-lg">{subtitle}</p>
           )}
         </div>
       </div>

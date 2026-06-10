@@ -40,6 +40,7 @@ export default async function FaqPage({
     <ContentPage
       title={tF("title")}
       subtitle={tF("subtitle")}
+      imageSlug="faq"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tF("title") },

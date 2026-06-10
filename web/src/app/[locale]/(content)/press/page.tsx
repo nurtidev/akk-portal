@@ -103,6 +103,7 @@ export default async function PressPage({
   return (
     <ContentPage
       title={tP("title")}
+      imageSlug="press"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tP("title") },

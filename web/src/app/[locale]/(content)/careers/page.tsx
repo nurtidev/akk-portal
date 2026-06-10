@@ -59,6 +59,7 @@ export default async function CareersPage({
     <ContentPage
       title={tC("title")}
       subtitle={tC("subtitle")}
+      imageSlug="careers"
       breadcrumbs={[
         { label: t("breadcrumbs.home"), href: `/${locale}` },
         { label: tC("title") },
