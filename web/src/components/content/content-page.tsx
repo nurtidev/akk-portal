@@ -35,7 +35,7 @@ export function ContentPage({
   return (
     <main id="main-content" className="flex-1">
       {/* Hero-шапка страницы */}
-      <div className="relative overflow-hidden bg-[var(--primary)] text-white min-h-[200px] md:min-h-[300px] md:flex md:items-center">
+      <div className="relative overflow-hidden bg-[var(--primary)] text-white min-h-[200px] md:min-h-[340px] xl:min-h-[400px] md:flex md:items-center">
         {/* Фоновое изображение (клиентский компонент: graceful-фолбэк по onError) */}
         {imageSlug && <HeroImage slug={imageSlug} />}
         {/* Градиент поверх картинки: на десктопе — плотный слева (зона текста),

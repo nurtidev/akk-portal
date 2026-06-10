@@ -19,11 +19,24 @@ import { Success } from './success';
 import { useFunnel } from './funnel-context';
 
 export function Funnel() {
-  const { state } = useFunnel();
+  const { state, startQuiz } = useFunnel();
   const screen = state.screen;
   const isLanding = screen === 'landing';
   const flowRef = useRef<HTMLDivElement | null>(null);
   const prevScreen = useRef(screen);
+
+  // «Подбор» в шапке ведёт на /{locale}#quiz — секции с таким id на лендинге нет
+  // (квиз рендерится только после старта), поэтому запускаем подбор по якорю:
+  // на маунте (переход с контентной страницы) и по hashchange (клик на главной).
+  useEffect(() => {
+    const maybeStart = () => {
+      if (window.location.hash === '#quiz') startQuiz();
+    };
+    maybeStart();
+    window.addEventListener('hashchange', maybeStart);
+    return () => window.removeEventListener('hashchange', maybeStart);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // При смене экрана воронки — мягкий скролл к активной секции (как showSection).
   useEffect(() => {
@@ -44,7 +57,7 @@ export function Funnel() {
 
       {/* Секции воронки */}
       {!isLanding && (
-        <div ref={flowRef} className="container mx-auto px-4 py-12 md:py-16">
+        <div id="quiz" ref={flowRef} className="container mx-auto px-4 py-12 md:py-16">
           {screen === 'quiz' && <Quiz />}
           {screen === 'results' && <Results />}
           {screen === 'stress' && <StressTest />}

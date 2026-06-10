@@ -34,17 +34,35 @@ function ResultCard({ program, score, isTop }: { program: Program; score: number
         isTop ? 'border-[var(--primary)] ring-1 ring-[var(--primary)]' : 'border-[var(--border)]'
       }`}
     >
-      {/* Баннер: фото-фон, категория и % совпадения */}
-      <div className="relative flex items-center justify-between bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)] px-5 py-3 text-white">
+      {/* Баннер: фото программы (фолбэк — фирменный градиент), категория и % совпадения */}
+      <div className="relative h-[120px] overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)] text-white md:h-[132px]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/img/programs/${p.id}.jpg`}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = 'none';
+          }}
+        />
+        {/* Затемнение снизу — чтобы пилюли читались на любом фото */}
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to top, rgba(4,40,24,0.65) 0%, rgba(4,40,24,0.15) 55%, rgba(4,40,24,0) 100%)' }}
+          aria-hidden="true"
+        />
         {isTop && (
-          <span className="absolute -top-0 left-0 rounded-br-[var(--radius)] bg-[var(--accent)] px-3 py-1 text-[11px] font-bold text-[var(--text)]">
+          <span className="absolute left-0 top-0 z-10 rounded-br-[var(--radius)] bg-[var(--accent)] px-3 py-1 text-[11px] font-bold text-[var(--text)]">
             {t('bestMatch')}
           </span>
         )}
-        <span className="ml-auto text-xs font-medium opacity-90">{p.category}</span>
+        <span className="absolute bottom-3 left-4 z-10 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
+          {p.category}
+        </span>
         <span
-          className={`ml-3 rounded-full px-3 py-1 text-sm font-bold ${
-            matchHi ? 'bg-white text-[var(--primary)]' : 'bg-white/20 text-white'
+          className={`absolute bottom-3 right-4 z-10 rounded-full px-3 py-1 text-sm font-bold ${
+            matchHi ? 'bg-white text-[var(--primary)]' : 'bg-black/45 text-white backdrop-blur'
           }`}
         >
           {t('matchPct', { score })}
