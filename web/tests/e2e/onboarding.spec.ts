@@ -68,6 +68,21 @@ function topCard(page: Page) {
 // --- 1. Лендинг ---------------------------------------------------------
 
 test.describe('Лендинг — hero и сетка программ', () => {
+  test('«Получить консультацию» → лёгкая форма контактов (не кредитный визард)', async ({ page }) => {
+    await page.goto('/ru');
+    await page.getByRole('button', { name: 'Получить консультацию' }).click();
+    // Форма callback, а не визард с шагами «Параметры/Заявитель/...»
+    await expect(page.getByRole('heading', { name: 'Оставьте контакты — мы перезвоним' })).toBeVisible();
+    // Заполняем и отправляем
+    await page.getByPlaceholder('Имя').fill('Асхат');
+    await page.getByPlaceholder('+7 (___) ___-__-__').fill('7015551234');
+    await page.getByRole('button', { name: 'WhatsApp' }).click();
+    await page.getByRole('checkbox').check();
+    await page.getByRole('button', { name: 'Жду звонка' }).click();
+    // Экран успеха
+    await expect(page.getByRole('heading', { name: 'Заявка принята' })).toBeVisible({ timeout: 10000 });
+  });
+
   test('hero: заголовок «Финансирование» и стат «6 программ»', async ({ page }) => {
     await openHome(page);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Финансирование');

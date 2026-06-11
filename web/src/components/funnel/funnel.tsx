@@ -19,6 +19,7 @@ import { Quiz } from './quiz';
 import { Results } from './results';
 import { StressTest } from './stress-test';
 import { ApplyWizard } from './apply-wizard';
+import { ConsultationForm } from './consultation-form';
 import { Success } from './success';
 import { useFunnel } from './funnel-context';
 
@@ -79,6 +80,7 @@ export function Funnel() {
           {screen === 'quiz' && <Quiz />}
           {screen === 'results' && <Results />}
           {screen === 'stress' && <StressTest />}
+          {screen === 'callback' && <ConsultationForm />}
           {screen === 'wizard' && <ApplyWizard />}
           {screen === 'success' && <Success />}
         </div>

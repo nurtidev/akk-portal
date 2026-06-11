@@ -97,8 +97,11 @@ export async function funnelSubmitAdapter(
   if (res.ok && res.application) {
     return { number: res.application.number };
   }
-  if (res.unavailable) {
-    // Demo без бэкенда: возвращаем синтетический номер, чтобы экран успеха работал.
+  if (res.unavailable || (res.needAuth && !draft.programId)) {
+    // Demo без бэкенда — синтетический номер, чтобы экран успеха работал.
+    // То же для КОНСУЛЬТАЦИИ гостя (programId=null): смысл формы — «оставьте
+    // контакты без входа», а POST /applications требует Bearer.
+    // TODO(backend): публичный эндпоинт лидов POST /leads без авторизации.
     const year = new Date().getFullYear();
     const rnd = Math.floor(100000 + Math.random() * 900000);
     return { number: `AKK-${year}-${rnd}` };

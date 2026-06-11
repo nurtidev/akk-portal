@@ -309,7 +309,8 @@ export function FunnelProvider({ children, submitApplication }: FunnelProviderPr
     dispatch({ type: 'SELECT_PROGRAM', id: null });
     track('consultation_requested');
     track('callback_form_opened', { program: null });
-    dispatch({ type: 'SET_SCREEN', screen: 'wizard' });
+    // Лёгкая форма «оставьте контакты» (как в легаси), НЕ кредитный визард.
+    dispatch({ type: 'SET_SCREEN', screen: 'callback' });
   }, []);
 
   const setStressField = useCallback((field: keyof FunnelState['stress'], value: string) => {

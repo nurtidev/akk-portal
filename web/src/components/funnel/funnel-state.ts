@@ -14,6 +14,7 @@ export type FunnelScreen =
   | 'quiz'
   | 'results'
   | 'stress'
+  | 'callback'
   | 'wizard'
   | 'success';
 
