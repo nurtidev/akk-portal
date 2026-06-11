@@ -11,9 +11,11 @@ import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { getQuestions } from '@/data/questions';
 import { useFunnel } from './funnel-context';
+import { useQuestionL10n } from './use-question-l10n';
 
 export function Quiz() {
   const t = useTranslations('funnel.quiz');
+  const qt = useQuestionL10n();
   const { state, answer, goToStep, setStep, prevStep, showResults, maxReachableStep } = useFunnel();
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -89,20 +91,20 @@ export function Quiz() {
               onClick={() => canGoto && goToStep(i)}
               // aria-label разводит accessible name чипа с кнопками-вариантами ответа
               // (например, чип «Импорт» и вариант «Импортное племенное поголовье»)
-              aria-label={`${t('stepLabel', { current: i + 1, total: qs.length })}: ${question.short}`}
+              aria-label={`${t('stepLabel', { current: i + 1, total: qs.length })}: ${qt.short(question)}`}
               className={cls + (canGoto ? ' cursor-pointer hover:opacity-90' : '')}
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/10 text-[11px] font-bold">
                 {answered && !isCurrent ? '✓' : i + 1}
               </span>
-              <span>{question.short}</span>
+              <span>{qt.short(question)}</span>
             </button>
           );
         })}
       </div>
 
-      <h2 className="font-display text-2xl font-bold text-[var(--text)] md:text-3xl">{q.title}</h2>
-      {q.hint && <p className="mt-2 text-sm text-[var(--text-2)]">{q.hint}</p>}
+      <h2 className="font-display text-2xl font-bold text-[var(--text)] md:text-3xl">{qt.title(q)}</h2>
+      {qt.hint(q) && <p className="mt-2 text-sm text-[var(--text-2)]">{qt.hint(q)}</p>}
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {q.options.map((o) => {
@@ -118,8 +120,10 @@ export function Quiz() {
                   : 'border-[var(--border)] bg-[var(--surface)] hover:border-[var(--primary)]'
               }`}
             >
-              <div className="font-semibold text-[var(--text)]">{o.label}</div>
-              {o.desc && <div className="mt-1 text-sm text-[var(--text-2)]">{o.desc}</div>}
+              <div className="font-semibold text-[var(--text)]">{qt.optLabel(q, o.value)}</div>
+              {qt.optDesc(q, o.value) && (
+                <div className="mt-1 text-sm text-[var(--text-2)]">{qt.optDesc(q, o.value)}</div>
+              )}
             </button>
           );
         })}

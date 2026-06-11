@@ -11,6 +11,7 @@
 import { useTranslations } from 'next-intl';
 import { QUESTIONS } from '@/data/questions';
 import { useFunnel } from './funnel-context';
+import { useQuestionL10n } from './use-question-l10n';
 
 const purposeQuestion = QUESTIONS.find((q) => q.key === 'purpose');
 
@@ -81,6 +82,7 @@ function GoalIcon({ value }: { value: string }) {
 
 export function GoalCards() {
   const t = useTranslations('funnel.goals');
+  const qt = useQuestionL10n();
   const { startQuizWith } = useFunnel();
   const options = purposeQuestion?.options ?? [];
 
@@ -104,11 +106,11 @@ export function GoalCards() {
               <GoalIcon value={o.value} />
             </span>
             <span className="mt-3 text-sm font-semibold leading-snug text-[var(--text)]">
-              {o.label}
+              {purposeQuestion ? qt.optLabel(purposeQuestion, o.value) : o.label}
             </span>
-            {o.desc && (
+            {purposeQuestion && qt.optDesc(purposeQuestion, o.value) && (
               <span className="mt-1.5 hidden text-[11px] leading-snug text-[var(--text-3)] sm:block">
-                {o.desc}
+                {qt.optDesc(purposeQuestion, o.value)}
               </span>
             )}
             <span className="mt-3 text-xs font-semibold text-[var(--primary)] opacity-0 transition group-hover:opacity-100">

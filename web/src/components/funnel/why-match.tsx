@@ -9,6 +9,7 @@
 
 import { useTranslations } from 'next-intl';
 import type { Explanation } from '@/lib/scoring';
+import { useQuestionL10n } from './use-question-l10n';
 
 function CheckIcon() {
   return (
@@ -29,6 +30,7 @@ function WarnIcon() {
 
 export function WhyMatch({ explain, score }: { explain: Explanation; score: number }) {
   const t = useTranslations('funnel.why');
+  const qt = useQuestionL10n();
   const factors = explain.softFactors;
   const allOptimal = factors.length > 0 && factors.every((f) => f.w >= f.maxW);
 
@@ -46,11 +48,11 @@ export function WhyMatch({ explain, score }: { explain: Explanation; score: numb
                 <div className="flex items-center gap-2">
                   <span className="flex-none">{optimal ? <CheckIcon /> : <WarnIcon />}</span>
                   <span className="text-sm font-medium text-[var(--text)]">
-                    {f.short}: {f.label}
+                    {qt.shortByKey(f.q)}: {qt.answerLabel(f.q, f.label)}
                   </span>
                 </div>
                 <div className="mt-1 pl-6 text-xs text-[var(--text-3)]">
-                  {optimal ? t('factorOk') : t('factorWarn', { best: f.bestLabel })}
+                  {optimal ? t('factorOk') : t('factorWarn', { best: qt.joinedAnswerLabels(f.q, f.bestLabel) })}
                 </div>
               </div>
             );
