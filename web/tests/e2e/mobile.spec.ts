@@ -32,7 +32,7 @@ test.describe('Мобильная вёрстка', () => {
 
   test('квиз проходится на мобиле (микрокредит → Іскер)', async ({ page }) => {
     await page.goto('/ru');
-    await page.getByRole('button', { name: 'Начать подбор' }).click();
+    await page.getByRole('button', { name: 'Подобрать программу' }).click();
     await expect(
       page.getByRole('heading', { name: 'Что хотите профинансировать?' }),
     ).toBeVisible();

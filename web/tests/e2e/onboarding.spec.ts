@@ -21,9 +21,9 @@ async function openHome(page: Page) {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 }
 
-/** Запустить квиз с лендинга — кнопка «Начать подбор» в hero. */
+/** Запустить квиз с лендинга — кнопка «Подобрать программу» в hero. */
 async function startQuiz(page: Page) {
-  await page.getByRole('button', { name: 'Начать подбор' }).click();
+  await page.getByRole('button', { name: 'Подобрать программу' }).click();
   // Первый вопрос квиза.
   await expect(
     page.getByRole('heading', { name: 'Что хотите профинансировать?' }),
