@@ -51,6 +51,18 @@ export function Hero() {
           aria-hidden="true"
         />
       )}
+      {/* Нижнее растворение: без него фото обрывалось жёсткой линией о следующую
+          секцию (слева спасал боковой градиент, справа линия была голой) */}
+      {photoOk && (
+        <div
+          className="absolute inset-x-0 bottom-0 hidden h-32 md:block"
+          style={{
+            background:
+              'linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 60%, transparent) 50%, transparent 100%)',
+          }}
+          aria-hidden="true"
+        />
+      )}
       {/* Орнамент — в текстовой зоне */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
