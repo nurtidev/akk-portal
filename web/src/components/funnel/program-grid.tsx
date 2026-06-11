@@ -155,6 +155,12 @@ function ProgramModalBody({ p, onApply }: { p: Program; onApply: (id: string) =>
           ))}
         </ul>
       </ModalSection>
+      <ModalSection title={t('collateralTitle')}>
+        <p className="text-sm leading-relaxed text-[var(--text-2)]">
+          {applyGlossary(t('collateralText'))}
+        </p>
+      </ModalSection>
+
       <ModalSection title={t('repaymentTitle')}>
         <p className="text-sm leading-relaxed text-[var(--text-2)]">{d.repayment}</p>
       </ModalSection>

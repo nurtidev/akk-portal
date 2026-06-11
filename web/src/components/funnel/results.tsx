@@ -103,6 +103,14 @@ function ResultCard({
           </div>
         )}
 
+        {/* Обеспечение — вопрос №1 заёмщика (UX-исследование, finding ×2 персон).
+            Точных per-program условий в публичном регламенте нет — честная общая
+            формула без обещаний «без залога». */}
+        <div className="mt-3 flex gap-2 rounded-[var(--radius)] bg-[var(--bg-tint)] px-4 py-3 text-sm leading-relaxed text-[var(--text-2)]">
+          <span className="font-semibold text-[var(--text)]">{t('collateralLabel')}:</span>
+          <span>{applyGlossary(t('collateralText'))}</span>
+        </div>
+
         <div className="mt-4 grid grid-cols-3 gap-3 rounded-[var(--radius)] bg-[var(--bg-tint)] p-3 text-center">
           <div>
             <div className="text-[11px] uppercase text-[var(--text-3)]">{t('rate')}</div>

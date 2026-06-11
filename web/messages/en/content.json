@@ -322,6 +322,10 @@
         {
           "q": "How does the farm stress test work?",
           "a": "For livestock programmes, ACC runs an express economic assessment using Fajr norms: income (milk, meat, additional sales), expenses (feed, veterinary, wages, rent) and the ratio of annual payment to net income are evaluated. If the payment exceeds 50% of net income — adjusting the loan amount or term is recommended."
+        },
+        {
+          "q": "Что означают сокращения ГЭСВ, КТ, БВУ, ВПРиУР, МРП?",
+          "a": "Говорим по-простому: ГЭСВ — годовая эффективная ставка, реальная стоимость кредита со всеми платежами. КТ — кредитное товарищество (объединение фермеров, кредитующее своих членов за счёт фондирования АКК). БВУ — банк второго уровня, то есть обычный коммерческий банк. ВПРиУР — весенне-полевые и уборочные работы (посевная и уборка). ПОС — пополнение оборотных средств. МРП — месячный расчётный показатель (4 325 ₸ в 2026 году); в МРП считаются лимиты, например «до 8 000 МРП». Маржа — надбавка партнёра (КТ/банка) к ставке АКК, из которой он покрывает свои расходы."
         }
       ]
     },
@@ -333,8 +337,8 @@
       "title": "Contacts",
       "hqTitle": "Head Office",
       "hqAddressLabel": "Address",
-      "hqAddress": "010000, Astana, Turan ave., 19/1, BC Edem",
-      "hqPhone": "+7 (775) 007-68-11",
+      "hqAddress": "11 Imanov St., BC Nursaulet, Astana 010000",
+      "hqPhone": "+7 (7172) 57-77-77",
       "hqCallCenter": "1408",
       "hqCallCenterLabel": "Unified Call Centre (free)",
       "hqEmail": "info@agrocredit.kz",
@@ -350,100 +354,106 @@
       "mapNote": "Interactive map — on the official website agrocredit.kz",
       "branches": [
         {
+          "region": "Astana",
+          "city": "Astana",
+          "address": "19/1 Turan Ave., BC Edem",
+          "phone": "+7 (775) 007-68-11"
+        },
+        {
           "region": "Akmola region",
           "city": "Kokshetau",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Aktobe region",
           "city": "Aktobe",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Almaty region",
           "city": "Taldykorgan",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Atyrau region",
           "city": "Atyrau",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "East Kazakhstan region",
           "city": "Ust-Kamenogorsk",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Zhambyl region",
           "city": "Taraz",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "West Kazakhstan region",
           "city": "Uralsk",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Karaganda region",
           "city": "Karaganda",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Kostanay region",
           "city": "Kostanay",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Kyzylorda region",
           "city": "Kyzylorda",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Mangystau region",
           "city": "Aktau",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Pavlodar region",
           "city": "Pavlodar",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "North Kazakhstan region",
           "city": "Petropavlovsk",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Turkestan region",
           "city": "Turkestan",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Almaty city",
           "city": "Almaty",
-          "address": "TODO: representative office address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         },
         {
           "region": "Abai region",
           "city": "Semey",
-          "address": "TODO: branch address",
-          "phone": "TODO: phone"
+          "address": "Please confirm the address via call centre 1408",
+          "phone": "1408 (free)"
         }
       ]
     },
