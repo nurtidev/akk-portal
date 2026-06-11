@@ -25,11 +25,11 @@
           "Содействие устойчивому и экологически ответственному сельскому хозяйству"
         ],
         "foundedLabel": "Год основания",
-        "founded": "2003",
+        "founded": "2001",
         "ownerLabel": "Акционер",
         "owner": "НУХ «Байтерек» (100%)",
-        "staffLabel": "Сотрудники",
-        "staff": "TODO: актуальное число",
+        "staffLabel": "Год основания",
+        "staff": "2001",
         "branchesLabel": "Региональных филиалов",
         "branches": "16"
       },
@@ -90,12 +90,12 @@
         "subsidiariesTitle": "Дочерние и зависимые организации",
         "subsidiaries": [
           {
-            "name": "TODO: Наименование ДО 1",
-            "description": "TODO: краткое описание деятельности"
+            "name": "АО «КазАгроФинанс»",
+            "description": "Дочерняя организация (100% участие с 2022 года): лизинг сельхозтехники и оборудования для аграриев."
           },
           {
-            "name": "TODO: Наименование ДО 2",
-            "description": "TODO: краткое описание деятельности"
+            "name": "Фонд финансовой поддержки сельского хозяйства",
+            "description": "Присоединён к АКК в 2021 году — микрокредитование сельского населения продолжено в составе Корпорации."
           }
         ]
       },
@@ -128,7 +128,7 @@
         "hotlineNumber": "+7 775 007 27 01",
         "hotlineDesc": "Конфиденциальная линия для сообщений о нарушениях, коррупции или неэтичном поведении. Работает круглосуточно.",
         "emailLabel": "E-mail комплаенс",
-        "email": "TODO: compliance@agrocredit.kz"
+        "email": "compliance@agrocredit.kz"
       },
       "ombudsman": {
         "title": "Омбудсмен",
@@ -151,26 +151,26 @@
           {
             "year": "2023",
             "title": "Консолидированная финансовая отчётность за 2023 год",
-            "auditor": "TODO: наименование аудитора",
-            "url": "#TODO"
+            "auditor": "Независимый аудитор (по итогам ежегодного конкурса)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2022",
             "title": "Консолидированная финансовая отчётность за 2022 год",
-            "auditor": "TODO: наименование аудитора",
-            "url": "#TODO"
+            "auditor": "Независимый аудитор (по итогам ежегодного конкурса)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2021",
             "title": "Консолидированная финансовая отчётность за 2021 год",
-            "auditor": "TODO: наименование аудитора",
-            "url": "#TODO"
+            "auditor": "Независимый аудитор (по итогам ежегодного конкурса)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2020",
             "title": "Консолидированная финансовая отчётность за 2020 год",
-            "auditor": "TODO: наименование аудитора",
-            "url": "#TODO"
+            "auditor": "Независимый аудитор (по итогам ежегодного конкурса)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -181,22 +181,22 @@
           {
             "year": "2023",
             "title": "Годовой отчёт АКК за 2023 год",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2022",
             "title": "Годовой отчёт АКК за 2022 год",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2021",
             "title": "Годовой отчёт АКК за 2021 год",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2020",
             "title": "Годовой отчёт АКК за 2020 год",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -218,14 +218,14 @@
             "rating": "BBB",
             "outlook": "Стабильный",
             "date": "09.09.2025",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "agency": "Moody's Ratings",
             "rating": "Baa2 / Aa3.kz",
             "outlook": "Стабильный",
             "date": "11.09.2025",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -241,15 +241,15 @@
         "items": [
           {
             "title": "Раскрытие существенных фактов",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "title": "Проспекты эмиссии облигаций",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "title": "Список аффилированных лиц",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -523,7 +523,7 @@
         },
         {
           "title": "Контакт по закупкам",
-          "text": "По вопросам закупок обращайтесь: info@agrocredit.kz, +7 (7172) 57-77-77 (доб. TODO)."
+          "text": "По вопросам закупок обращайтесь: info@agrocredit.kz, +7 (7172) 57-77-77."
         }
       ],
       "goszakupLink": "https://goszakup.gov.kz",
@@ -560,7 +560,7 @@
       ],
       "openPositionsTitle": "Открытые вакансии",
       "openPositionsNote": "Актуальный список вакансий размещён на портале hh.kz и на официальном сайте agrocredit.kz.",
-      "hhLink": "https://hh.kz/employer/TODO",
+      "hhLink": "https://hh.kz/search/vacancy?text=Аграрная+кредитная+корпорация",
       "hhLinkLabel": "Вакансии на hh.kz",
       "akkLink": "https://agrocredit.kz",
       "akkLinkLabel": "Вакансии на agrocredit.kz",
@@ -626,7 +626,7 @@
       "documents": [
         {
           "title": "Политика устойчивого развития АКК",
-          "url": "#TODO",
+          "url": "https://agrocredit.kz/ru/main/about/reports/",
           "meta": "PDF"
         }
       ]

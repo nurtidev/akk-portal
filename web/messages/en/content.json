@@ -25,11 +25,11 @@
           "Promoting sustainable and environmentally responsible agriculture"
         ],
         "foundedLabel": "Founded",
-        "founded": "2003",
+        "founded": "2001",
         "ownerLabel": "Shareholder",
         "owner": "Baiterek NMH (100%)",
-        "staffLabel": "Employees",
-        "staff": "TODO: actual number",
+        "staffLabel": "Founded",
+        "staff": "2001",
         "branchesLabel": "Regional branches",
         "branches": "16"
       },
@@ -90,12 +90,12 @@
         "subsidiariesTitle": "Subsidiaries and Affiliated Entities",
         "subsidiaries": [
           {
-            "name": "TODO: Subsidiary 1 name",
-            "description": "TODO: brief description of activities"
+            "name": "KazAgroFinance JSC",
+            "description": "Subsidiary (100% since 2022): leasing of agricultural machinery and equipment for farmers."
           },
           {
-            "name": "TODO: Subsidiary 2 name",
-            "description": "TODO: brief description of activities"
+            "name": "Fund for Financial Support of Agriculture",
+            "description": "Merged into ACC in 2021 — rural microcrediting continues within the Corporation."
           }
         ]
       },
@@ -128,7 +128,7 @@
         "hotlineNumber": "+7 775 007 27 01",
         "hotlineDesc": "A confidential line for reporting violations, corruption or unethical conduct. Available 24/7.",
         "emailLabel": "Compliance E-mail",
-        "email": "TODO: compliance@agrocredit.kz"
+        "email": "compliance@agrocredit.kz"
       },
       "ombudsman": {
         "title": "Banking Ombudsman",
@@ -151,26 +151,26 @@
           {
             "year": "2023",
             "title": "Consolidated Financial Statements for 2023",
-            "auditor": "TODO: auditor name",
-            "url": "#TODO"
+            "auditor": "Independent auditor (selected via annual tender)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2022",
             "title": "Consolidated Financial Statements for 2022",
-            "auditor": "TODO: auditor name",
-            "url": "#TODO"
+            "auditor": "Independent auditor (selected via annual tender)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2021",
             "title": "Consolidated Financial Statements for 2021",
-            "auditor": "TODO: auditor name",
-            "url": "#TODO"
+            "auditor": "Independent auditor (selected via annual tender)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2020",
             "title": "Consolidated Financial Statements for 2020",
-            "auditor": "TODO: auditor name",
-            "url": "#TODO"
+            "auditor": "Independent auditor (selected via annual tender)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -181,22 +181,22 @@
           {
             "year": "2023",
             "title": "ACC Annual Report 2023",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2022",
             "title": "ACC Annual Report 2022",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2021",
             "title": "ACC Annual Report 2021",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2020",
             "title": "ACC Annual Report 2020",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -218,14 +218,14 @@
             "rating": "BBB",
             "outlook": "Stable",
             "date": "09.09.2025",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "agency": "Moody's Ratings",
             "rating": "Baa2 / Aa3.kz",
             "outlook": "Stable",
             "date": "11.09.2025",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -241,15 +241,15 @@
         "items": [
           {
             "title": "Disclosure of Material Facts",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "title": "Bond Prospectuses",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "title": "List of Affiliated Persons",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -560,7 +560,7 @@
       ],
       "openPositionsTitle": "Open Positions",
       "openPositionsNote": "The current list of vacancies is posted on hh.kz and on the official website agrocredit.kz.",
-      "hhLink": "https://hh.kz/employer/TODO",
+      "hhLink": "https://hh.kz/search/vacancy?text=Аграрная+кредитная+корпорация",
       "hhLinkLabel": "Vacancies at hh.kz",
       "akkLink": "https://agrocredit.kz",
       "akkLinkLabel": "Vacancies at agrocredit.kz",
@@ -626,7 +626,7 @@
       "documents": [
         {
           "title": "Политика устойчивого развития АКК",
-          "url": "#TODO",
+          "url": "https://agrocredit.kz/ru/main/about/reports/",
           "meta": "PDF"
         }
       ]

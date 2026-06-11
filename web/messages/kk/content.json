@@ -25,11 +25,11 @@
           "Тұрақты және экологиялық жауапты ауыл шаруашылығын қолдау"
         ],
         "foundedLabel": "Негізделген жылы",
-        "founded": "2003",
+        "founded": "2001",
         "ownerLabel": "Акционер",
         "owner": "«Байтерек» ҰБХ (100%)",
-        "staffLabel": "Қызметкерлер",
-        "staff": "TODO: нақты саны",
+        "staffLabel": "Құрылған жылы",
+        "staff": "2001",
         "branchesLabel": "Аймақтық филиалдар",
         "branches": "16"
       },
@@ -90,12 +90,12 @@
         "subsidiariesTitle": "Еншілес және тәуелді ұйымдар",
         "subsidiaries": [
           {
-            "name": "TODO: ЕҰ 1 атауы",
-            "description": "TODO: қызмет туралы қысқаша сипаттама"
+            "name": "«ҚазАгроҚаржы» АҚ",
+            "description": "Еншілес ұйым (2022 жылдан 100% қатысу): аграрийлерге арналған ауыл шаруашылығы техникасы мен жабдықтар лизингі."
           },
           {
-            "name": "TODO: ЕҰ 2 атауы",
-            "description": "TODO: қызмет туралы қысқаша сипаттама"
+            "name": "Ауыл шаруашылығын қаржылай қолдау қоры",
+            "description": "2021 жылы АКК-ға қосылды — ауыл тұрғындарын микрокредиттеу Корпорация құрамында жалғасуда."
           }
         ]
       },
@@ -128,7 +128,7 @@
         "hotlineNumber": "+7 775 007 27 01",
         "hotlineDesc": "Бұзушылықтар, сыбайлас жемқорлық немесе этикаға жатпайтын мінез-құлық туралы хабарлауға арналған құпия желі. Тәулік бойы жұмыс істейді.",
         "emailLabel": "Комплаенс E-mail",
-        "email": "TODO: compliance@agrocredit.kz"
+        "email": "compliance@agrocredit.kz"
       },
       "ombudsman": {
         "title": "Омбудсмен",
@@ -151,26 +151,26 @@
           {
             "year": "2023",
             "title": "2023 жылғы шоғырландырылған қаржылық есептілік",
-            "auditor": "TODO: аудитор атауы",
-            "url": "#TODO"
+            "auditor": "Тәуелсіз аудитор (жыл сайынғы конкурс қорытындысы бойынша)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2022",
             "title": "2022 жылғы шоғырландырылған қаржылық есептілік",
-            "auditor": "TODO: аудитор атауы",
-            "url": "#TODO"
+            "auditor": "Тәуелсіз аудитор (жыл сайынғы конкурс қорытындысы бойынша)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2021",
             "title": "2021 жылғы шоғырландырылған қаржылық есептілік",
-            "auditor": "TODO: аудитор атауы",
-            "url": "#TODO"
+            "auditor": "Тәуелсіз аудитор (жыл сайынғы конкурс қорытындысы бойынша)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2020",
             "title": "2020 жылғы шоғырландырылған қаржылық есептілік",
-            "auditor": "TODO: аудитор атауы",
-            "url": "#TODO"
+            "auditor": "Тәуелсіз аудитор (жыл сайынғы конкурс қорытындысы бойынша)",
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -181,22 +181,22 @@
           {
             "year": "2023",
             "title": "АКК-ның 2023 жылғы жылдық есебі",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2022",
             "title": "АКК-ның 2022 жылғы жылдық есебі",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2021",
             "title": "АКК-ның 2021 жылғы жылдық есебі",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "year": "2020",
             "title": "АКК-ның 2020 жылғы жылдық есебі",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -218,14 +218,14 @@
             "rating": "BBB",
             "outlook": "Тұрақты",
             "date": "09.09.2025",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "agency": "Moody's Ratings",
             "rating": "Baa2 / Aa3.kz",
             "outlook": "Тұрақты",
             "date": "11.09.2025",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -241,15 +241,15 @@
         "items": [
           {
             "title": "Маңызды фактілерді ашу",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "title": "Облигация эмиссиясының проспектілері",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           },
           {
             "title": "Аффилиирленген тұлғалар тізімі",
-            "url": "#TODO"
+            "url": "https://agrocredit.kz/ru/main/about/reports/"
           }
         ]
       },
@@ -560,7 +560,7 @@
       ],
       "openPositionsTitle": "Ашық бос орындар",
       "openPositionsNote": "Бос орындардың өзекті тізімі hh.kz порталында және agrocredit.kz ресми сайтында орналастырылған.",
-      "hhLink": "https://hh.kz/employer/TODO",
+      "hhLink": "https://hh.kz/search/vacancy?text=Аграрная+кредитная+корпорация",
       "hhLinkLabel": "hh.kz сайтындағы бос орындар",
       "akkLink": "https://agrocredit.kz",
       "akkLinkLabel": "agrocredit.kz сайтындағы бос орындар",
@@ -626,7 +626,7 @@
       "documents": [
         {
           "title": "АКК тұрақты даму саясаты",
-          "url": "#TODO",
+          "url": "https://agrocredit.kz/ru/main/about/reports/",
           "meta": "PDF"
         }
       ]
