@@ -52,6 +52,19 @@ test.describe('Контентные страницы', () => {
 // --- Навигация ----------------------------------------------------------
 
 test.describe('Навигация в шапке', () => {
+  test('«Программы» и «Подбор» в шапке работают с экрана квиза (регресс: pushState без hashchange)', async ({ page }) => {
+    await page.goto('/ru');
+    // Стартуем квиз — лендинг скрывается.
+    await page.getByRole('button', { name: 'Подобрать программу' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Что хотите профинансировать?' })).toBeVisible();
+    // «Программы» из шапки → возврат на лендинг к сетке.
+    await page.getByRole('link', { name: 'Программы' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Под разные цели АПК' })).toBeVisible();
+    // «Подбор» из шапки → квиз снова открыт.
+    await page.getByRole('link', { name: 'Подбор' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Что хотите профинансировать?' })).toBeVisible();
+  });
+
   test('дропдаун «О корпорации» открывается и ведёт на /ru/about', async ({ page }) => {
     await page.goto('/ru');
     // Кнопка-триггер выпадающего меню (aria-haspopup=menu).

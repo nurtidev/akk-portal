@@ -116,9 +116,14 @@ export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
-    { href: `/${locale}#programs`, label: nav("programs") },
-    { href: `/${locale}#quiz`, label: nav("selection") },
+    { href: `/${locale}#programs`, hash: "#programs", label: nav("programs") },
+    { href: `/${locale}#quiz`, hash: "#quiz", label: nav("selection") },
   ];
+
+  // Мы на главной? Тогда якоря рендерим нативными <a>: Next Link меняет URL через
+  // pushState БЕЗ события hashchange — обработчик воронки клика не видел, и
+  // «Программы»/«Подбор» с экранов квиза не работали.
+  const isHome = pathname === `/${locale}` || pathname === `/${locale}/`;
 
   const corpItems = CORP_ITEMS.map((i) => ({ slug: i.slug, label: nav(`corpItems.${i.key}`) }));
   const clientsItems = CLIENTS_ITEMS.map((i) => ({ slug: i.slug, label: nav(`clientsItems.${i.key}`) }));
@@ -166,15 +171,25 @@ export function SiteHeader() {
             className="site-nav hidden md:flex items-center gap-6"
             aria-label="Основная навигация"
           >
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) =>
+              isHome ? (
+                <a
+                  key={link.href}
+                  href={link.hash}
+                  className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+                >
+                  {link.label}
+                </Link>
+              ),
+            )}
             <NavDropdown label={nav("corp")} items={corpItems} locale={locale} />
             <NavDropdown label={nav("clients")} items={clientsItems} locale={locale} />
             <Link
@@ -279,16 +294,27 @@ export function SiteHeader() {
         aria-label="Мобильная навигация"
       >
         <div className="container mx-auto px-4 py-3 flex flex-col gap-1 max-h-[75vh] overflow-y-auto">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-              onClick={() => setMobileOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) =>
+            isHome ? (
+              <a
+                key={link.href}
+                href={link.hash}
+                className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ),
+          )}
 
           {/* Группы разделов */}
           {(
