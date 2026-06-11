@@ -12,6 +12,7 @@ import { useEffect, useRef } from 'react';
 import { Hero } from './hero';
 import { WhyAkk } from './why-akk';
 import { ProgramGrid } from './program-grid';
+import { SuccessStories } from './success-stories';
 import { Quiz } from './quiz';
 import { Results } from './results';
 import { StressTest } from './stress-test';
@@ -65,6 +66,7 @@ export function Funnel() {
         <Hero />
         <WhyAkk />
         <ProgramGrid />
+        <SuccessStories />
       </div>
 
       {/* Секции воронки */}
