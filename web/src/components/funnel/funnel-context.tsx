@@ -80,6 +80,7 @@ interface FunnelContextValue {
   state: FunnelState;
   // Навигация / квиз
   startQuiz: () => void;
+  startQuizWith: (purpose: string) => void;
   goToStep: (step: number) => void;
   /** Тихая установка шага (автопереход после выбора) — без события прыжка. */
   setStep: (step: number) => void;
@@ -134,6 +135,19 @@ export function FunnelProvider({ children, submitApplication }: FunnelProviderPr
   const startQuiz = useCallback(() => {
     track('quiz_started');
     dispatch({ type: 'START_QUIZ' });
+  }, []);
+
+  /** Запуск квиза с предвыбранной целью (карточки «На что нужны средства?»):
+      первый вопрос уже отвечен, пользователь попадает сразу на второй шаг. */
+  const startQuizWith = useCallback((purpose: string) => {
+    track('quiz_started', { via: 'goal_card', purpose });
+    dispatch({ type: 'START_QUIZ' });
+    dispatch({ type: 'SET_ANSWER', key: 'purpose', value: purpose });
+    if (PURPOSE_TO_SECTOR[purpose]) {
+      dispatch({ type: 'SET_ANSWER', key: 'sector', value: PURPOSE_TO_SECTOR[purpose] });
+    }
+    track('quiz_answer', { question: 'purpose', answer: purpose, step: 1 });
+    dispatch({ type: 'SET_STEP', step: 1 });
   }, []);
 
   const maxReachableStep = useCallback((): number => {
@@ -366,6 +380,7 @@ export function FunnelProvider({ children, submitApplication }: FunnelProviderPr
     () => ({
       state,
       startQuiz,
+      startQuizWith,
       goToStep,
       setStep,
       answer,
@@ -393,6 +408,7 @@ export function FunnelProvider({ children, submitApplication }: FunnelProviderPr
     [
       state,
       startQuiz,
+      startQuizWith,
       goToStep,
       setStep,
       answer,

@@ -11,7 +11,9 @@
 import { useEffect, useRef } from 'react';
 import { Hero } from './hero';
 import { WhyAkk } from './why-akk';
+import { GoalCards } from './goal-cards';
 import { ProgramGrid } from './program-grid';
+import { HowSteps } from './how-steps';
 import { SuccessStories } from './success-stories';
 import { Quiz } from './quiz';
 import { Results } from './results';
@@ -65,7 +67,9 @@ export function Funnel() {
       <div hidden={!isLanding}>
         <Hero />
         <WhyAkk />
+        <GoalCards />
         <ProgramGrid />
+        <HowSteps />
         <SuccessStories />
       </div>
 

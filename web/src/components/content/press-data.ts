@@ -7,6 +7,10 @@
 export interface PressItem {
   slug: string;
   type: "news" | "media" | "story";
+  /** Истории успеха: герой истории (для карточки-цитаты на главной). */
+  personRu?: string;
+  regionRu?: string;
+  quoteRu?: string;
   date: string; // ISO 8601 YYYY-MM-DD
   titleRu: string;
   leadRu: string;
@@ -134,6 +138,9 @@ export const PRESS_ITEMS: PressItem[] = [
   {
     slug: "kostanay-fermer-ken-dala",
     type: "story",
+    personRu: "Сергей Волков",
+    regionRu: "Костанайская область",
+    quoteRu: "Весь процесс — от консультации до получения средств — занял около двух недель. Никаких лишних требований.",
     date: "2024-08-20",
     titleRu:
       "«Взял кредит по Кең дала 2 и купил комбайн — теперь убираем урожай сами»",
@@ -153,6 +160,9 @@ export const PRESS_ITEMS: PressItem[] = [
   {
     slug: "almaty-oblast-igіlik-kozy",
     type: "story",
+    personRu: "Асель и Жанибек Ахметовы",
+    regionRu: "Алматинская область",
+    quoteRu: "Стресс-тест помог нам правильно рассчитать нагрузку — мы сразу увидели, какой платёж потянем без ущерба для хозяйства.",
     date: "2024-05-14",
     titleRu:
       "Программа Игілік: семья из Алматинской области вырастила отару с 50 до 200 голов",
@@ -172,6 +182,9 @@ export const PRESS_ITEMS: PressItem[] = [
   {
     slug: "turkestan-syrovarnya-isker",
     type: "story",
+    personRu: "Айгуль Сапарова",
+    regionRu: "Туркестанская область",
+    quoteRu: "Платёж раз в год, после сезона, когда есть выручка. Это совсем другое дело для сельского бизнеса.",
     date: "2024-10-02",
     titleRu:
       "Из домашней кухни — в цех: сыроварня из Туркестанской области вышла на магазины региона",
@@ -189,6 +202,9 @@ export const PRESS_ITEMS: PressItem[] = [
   {
     slug: "pavlodar-teplica-investproekt",
     type: "story",
+    personRu: "Дамир Ержанов",
+    regionRu: "Павлодарская область",
+    quoteRu: "Вопросы экспертов заставили пересчитать бизнес-план и найти слабые места до старта, а не после.",
     date: "2024-11-18",
     titleRu:
       "Помидоры зимой: тепличный комплекс в Павлодарской области собрал первый круглогодичный урожай",

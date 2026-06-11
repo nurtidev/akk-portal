@@ -80,11 +80,26 @@ export function SuccessStories() {
                 />
               </div>
               <div className="flex flex-col p-5">
-                <h3 className="font-display text-base font-bold leading-snug text-[var(--text)] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] overflow-hidden">
-                  {s.titleRu}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--text-2)] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] overflow-hidden">
-                  {s.leadRu}
+                {/* Герой истории: аватар (кроп фото) + имя + область — паттерн руководителя */}
+                {s.personRu && (
+                  <div className="mb-3 flex items-center gap-3">
+                    <span className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border border-[var(--border)]">
+                      <FallbackImage
+                        src={STORY_IMAGES[s.slug] || ''}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-semibold text-[var(--text)]">{s.personRu}</span>
+                      {s.regionRu && (
+                        <span className="block text-xs text-[var(--text-3)]">{s.regionRu}</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+                <p className="text-sm italic leading-relaxed text-[var(--text-2)] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:4] overflow-hidden">
+                  «{s.quoteRu || s.leadRu}»
                 </p>
                 <Link
                   href={`/${locale}/press/${s.slug}`}
