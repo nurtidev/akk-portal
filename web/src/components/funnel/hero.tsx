@@ -17,13 +17,17 @@ export function Hero() {
   const t = useTranslations('funnel.hero');
   const { startQuiz, requestConsultation } = useFunnel();
   const [photoOk, setPhotoOk] = useState(true);
+  const [nightOk, setNightOk] = useState(true);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const nightRef = useRef<HTMLImageElement | null>(null);
 
   // onError может сработать ДО гидратации (SSR) и потеряться — проверяем
   // naturalWidth уже смонтированной картинки.
   useEffect(() => {
     const el = imgRef.current;
     if (el && el.complete && el.naturalWidth === 0) setPhotoOk(false);
+    const nel = nightRef.current;
+    if (nel && nel.complete && nel.naturalWidth === 0) setNightOk(false);
   }, []);
 
   return (
@@ -32,7 +36,10 @@ export function Hero() {
     // иначе на коротких текстах (ru) снизу выглядывала секция «Почему АКК».
     // На мобиле фото скрыто — оставляем естественную высоту по контенту.
     <section className="relative overflow-hidden md:flex md:min-h-[calc(100svh-65px)] md:items-center">
-      {/* Полноширинное фото: объект справа, слева — спокойная зона под текст */}
+      {/* Полноширинное фото: объект справа, слева — спокойная зона под текст.
+          Светлая тема — день; тёмная — ночная версия с включёнными фарами
+          («комбайн убирает в ночи»), плавный кросс-фейд при смене темы.
+          Пока ночного файла нет — дневное фото остаётся в обеих темах. */}
       {photoOk && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -40,8 +47,19 @@ export function Hero() {
           src="/img/content/hero-main.jpg"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 hidden h-full w-full object-cover object-[72%_center] md:block"
+          className={`absolute inset-0 hidden h-full w-full object-cover object-[72%_center] transition-opacity duration-700 md:block ${nightOk ? 'dark:opacity-0' : ''}`}
           onError={() => setPhotoOk(false)}
+        />
+      )}
+      {nightOk && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          ref={nightRef}
+          src="/img/content/hero-main-night.jpg"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 hidden h-full w-full object-cover object-[72%_center] opacity-0 transition-opacity duration-700 dark:opacity-100 md:block"
+          onError={() => setNightOk(false)}
         />
       )}
       {/* Градиент-«перетекание»: фото тает в фон страницы слева (и сверху чуть-чуть) */}
