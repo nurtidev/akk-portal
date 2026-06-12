@@ -193,6 +193,12 @@ export function SiteHeader() {
             <NavDropdown label={nav("corp")} items={corpItems} locale={locale} />
             <NavDropdown label={nav("clients")} items={clientsItems} locale={locale} />
             <Link
+              href={`/${locale}/partners`}
+              className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+            >
+              {nav("partners")}
+            </Link>
+            <Link
               href={`/${locale}/contacts`}
               className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
             >
@@ -341,8 +347,16 @@ export function SiteHeader() {
           ))}
 
           <Link
-            href={`/${locale}/contacts`}
+            href={`/${locale}/partners`}
             className="mt-1 pt-2 border-t border-[var(--border-soft)] block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {nav("partners")}
+          </Link>
+
+          <Link
+            href={`/${locale}/contacts`}
+            className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
             onClick={() => setMobileOpen(false)}
           >
             {nav("contacts")}
