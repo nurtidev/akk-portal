@@ -18,6 +18,9 @@ import { ProfileTab } from "./profile-tab";
 import { ApplicationsList } from "./applications-list";
 import { DocsTab, NotifTab, SupportTab } from "./simple-tabs";
 import { isCabinetTab, type CabinetTab } from "./tabs";
+import { AgroScoreTab } from "./agroscore-tab";
+import { DemoPersonaSwitcher } from "./demo-persona-switcher";
+import { findPersonaByIin } from "@/data/agroscore-personas";
 
 export function CabinetView() {
   const t = useTranslations("cabinet");
@@ -84,41 +87,58 @@ export function CabinetView() {
     );
   }
 
+  // Выбор персоны: сначала проверяем демо-переключатель в localStorage,
+  // затем fallback на ИИН из JWT пользователя.
+  let demoPersonaIin: string | null = null;
+  if (typeof window !== "undefined") {
+    try {
+      demoPersonaIin = localStorage.getItem("akk-demo-persona");
+    } catch {
+      // noop
+    }
+  }
+  const personaIin = demoPersonaIin ?? user?.iin ?? null;
+  const persona = personaIin ? findPersonaByIin(personaIin) : null;
+
   return (
-    <div className="mx-auto grid max-w-[1080px] grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[240px_1fr] md:gap-7 md:py-7">
-      <CabinetSidebar
-        active={tab}
-        onSelect={selectTab}
-        onHome={() => router.push(`/${locale}`)}
-        onLogout={() => {
-          logout();
-          router.push(`/${locale}`);
-        }}
-        unread={unread}
-      />
-      <div className="min-w-0">
-        {tab === "profile" && <ProfileTab user={user} />}
-        {tab === "apps" && (
-          <div>
-            <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-xl font-bold text-[var(--text)]">
-                {t("nav.apps")}
-              </h2>
-              <a
-                href={`/${locale}#quiz`}
-                className="inline-flex items-center rounded-[var(--radius-sm)] bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary-2)]"
-              >
-                + {t("apps.submit")}
-              </a>
+    <>
+      <div className="mx-auto grid max-w-[1080px] grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[240px_1fr] md:gap-7 md:py-7">
+        <CabinetSidebar
+          active={tab}
+          onSelect={selectTab}
+          onHome={() => router.push(`/${locale}`)}
+          onLogout={() => {
+            logout();
+            router.push(`/${locale}`);
+          }}
+          unread={unread}
+        />
+        <div className="min-w-0">
+          {tab === "profile" && <ProfileTab user={user} />}
+          {tab === "apps" && (
+            <div>
+              <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-display text-xl font-bold text-[var(--text)]">
+                  {t("nav.apps")}
+                </h2>
+                <a
+                  href={`/${locale}#quiz`}
+                  className="inline-flex items-center rounded-[var(--radius-sm)] bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary-2)]"
+                >
+                  + {t("apps.submit")}
+                </a>
+              </div>
+              <ApplicationsList apps={apps} loading={loading} />
             </div>
-            <ApplicationsList apps={apps} loading={loading} />
-          </div>
-        )}
-        {tab === "docs" && <DocsTab />}
-        {tab === "notif" && <NotifTab apps={apps} />}
-        {tab === "support" && <SupportTab />}
+          )}
+          {tab === "docs" && <DocsTab />}
+          {tab === "notif" && <NotifTab apps={apps} />}
+          {tab === "support" && <SupportTab />}
+          {tab === "agroscore" && <AgroScoreTab persona={persona} />}
+        </div>
       </div>
-    </div>
+      <DemoPersonaSwitcher />
+    </>
   );
 }
 

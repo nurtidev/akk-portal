@@ -42,15 +42,7 @@ export function TokensPageClient() {
             onClick={toggleTheme}
             className="inline-flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
           >
-            {theme === "dark" ? (
-              <>
-                <span>☀️</span> {t("lightTheme")}
-              </>
-            ) : (
-              <>
-                <span>🌙</span> {t("darkTheme")}
-              </>
-            )}
+            {theme === "dark" ? t("lightTheme") : t("darkTheme")}
           </button>
           <span className="text-xs text-[var(--text-3)]">
             (сохраняется в localStorage: <code className="font-mono">akk-theme</code>)

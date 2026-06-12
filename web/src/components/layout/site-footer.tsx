@@ -11,6 +11,7 @@ const SECTION_LINKS = [
   { slug: "press", key: "press" },
   { slug: "faq", key: "faq" },
   { slug: "contacts", key: "contacts" },
+  { slug: "partners", key: "partners" },
 ] as const;
 
 /**
@@ -141,7 +142,7 @@ export function SiteFooter() {
               ).map((key) => (
                 <li key={key}>
                   <Link
-                    href="#programs"
+                    href={`/${locale}#programs`}
                     className="hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
                     style={{ color: "rgba(255,255,255,0.7)" }}
                   >

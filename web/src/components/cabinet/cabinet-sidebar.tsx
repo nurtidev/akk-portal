@@ -145,6 +145,13 @@ function NavIcon({ id }: { id: CabinetTab }) {
           <path d="M21 19a2 2 0 0 1-2 2h-3v-7h3a2 2 0 0 1 2 2zM3 19a2 2 0 0 0 2 2h3v-7H5a2 2 0 0 0-2 2z" />
         </svg>
       );
+    case "agroscore":
+      return (
+        <svg {...iconProps}>
+          <path d="M12 2a7 7 0 0 1 7 7c0 4-3 7-7 11C9 16 5 13 5 9a7 7 0 0 1 7-7z" />
+          <path d="M12 6v6l3 2" />
+        </svg>
+      );
     default:
       return null;
   }

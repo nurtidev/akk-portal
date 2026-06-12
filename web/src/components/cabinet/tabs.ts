@@ -4,7 +4,7 @@
 // Ярлыки берутся из cabinet.json (cabinet.nav.*).
 // =====================================================
 
-export type CabinetTab = "profile" | "apps" | "docs" | "notif" | "support";
+export type CabinetTab = "profile" | "apps" | "docs" | "notif" | "support" | "agroscore";
 
 export interface CabinetTabDef {
   id: CabinetTab;
@@ -18,6 +18,7 @@ export const CABINET_TABS: CabinetTabDef[] = [
   { id: "docs", labelKey: "nav.docs" },
   { id: "notif", labelKey: "nav.notif" },
   { id: "support", labelKey: "nav.support" },
+  { id: "agroscore", labelKey: "nav.agroscore" },
 ];
 
 /** true → значение является валидной вкладкой кабинета. */
@@ -27,6 +28,7 @@ export function isCabinetTab(v: string | null | undefined): v is CabinetTab {
     v === "apps" ||
     v === "docs" ||
     v === "notif" ||
-    v === "support"
+    v === "support" ||
+    v === "agroscore"
   );
 }

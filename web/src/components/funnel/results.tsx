@@ -9,7 +9,9 @@
 //  - CTA «Подать заявку →». Пустое состояние — консультация менеджера.
 // =====================================================
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import type { Program } from '@/data/programs';
 import { scoredPrograms, explainProgram } from '@/lib/scoring';
 import { effectiveMaxTerm } from '@/lib/schedule';
@@ -33,7 +35,35 @@ function ResultCard({
 }) {
   const t = useTranslations('funnel.results');
   const { state, apply } = useFunnel();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? 'ru';
+  const [pdfLoading, setPdfLoading] = useState(false);
   const p = program;
+
+  const handleDownloadPdf = async () => {
+    setPdfLoading(true);
+    try {
+      const [{ generateChecklistPdf }, { getChecklist }] = await Promise.all([
+        import('@/lib/pdf-checklist'),
+        import('@/data/loan-documents'),
+      ]);
+      await generateChecklistPdf({
+        programId: p.id,
+        programTitle: p.title,
+        programCategory: p.category,
+        rate: p.rate,
+        rateRange: p.rateRange,
+        maxAmount: p.maxAmount,
+        maxTerm: p.maxTerm,
+        checklist: getChecklist(p.id),
+        locale: locale === 'kk' ? 'kk' : locale === 'en' ? 'en' : 'ru',
+      });
+    } catch (err) {
+      console.error('[PDF checklist]', err);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
   const effMax = effectiveMaxTerm(p, state.answers);
   const explain = explainProgram(p, state.answers);
   const matchHi = score >= 70;
@@ -144,14 +174,59 @@ function ResultCard({
           </div>
         )}
 
-        <div className="mt-5 flex items-center justify-between gap-3">
-          <span className="text-xs text-[var(--text-3)]">{p.org}</span>
+        <div className="mt-5 flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-[var(--text-3)]">{p.org}</span>
+            <button
+              type="button"
+              onClick={() => apply(p.id)}
+              className="inline-flex h-11 items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] px-5 font-semibold text-white transition hover:bg-[var(--primary-2)]"
+            >
+              {t('applyCta')}
+            </button>
+          </div>
           <button
             type="button"
-            onClick={() => apply(p.id)}
-            className="inline-flex h-11 items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] px-5 font-semibold text-white transition hover:bg-[var(--primary-2)]"
+            onClick={handleDownloadPdf}
+            disabled={pdfLoading}
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[var(--radius)] border border-[var(--primary)] px-5 text-sm font-semibold text-[var(--primary)] transition hover:bg-[var(--primary-soft)] disabled:opacity-60"
           >
-            {t('applyCta')}
+            {pdfLoading ? (
+              <>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  className="animate-spin"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" strokeOpacity={0.25} />
+                  <path d="M12 2a10 10 0 0 1 10 10" />
+                </svg>
+                {t('checklistBtnLoading')}
+              </>
+            ) : (
+              <>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="11" x2="12" y2="17" />
+                  <polyline points="9 14 12 17 15 14" />
+                </svg>
+                {t('checklistBtn')}
+              </>
+            )}
           </button>
         </div>
       </div>
