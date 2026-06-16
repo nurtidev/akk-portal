@@ -2,7 +2,9 @@
 
 // =====================================================
 // ===== Карточки целей «На что вам нужны средства?» ====
-// Стиль — чистые светлые карточки с плоскими цветными SVG-иллюстрациями.
+// Стиль — карточки с фотообложкой сверху (фермерские фото) и текстом снизу.
+// Фото лежат в public/img/goals/<value>.jpg; если файла нет — мягкий фолбэк
+// на встроенную плоскую SVG-иллюстрацию.
 // Клик = запуск квиза с предвыбранной целью (startQuizWith).
 // Тексты карточек берутся из вопроса квиза (единый источник правды).
 // =====================================================
@@ -262,11 +264,12 @@ function GoalIllustration({ value }: { value: string }) {
 }
 
 // ------------------------------------------------------------------
-// Картинка цели: сгенерированная иллюстрация из public/img/goals/<value>.png.
-// Пока файла нет (404 или битый файл) — мягкий фолбэк на встроенную SVG.
-// Как только PNG появится — карточка автоматически покажет его.
+// Фотообложка цели: фермерское фото из public/img/goals/<value>.jpg во всю
+// ширину карточки (object-cover, фикс. высота, лёгкий зум по hover).
+// Пока файла нет (404 или битый файл) — мягкий фолбэк на встроенную SVG
+// на нейтральном фоне той же высоты.
 // ------------------------------------------------------------------
-function GoalArt({ value }: { value: string }) {
+function GoalCover({ value }: { value: string }) {
   const [imgOk, setImgOk] = useState(true);
   const ref = useRef<HTMLImageElement | null>(null);
 
@@ -276,16 +279,22 @@ function GoalArt({ value }: { value: string }) {
     if (el && el.complete && el.naturalWidth === 0) setImgOk(false);
   }, []);
 
-  if (!imgOk) return <GoalIllustration value={value} />;
+  if (!imgOk) {
+    return (
+      <div className="flex h-32 w-full items-center justify-center bg-[var(--bg)] md:h-36">
+        <GoalIllustration value={value} />
+      </div>
+    );
+  }
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       ref={ref}
-      src={`/img/goals/${value}.png`}
+      src={`/img/goals/${value}.jpg`}
       alt=""
       aria-hidden="true"
-      className="h-20 w-20 object-contain md:h-[88px] md:w-[88px]"
+      className="h-32 w-full object-cover transition-transform duration-300 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 md:h-36"
       onError={() => setImgOk(false)}
     />
   );
@@ -301,7 +310,7 @@ export function GoalCards() {
   const options = purposeQuestion?.options ?? [];
 
   return (
-    <section className="container mx-auto px-4 pb-16 md:pb-20" aria-label={t('title')}>
+    <section className="container mx-auto px-4 pt-10 pb-16 md:pt-14 md:pb-20" aria-label={t('title')}>
       {/* Заголовок секции */}
       <div className="text-center">
         <h2 className="font-display text-2xl font-bold text-[var(--text)] md:text-3xl">
@@ -313,7 +322,7 @@ export function GoalCards() {
       {/*
         Сетка: 2 колонки на мобиле, 3 на планшете, 3 на десктопе.
         На широком экране можно выбрать 6 (lg:grid-cols-6), но 3 выглядит
-        аккуратнее с иллюстрациями — карточки не слишком мелкие.
+        аккуратнее с фотообложками — карточки не слишком мелкие.
       */}
       <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
         {options.map((o) => {
@@ -326,13 +335,13 @@ export function GoalCards() {
               type="button"
               onClick={() => startQuizWith(o.value)}
               className={[
-                // Базовые стили карточки: светлый фон, рамка, скруглenie, тень
-                'group flex flex-col items-center text-center',
+                // Базовые стили карточки: светлый фон, рамка, скругление, тень.
+                // overflow-hidden — чтобы фотообложка не вылезала за скругление.
+                'group flex flex-col overflow-hidden text-left',
                 'rounded-[var(--radius-lg)]',
                 'border border-[var(--border)]',
                 'bg-[var(--surface)]',
                 'shadow-[var(--shadow-sm)]',
-                'px-4 py-6',
                 // Переходы
                 'transition-all duration-200',
                 // Hover: лёгкий подъём + усиление тени + акцентная рамка
@@ -343,36 +352,40 @@ export function GoalCards() {
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2',
               ].join(' ')}
             >
-              {/* Картинка цели (сгенерированная PNG или SVG-фолбэк) */}
-              <span className="mb-3 block">
-                <GoalArt value={o.value} />
+              {/* Фотообложка цели (фото или SVG-фолбэк) */}
+              <span className="block w-full">
+                <GoalCover value={o.value} />
               </span>
 
-              {/* Название цели */}
-              <span className="block text-sm font-semibold leading-snug text-[var(--text)]">
-                {label}
-              </span>
-
-              {/* Описание — скрыто на очень узких экранах */}
-              {desc && (
-                <span className="mt-1 hidden text-[11px] leading-snug text-[var(--text-3)] sm:block">
-                  {desc}
+              {/* Текстовый блок под обложкой */}
+              <span className="flex flex-1 flex-col px-4 py-4">
+                {/* Название цели */}
+                <span className="block text-sm font-semibold leading-snug text-[var(--text)]">
+                  {label}
                 </span>
-              )}
 
-              {/*
-                CTA-ссылка — всегда видна (бледно), ярче по hover.
-                Цвет: var(--primary), мелкий текст.
-              */}
-              <span
-                className={[
-                  'mt-3 block text-xs font-semibold',
-                  'text-[var(--primary)] opacity-40',
-                  'transition-opacity duration-200',
-                  'group-hover:opacity-100',
-                ].join(' ')}
-              >
-                {t('cta')} →
+                {/* Описание — скрыто на очень узких экранах */}
+                {desc && (
+                  <span className="mt-1 hidden text-[11px] leading-snug text-[var(--text-3)] sm:block">
+                    {desc}
+                  </span>
+                )}
+
+                {/*
+                  CTA-ссылка — всегда видна (бледно), ярче по hover.
+                  Цвет: var(--primary), мелкий текст. mt-auto прижимает её книзу,
+                  чтобы CTA выровнялись в ряду при разной длине описаний.
+                */}
+                <span
+                  className={[
+                    'mt-3 block text-xs font-semibold',
+                    'text-[var(--primary)] opacity-60',
+                    'transition-opacity duration-200',
+                    'group-hover:opacity-100',
+                  ].join(' ')}
+                >
+                  {t('cta')} →
+                </span>
               </span>
             </button>
           );

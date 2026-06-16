@@ -40,3 +40,6 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# исходники фото (оригиналы 5-14МБ) — в репо не нужны, оптимизированные кадры лежат в public/img/goals/
+/public/img/pictures/
