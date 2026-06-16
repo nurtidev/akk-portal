@@ -8,12 +8,10 @@
       "lede": "Все программы кредитования АКК — от микрокредита Іскер до инвестиционного займа Агробизнес 2.0 до 15 млрд ₸. Подбираем подходящую и рассчитываем платёж до подачи заявки.",
       "cta": "Подобрать программу",
       "ctaAlt": "Получить консультацию",
-      "stat1Value": "от 5%",
-      "stat1Label": "Ставка по субсидированным программам",
-      "stat2Value": "6",
-      "stat2Label": "Программ под цели АПК",
-      "stat3Value": "15 млрд ₸",
-      "stat3Label": "Максимальная сумма",
+      "statPortfolioLabel": "Loan portfolio",
+      "statClientsLabel": "Clients financed",
+      "statFinancedLabel": "Financed this year",
+      "statYearsLabel": "years developing Kazakhstan's agriculture",
       "photoChip": "Финансируем аграриев по всему Казахстану"
     },
     "programs": {
@@ -359,7 +357,7 @@
       },
       "e": {
         "value": "100%",
-        "label": "акционер — НУХ «Байтерек»: государственная надёжность"
+        "label": "акционер — НИХ «Байтерек»: государственная надёжность"
       },
       "f": {
         "value": "1408",
@@ -427,6 +425,15 @@
       "errPhone": "Укажите номер телефона полностью.",
       "errConsent": "Нужно согласие на обработку данных — без него не сможем перезвонить.",
       "errSubmit": "Не получилось отправить. Попробуйте ещё раз или позвоните на 1408."
+    },
+    "chairmanTeaser": {
+      "eyebrow": "Chairman's word",
+      "title": "Address of the Chairman of the Board",
+      "cta": "Read the blog and ask a question"
+    },
+    "constitutionBanner": {
+      "title": "Constitution of the Republic of Kazakhstan",
+      "subtitle": "The fundamental law of the country"
     }
   }
 }

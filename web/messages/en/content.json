@@ -567,6 +567,16 @@
       "contactNote": "CVs and employment enquiries: hr@agrocredit.kz",
       "contactEmail": "hr@agrocredit.kz"
     },
+    "constitution": {
+      "meta": {
+        "title": "Constitution of the Republic of Kazakhstan — AKK",
+        "description": "The Constitution of the Republic of Kazakhstan."
+      },
+      "title": "Constitution of the Republic of Kazakhstan",
+      "subtitle": "The fundamental law of the Republic of Kazakhstan",
+      "intro": "JSC «Agrarian Credit Corporation» carries out its activities in strict compliance with the Constitution and legislation of the Republic of Kazakhstan. The preamble and structure of the Constitution are presented below; the full official text is available via the link to the state resource.",
+      "sourceLabel": "Open full text on adilet.zan.kz"
+    },
     "sustainability": {
       "meta": {
         "title": "Устойчивое развитие — АКК",

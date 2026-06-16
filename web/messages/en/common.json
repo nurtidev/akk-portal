@@ -9,14 +9,16 @@
     "corp": "О корпорации",
     "clients": "Клиентам",
     "partners": "Партнёрам",
+    "press": "Press Center",
+    "constitution": "Constitution of the RK",
     "corpItems": {
       "about": "О компании",
       "sustainability": "Устойчивое развитие",
       "investors": "Инвесторам",
       "reporting": "Отчётность",
-      "press": "Пресс-центр",
       "procurement": "Закупки",
-      "careers": "Вакансии"
+      "careers": "Вакансии",
+      "constitution": "Constitution of the RK"
     },
     "clientsItems": {
       "howToGet": "Как получить кредит",
@@ -65,7 +67,8 @@
       "press": "Пресс-центр",
       "faq": "Вопросы и ответы",
       "contacts": "Контакты",
-      "partners": "Банкам-партнёрам"
+      "partners": "Банкам-партнёрам",
+      "constitution": "Constitution of the RK"
     },
     "toHome": "На главную"
   },

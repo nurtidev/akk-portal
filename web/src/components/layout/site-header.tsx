@@ -15,9 +15,10 @@ const CORP_ITEMS = [
   { slug: "sustainability", key: "sustainability" },
   { slug: "investors", key: "investors" },
   { slug: "reporting", key: "reporting" },
-  { slug: "press", key: "press" },
   { slug: "procurement", key: "procurement" },
   { slug: "careers", key: "careers" },
+  // Пресс-центр переехал на верхний уровень навигации (волна 3)
+  { slug: "constitution", key: "constitution" },
 ] as const;
 
 const CLIENTS_ITEMS = [
@@ -115,16 +116,6 @@ export function SiteHeader() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const navLinks = [
-    { href: `/${locale}#programs`, hash: "#programs", label: nav("programs") },
-    { href: `/${locale}#quiz`, hash: "#quiz", label: nav("selection") },
-  ];
-
-  // Мы на главной? Тогда якоря рендерим нативными <a>: Next Link меняет URL через
-  // pushState БЕЗ события hashchange — обработчик воронки клика не видел, и
-  // «Программы»/«Подбор» с экранов квиза не работали.
-  const isHome = pathname === `/${locale}` || pathname === `/${locale}/`;
-
   const corpItems = CORP_ITEMS.map((i) => ({ slug: i.slug, label: nav(`corpItems.${i.key}`) }));
   const clientsItems = CLIENTS_ITEMS.map((i) => ({ slug: i.slug, label: nav(`clientsItems.${i.key}`) }));
 
@@ -166,30 +157,11 @@ export function SiteHeader() {
             </span>
           </Link>
 
-          {/* Навигация — скрываем на мобильных */}
+          {/* Навигация — скрываем на мобильных: 5 разделов (волна 3) */}
           <nav
             className="site-nav hidden md:flex items-center gap-6"
             aria-label="Основная навигация"
           >
-            {navLinks.map((link) =>
-              isHome ? (
-                <a
-                  key={link.href}
-                  href={link.hash}
-                  className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
-                >
-                  {link.label}
-                </a>
-              ) : (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
-                >
-                  {link.label}
-                </Link>
-              ),
-            )}
             <NavDropdown label={nav("corp")} items={corpItems} locale={locale} />
             <NavDropdown label={nav("clients")} items={clientsItems} locale={locale} />
             <Link
@@ -197,6 +169,13 @@ export function SiteHeader() {
               className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
             >
               {nav("partners")}
+            </Link>
+            {/* Пресс-центр — верхний уровень (был в выпадашке «О корпорации», волна 3) */}
+            <Link
+              href={`/${locale}/press`}
+              className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+            >
+              {nav("press")}
             </Link>
             <Link
               href={`/${locale}/contacts`}
@@ -300,29 +279,7 @@ export function SiteHeader() {
         aria-label="Мобильная навигация"
       >
         <div className="container mx-auto px-4 py-3 flex flex-col gap-1 max-h-[75vh] overflow-y-auto">
-          {navLinks.map((link) =>
-            isHome ? (
-              <a
-                key={link.href}
-                href={link.hash}
-                className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-                onClick={() => setMobileOpen(false)}
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-                onClick={() => setMobileOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ),
-          )}
-
-          {/* Группы разделов */}
+          {/* Группы разделов: «О корпорации» и «Клиентам» */}
           {(
             [
               { title: nav("corp"), items: corpItems },
@@ -352,6 +309,15 @@ export function SiteHeader() {
             onClick={() => setMobileOpen(false)}
           >
             {nav("partners")}
+          </Link>
+
+          {/* Пресс-центр — верхний уровень (зеркало десктопной навигации) */}
+          <Link
+            href={`/${locale}/press`}
+            className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {nav("press")}
           </Link>
 
           <Link

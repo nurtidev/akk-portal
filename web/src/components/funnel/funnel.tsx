@@ -14,6 +14,8 @@ import { WhyAkk } from './why-akk';
 import { GoalCards } from './goal-cards';
 import { ProgramGrid } from './program-grid';
 import { HowSteps } from './how-steps';
+import { ChairmanTeaser } from './chairman-teaser';
+import { ConstitutionBanner } from './constitution-banner';
 import { SuccessStories } from './success-stories';
 import { Quiz } from './quiz';
 import { Results } from './results';
@@ -71,6 +73,8 @@ export function Funnel() {
         <GoalCards />
         <ProgramGrid />
         <HowSteps />
+        <ChairmanTeaser />
+        <ConstitutionBanner />
         <SuccessStories />
       </div>
 

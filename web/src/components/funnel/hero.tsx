@@ -31,11 +31,10 @@ export function Hero() {
   }, []);
 
   return (
-    // Высота первого экрана не должна зависеть от длины текстов локали:
-    // на десктопе hero занимает ровно вьюпорт минус шапка (h-16 + border),
-    // иначе на коротких текстах (ru) снизу выглядывала секция «Почему АКК».
-    // На мобиле фото скрыто — оставляем естественную высоту по контенту.
-    <section className="relative overflow-hidden md:flex md:min-h-[calc(100svh-65px)] md:items-center">
+    // Hero намеренно НЕ занимает весь экран: на десктопе он чуть ниже вьюпорта,
+    // чтобы под ним в тот же первый экран красиво вписалась полоса «Почему АКК»
+    // (hero + цифры = один экран). На мобиле фото скрыто — высота по контенту.
+    <section className="relative overflow-hidden md:flex md:min-h-[56svh] md:items-center">
       {/* Полноширинное фото: объект справа, слева — спокойная зона под текст.
           Светлая тема — день; тёмная — ночная версия с включёнными фарами
           («комбайн убирает в ночи»), плавный кросс-фейд при смене темы.
@@ -97,7 +96,7 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      <div className="container relative mx-auto w-full px-4 py-16 md:py-24 lg:py-28">
+      <div className="container relative mx-auto w-full px-4 py-10 md:py-12">
         <div className="max-w-xl">
           <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)]">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
@@ -127,23 +126,8 @@ export function Hero() {
               {t('ctaAlt')}
             </button>
           </div>
-
-          <div className="mt-10 grid max-w-lg grid-cols-3 gap-4">
-            <Stat value={t('stat1Value')} label={t('stat1Label')} />
-            <Stat value={t('stat2Value')} label={t('stat2Label')} />
-            <Stat value={t('stat3Value')} label={t('stat3Label')} />
-          </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <div className="font-display text-2xl font-bold text-[var(--primary)] md:text-3xl">{value}</div>
-      <div className="mt-1 text-xs leading-snug text-[var(--text-3)]">{label}</div>
-    </div>
   );
 }

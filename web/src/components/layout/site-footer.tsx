@@ -12,6 +12,8 @@ const SECTION_LINKS = [
   { slug: "faq", key: "faq" },
   { slug: "contacts", key: "contacts" },
   { slug: "partners", key: "partners" },
+  // Конституция РК — добавлена в волне 3 вместе с пунктом в шапке
+  { slug: "constitution", key: "constitution" },
 ] as const;
 
 /**
