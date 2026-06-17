@@ -71,8 +71,8 @@ export function Funnel() {
         <Hero />
         <WhyAkk />
         <GoalCards />
-        <ProgramGrid />
         <HowSteps />
+        <ProgramGrid />
         <ChairmanTeaser />
         <ConstitutionBanner />
         <SuccessStories />

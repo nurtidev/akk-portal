@@ -2,11 +2,15 @@
 
 // =====================================================
 // ===== Карточки целей «На что вам нужны средства?» ====
-// Стиль — карточки с фотообложкой сверху (фермерские фото) и текстом снизу.
-// Фото лежат в public/img/goals/<value>.jpg; если файла нет — мягкий фолбэк
-// на встроенную плоскую SVG-иллюстрацию.
+// Стиль — ряд «парящих» 3D-объектов (трактор/корова/росток…) на прозрачном
+// фоне страницы. Под каждым объектом — мягкий круг-пьедестал (тонкое
+// брендовое свечение + контактная тень), ниже подпись и CTA. Без тяжёлых
+// цветных панелей: объекты сами несут цвет, фон остаётся воздушным.
+// Прозрачный PNG лежит в public/img/goals/<value>.png; если файла нет —
+// мягкий фолбэк на встроенную плоскую SVG-иллюстрацию.
 // Клик = запуск квиза с предвыбранной целью (startQuizWith).
-// Тексты карточек берутся из вопроса квиза (единый источник правды).
+// Тексты берутся из вопроса квиза (единый источник правды).
+// Работает в светлой и тёмной теме.
 // =====================================================
 
 import { useEffect, useRef, useState } from 'react';
@@ -22,10 +26,10 @@ const purposeQuestion = QUESTIONS.find((q) => q.key === 'purpose');
 // Единая манера: плоская заливка 2–4 цветов, без тонких деталей.
 // Зелёный = var(--primary) / #07663D, золото = var(--accent) / #C9A21C
 // ------------------------------------------------------------------
-function GoalIllustration({ value }: { value: string }) {
+function GoalIllustration({ value, size = 72 }: { value: string; size?: number }) {
   const svgProps = {
-    width: 72,
-    height: 72,
+    width: size,
+    height: size,
     viewBox: '0 0 64 64',
     'aria-hidden': true,
     role: 'img' as const,
@@ -264,12 +268,27 @@ function GoalIllustration({ value }: { value: string }) {
 }
 
 // ------------------------------------------------------------------
-// Фотообложка цели: фермерское фото из public/img/goals/<value>.jpg во всю
-// ширину карточки (object-cover, фикс. высота, лёгкий зум по hover).
-// Пока файла нет (404 или битый файл) — мягкий фолбэк на встроенную SVG
-// на нейтральном фоне той же высоты.
+// Мягкий цветовой акцент пьедестала по целям — лёгкое брендовое свечение
+// под объектом (низкая непрозрачность, чтобы не спорить с самим объектом и
+// не сливаться: зелёный трактор — на тёплом золотом ореоле и т.п.).
 // ------------------------------------------------------------------
-function GoalCover({ value }: { value: string }) {
+const GOAL_ACCENT: Record<string, string> = {
+  vprir: '#C9A21C', // золото колосьев
+  livestock: '#0A8050', // зелень луга
+  feedlot: '#E8A020', // тёплый янтарь
+  investments: '#C9A21C', // золото под зелёный трактор (контраст)
+  working: '#C9A21C', // золото монет
+  micro: '#6FBF3B', // свежий росток
+};
+const GOAL_ACCENT_DEFAULT = '#0A8050';
+
+// ------------------------------------------------------------------
+// «Парящий» объект цели: прозрачный PNG из public/img/goals/<value>.png.
+// Пока файла нет (404 или битый файл) — мягкий фолбэк на встроенную
+// SVG-иллюстрацию того же размера. Лёгкий подъём+зум по hover — живость
+// (тень даёт пьедестал, не сам объект).
+// ------------------------------------------------------------------
+function GoalArt({ value }: { value: string }) {
   const [imgOk, setImgOk] = useState(true);
   const ref = useRef<HTMLImageElement | null>(null);
 
@@ -279,11 +298,17 @@ function GoalCover({ value }: { value: string }) {
     if (el && el.complete && el.naturalWidth === 0) setImgOk(false);
   }, []);
 
+  const artClass =
+    'relative z-10 h-[104px] w-[104px] object-contain ' +
+    'transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-hover:scale-[1.06] ' +
+    'motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 ' +
+    'md:h-[116px] md:w-[116px]';
+
   if (!imgOk) {
     return (
-      <div className="flex h-32 w-full items-center justify-center bg-[var(--bg)] md:h-36">
-        <GoalIllustration value={value} />
-      </div>
+      <span className={artClass + ' flex items-center justify-center'}>
+        <GoalIllustration value={value} size={110} />
+      </span>
     );
   }
 
@@ -291,10 +316,10 @@ function GoalCover({ value }: { value: string }) {
     // eslint-disable-next-line @next/next/no-img-element
     <img
       ref={ref}
-      src={`/img/goals/${value}.jpg`}
+      src={`/img/goals/${value}.png`}
       alt=""
       aria-hidden="true"
-      className="h-32 w-full object-cover transition-transform duration-300 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 md:h-36"
+      className={artClass}
       onError={() => setImgOk(false)}
     />
   );
@@ -320,14 +345,15 @@ export function GoalCards() {
       </div>
 
       {/*
-        Сетка: 2 колонки на мобиле, 3 на планшете, 3 на десктопе.
-        На широком экране можно выбрать 6 (lg:grid-cols-6), но 3 выглядит
-        аккуратнее с фотообложками — карточки не слишком мелкие.
+        Ряд «парящих» объектов. На десктопе (lg) — одна линия из 6 целей;
+        на планшете — 3 в ряд, на мобиле — 2. Объекты на прозрачном фоне,
+        под каждым — мягкий круг-пьедестал.
       */}
-      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+      <div className="mt-12 grid grid-cols-2 gap-x-2 gap-y-8 sm:grid-cols-3 sm:gap-x-4 md:mt-14 lg:grid-cols-6 lg:gap-x-3">
         {options.map((o) => {
           const label = purposeQuestion ? qt.optLabel(purposeQuestion, o.value) : o.label;
           const desc = purposeQuestion ? qt.optDesc(purposeQuestion, o.value) : undefined;
+          const accent = GOAL_ACCENT[o.value] ?? GOAL_ACCENT_DEFAULT;
 
           return (
             <button
@@ -335,57 +361,52 @@ export function GoalCards() {
               type="button"
               onClick={() => startQuizWith(o.value)}
               className={[
-                // Базовые стили карточки: светлый фон, рамка, скругление, тень.
-                // overflow-hidden — чтобы фотообложка не вылезала за скругление.
-                'group flex flex-col overflow-hidden text-left',
-                'rounded-[var(--radius-lg)]',
-                'border border-[var(--border)]',
-                'bg-[var(--surface)]',
-                'shadow-[var(--shadow-sm)]',
-                // Переходы
-                'transition-all duration-200',
-                // Hover: лёгкий подъём + усиление тени + акцентная рамка
-                'hover:-translate-y-0.5',
-                'hover:shadow-md',
-                'hover:border-[var(--primary)]',
-                // Фокус (доступность)
+                'group flex flex-col items-center text-center',
+                'rounded-[var(--radius-lg)] px-2 py-4',
+                'transition-colors duration-200',
+                'hover:bg-[var(--surface)]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2',
               ].join(' ')}
             >
-              {/* Фотообложка цели (фото или SVG-фолбэк) */}
-              <span className="block w-full">
-                <GoalCover value={o.value} />
+              {/* Объект + пьедестал */}
+              <span className="relative flex h-[140px] w-full items-end justify-center md:h-[150px]">
+                {/* Мягкий круг-пьедестал: брендовое свечение (radial). По hover ярче. */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute bottom-5 h-[88px] w-[88px] rounded-full opacity-70 blur-md transition-all duration-300 group-hover:scale-110 group-hover:opacity-100 md:h-[96px] md:w-[96px]"
+                  style={{ background: `radial-gradient(circle, ${accent}40 0%, ${accent}1a 45%, transparent 72%)` }}
+                />
+                {/* Контактная тень-эллипс — «приземляет» объект */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute bottom-4 h-3 w-20 rounded-[50%] bg-black/20 blur-md transition-all duration-300 group-hover:w-16 group-hover:opacity-70"
+                />
+                {/* Сам объект (PNG или SVG-фолбэк) */}
+                <GoalArt value={o.value} />
               </span>
 
-              {/* Текстовый блок под обложкой */}
-              <span className="flex flex-1 flex-col px-4 py-4">
-                {/* Название цели */}
-                <span className="block text-sm font-semibold leading-snug text-[var(--text)]">
-                  {label}
-                </span>
+              {/* Название цели */}
+              <span className="mt-1 block text-sm font-semibold leading-snug text-[var(--text)]">
+                {label}
+              </span>
 
-                {/* Описание — скрыто на очень узких экранах */}
-                {desc && (
-                  <span className="mt-1 hidden text-[11px] leading-snug text-[var(--text-3)] sm:block">
-                    {desc}
-                  </span>
-                )}
-
-                {/*
-                  CTA-ссылка — всегда видна (бледно), ярче по hover.
-                  Цвет: var(--primary), мелкий текст. mt-auto прижимает её книзу,
-                  чтобы CTA выровнялись в ряду при разной длине описаний.
-                */}
-                <span
-                  className={[
-                    'mt-3 block text-xs font-semibold',
-                    'text-[var(--primary)] opacity-60',
-                    'transition-opacity duration-200',
-                    'group-hover:opacity-100',
-                  ].join(' ')}
-                >
-                  {t('cta')} →
+              {/* Описание — скрыто на очень узких экранах */}
+              {desc && (
+                <span className="mt-1 hidden max-w-[18ch] text-[11px] leading-snug text-[var(--text-3)] sm:block">
+                  {desc}
                 </span>
+              )}
+
+              {/* CTA — бледная, ярче по hover */}
+              <span
+                className={[
+                  'mt-2 block text-xs font-semibold',
+                  'text-[var(--primary)] opacity-60',
+                  'transition-opacity duration-200',
+                  'group-hover:opacity-100',
+                ].join(' ')}
+              >
+                {t('cta')} →
               </span>
             </button>
           );
