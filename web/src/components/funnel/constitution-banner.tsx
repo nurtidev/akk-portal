@@ -9,7 +9,91 @@
 // =====================================================
 
 import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+
+// Фотореалистичная книга Конституции (прозрачный PNG) с фолбэком на
+// встроенную SVG-книгу, пока файла нет (404/битый). Тот же патторн, что у
+// карточек целей: onError может потеряться до гидратации — проверяем
+// naturalWidth.
+function ConstitutionImage() {
+  const [imgOk, setImgOk] = useState(true);
+  const ref = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (el && el.complete && el.naturalWidth === 0) setImgOk(false);
+  }, []);
+
+  if (imgOk) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        ref={ref}
+        src="/img/content/constitution.png"
+        alt=""
+        aria-hidden="true"
+        className="h-full w-full object-contain drop-shadow-[0_6px_12px_rgba(0,0,0,0.22)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100"
+        onError={() => setImgOk(false)}
+      />
+    );
+  }
+
+  return <BookFallback />;
+}
+
+// Встроенная SVG-книга в фирменных цветах (фолбэк).
+function BookFallback() {
+  return (
+    <svg
+      viewBox="0 0 80 96"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full"
+    >
+      {/* Тень под книгой */}
+      <ellipse cx="40" cy="91" rx="22" ry="3.5" fill="var(--border)" opacity="0.6" />
+
+      {/* Задняя страница (слегка смещена вправо-вверх) */}
+      <rect x="14" y="8" width="54" height="72" rx="4" fill="var(--primary)" opacity="0.18" />
+
+      {/* Основная обложка книги */}
+      <rect x="10" y="5" width="54" height="74" rx="4" fill="var(--primary)" />
+
+      {/* Корешок книги — тёмная полоска слева */}
+      <rect x="10" y="5" width="9" height="74" rx="4" fill="#054d2e" />
+      {/* Скругление корешка справа (поверх) */}
+      <rect x="15" y="5" width="4" height="74" fill="#054d2e" />
+
+      {/* Страницы — правый торец */}
+      <rect x="62" y="9" width="5" height="66" rx="2" fill="#f0ead6" />
+      <line x1="62" y1="14" x2="67" y2="14" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="20" x2="67" y2="20" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="26" x2="67" y2="26" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="32" x2="67" y2="32" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="38" x2="67" y2="38" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="44" x2="67" y2="44" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="50" x2="67" y2="50" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="56" x2="67" y2="56" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="62" x2="67" y2="62" stroke="#e0d8c4" strokeWidth="0.8" />
+      <line x1="62" y1="68" x2="67" y2="68" stroke="#e0d8c4" strokeWidth="0.8" />
+
+      {/* Акцентная горизонтальная полоса — золото */}
+      <rect x="19" y="22" width="34" height="4" rx="1.5" fill="var(--accent)" opacity="0.9" />
+
+      {/* Декоративные линии на обложке (имитация текста) */}
+      <rect x="19" y="32" width="26" height="2.5" rx="1.2" fill="white" opacity="0.35" />
+      <rect x="19" y="38" width="20" height="2.5" rx="1.2" fill="white" opacity="0.25" />
+      <rect x="19" y="44" width="28" height="2.5" rx="1.2" fill="white" opacity="0.2" />
+
+      {/* Нижняя золотая полоска */}
+      <rect x="19" y="62" width="34" height="3" rx="1.5" fill="var(--accent)" opacity="0.6" />
+
+      {/* Блик в левом верхнем углу обложки */}
+      <path d="M14 9 Q14 5 18 5 L26 5 Q16 8 14 17 Z" fill="white" opacity="0.06" />
+    </svg>
+  );
+}
 
 export function ConstitutionBanner() {
   const t = useTranslations('funnel.constitutionBanner');
@@ -34,55 +118,9 @@ export function ConstitutionBanner() {
         "
         aria-label={t('title')}
       >
-        {/* SVG-иллюстрация книги в фирменных цветах */}
-        <div className="flex-shrink-0 flex items-center justify-center w-16 h-20 md:w-20 md:h-24" aria-hidden="true">
-          <svg
-            viewBox="0 0 80 96"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full"
-          >
-            {/* Тень под книгой */}
-            <ellipse cx="40" cy="91" rx="22" ry="3.5" fill="var(--border)" opacity="0.6" />
-
-            {/* Задняя страница (слегка смещена вправо-вверх) */}
-            <rect x="14" y="8" width="54" height="72" rx="4" fill="var(--primary)" opacity="0.18" />
-
-            {/* Основная обложка книги */}
-            <rect x="10" y="5" width="54" height="74" rx="4" fill="var(--primary)" />
-
-            {/* Корешок книги — тёмная полоска слева */}
-            <rect x="10" y="5" width="9" height="74" rx="4" fill="#054d2e" />
-            {/* Скругление корешка справа (поверх) */}
-            <rect x="15" y="5" width="4" height="74" fill="#054d2e" />
-
-            {/* Страницы — правый торец */}
-            <rect x="62" y="9" width="5" height="66" rx="2" fill="#f0ead6" />
-            <line x1="62" y1="14" x2="67" y2="14" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="20" x2="67" y2="20" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="26" x2="67" y2="26" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="32" x2="67" y2="32" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="38" x2="67" y2="38" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="44" x2="67" y2="44" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="50" x2="67" y2="50" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="56" x2="67" y2="56" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="62" x2="67" y2="62" stroke="#e0d8c4" strokeWidth="0.8" />
-            <line x1="62" y1="68" x2="67" y2="68" stroke="#e0d8c4" strokeWidth="0.8" />
-
-            {/* Акцентная горизонтальная полоса — золото */}
-            <rect x="19" y="22" width="34" height="4" rx="1.5" fill="var(--accent)" opacity="0.9" />
-
-            {/* Декоративные линии на обложке (имитация текста) */}
-            <rect x="19" y="32" width="26" height="2.5" rx="1.2" fill="white" opacity="0.35" />
-            <rect x="19" y="38" width="20" height="2.5" rx="1.2" fill="white" opacity="0.25" />
-            <rect x="19" y="44" width="28" height="2.5" rx="1.2" fill="white" opacity="0.2" />
-
-            {/* Нижняя золотая полоска */}
-            <rect x="19" y="62" width="34" height="3" rx="1.5" fill="var(--accent)" opacity="0.6" />
-
-            {/* Блик в левом верхнем углу обложки */}
-            <path d="M14 9 Q14 5 18 5 L26 5 Q16 8 14 17 Z" fill="white" opacity="0.06" />
-          </svg>
+        {/* Фотореалистичная книга Конституции (PNG) с SVG-фолбэком */}
+        <div className="flex-shrink-0 flex items-center justify-center w-20 h-24 md:w-24 md:h-28" aria-hidden="true">
+          <ConstitutionImage />
         </div>
 
         {/* Текстовый блок */}
