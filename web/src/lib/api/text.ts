@@ -37,6 +37,17 @@ export function maskPhone(phone: string): string {
   return "+7 (" + d.slice(1, 4) + ") •••-••-" + d.slice(-2);
 }
 
+/**
+ * Маска ИИН: видны первые 4 и последние 2 цифры, середина — точки.
+ * Пример: 010640000111 → 0106••••••11. Короткие/нечисловые значения
+ * возвращаются как есть (нечего маскировать).
+ */
+export function maskIin(iin: string): string {
+  const d = onlyDigits(iin);
+  if (d.length < 7) return iin || "";
+  return d.slice(0, 4) + "•".repeat(d.length - 6) + d.slice(-2);
+}
+
 /** Разбор строки ФИО → {lastName, firstName, middleName}. */
 export function splitFio(fio: string): {
   lastName: string;
