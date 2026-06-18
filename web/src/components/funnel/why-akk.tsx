@@ -206,11 +206,6 @@ export function WhyAkk() {
 
   return (
     <section className="container mx-auto px-4 pb-14 md:pb-16" aria-label={t('title')}>
-      {/* Заголовок секции */}
-      <h2 className="mb-5 font-display text-2xl font-bold text-[var(--text)] md:mb-6 md:text-3xl">
-        {t('title')}
-      </h2>
-
       {/* Сетка карточек: 2 колонки на мобиле, 4 в один ряд на sm+ */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {items.map((it, i) => (
