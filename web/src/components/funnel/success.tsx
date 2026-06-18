@@ -5,12 +5,14 @@
 // renderSuccess из легаси (≈ 4301–4315). Номер заявки — из submit() (мок/трек D).
 // =====================================================
 
-import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { PROGRAMS } from '@/data/programs';
 import { useFunnel } from './funnel-context';
 
 export function Success() {
   const t = useTranslations('funnel.success');
+  const locale = useLocale();
   const { state, reset } = useFunnel();
   const p = state.selectedProgram ? PROGRAMS.find((x) => x.id === state.selectedProgram) : null;
 
@@ -27,13 +29,19 @@ export function Success() {
         {p ? t('textProgram', { title: p.title }) : t('text')}
       </p>
       <p className="mt-2 text-xs text-[var(--text-3)]">{t('urgent')}</p>
-      <div className="mt-6">
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <Link
+          href={`/${locale}/cabinet/applications`}
+          className="inline-flex h-12 items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] px-6 font-semibold text-white transition hover:bg-[var(--primary-2)]"
+        >
+          {t('toCabinet')}
+        </Link>
         <button
           type="button"
           onClick={reset}
           className="inline-flex h-12 items-center justify-center rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-6 font-semibold text-[var(--text-2)] transition hover:border-[var(--primary)]"
         >
-          {t('again')}
+          {t('back')}
         </button>
       </div>
     </div>
