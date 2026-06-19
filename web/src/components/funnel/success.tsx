@@ -31,7 +31,7 @@ export function Success() {
       <p className="mt-2 text-xs text-[var(--text-3)]">{t('urgent')}</p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         <Link
-          href={`/${locale}/cabinet/applications`}
+          href={`/${locale}/cabinet?tab=apps`}
           className="inline-flex h-12 items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] px-6 font-semibold text-white transition hover:bg-[var(--primary-2)]"
         >
           {t('toCabinet')}
