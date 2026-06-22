@@ -11,11 +11,22 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { AKK_STATS } from '@/data/akk-stats';
 import { useFunnel } from './funnel-context';
 
 export function Hero() {
   const t = useTranslations('funnel.hero');
+  const tw = useTranslations('funnel.whyAkk');
   const { startQuiz, requestConsultation } = useFunnel();
+
+  // Ключевые цифры — теперь прямо в hero, компактной строкой под кнопками
+  // (чтобы первый экран = hero + метрики). Источник тот же: akk-stats + i18n.
+  const stats: { value: string; label: string }[] = [
+    { value: AKK_STATS.portfolio, label: t('statPortfolioLabel') },
+    { value: AKK_STATS.clients, label: t('statClientsLabel') },
+    { value: AKK_STATS.financed, label: t('statFinancedLabel') },
+    { value: tw('b.value'), label: tw('b.label') }, // рейтинг Fitch BBB
+  ];
   const [photoOk, setPhotoOk] = useState(true);
   const [nightOk, setNightOk] = useState(true);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -35,7 +46,7 @@ export function Hero() {
     // высокий (≈первый вьюпорт), контент вертикально по центру. Фото справа
     // «тает» в фон страницы слева; на мобиле фото скрыто, фон — мягкий
     // брендовый градиент, чтобы экран не был пустым.
-    <section className="relative isolate flex w-full items-center overflow-hidden min-h-[60svh] md:min-h-[80svh]">
+    <section className="relative isolate flex w-full items-center overflow-hidden min-h-[calc(100svh-4rem)]">
       {/* Полноширинное фото: объект справа, слева — спокойная зона под текст.
           Светлая тема — день; тёмная — ночная версия с включёнными фарами
           («комбайн убирает в ночи»), плавный кросс-фейд при смене темы.
@@ -103,20 +114,20 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      <div className="container relative mx-auto w-full px-4 py-16 md:py-24">
+      <div className="container relative mx-auto w-full px-4 py-12 md:py-14">
         <div className="max-w-2xl">
           <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)]/80 px-3.5 py-1.5 text-xs font-medium text-[var(--text-2)] shadow-[var(--shadow-sm)] backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
             {t('eyebrow')}
           </span>
-          <h1 className="mt-6 font-display text-4xl font-bold leading-[1.07] tracking-tight text-[var(--text)] sm:text-5xl md:text-6xl">
+          <h1 className="mt-6 font-display text-4xl font-bold leading-[1.08] tracking-tight text-[var(--text)] sm:text-5xl">
             {t('titleStart')} <em className="not-italic text-[var(--primary)]">{t('titleEm')}</em>{' '}
             {t('titleEnd')}
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--text-2)] md:text-xl">
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--text-2)] md:text-lg">
             {t('lede')}
           </p>
-          <div className="mt-9 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3">
             <button
               type="button"
               onClick={startQuiz}
@@ -135,6 +146,21 @@ export function Hero() {
               {t('ctaAlt')}
             </button>
           </div>
+
+          {/* Метрики — компактной строкой под кнопками (на десктопе 4 в ряд,
+              на мобиле 2×2). Каждый показатель — с тонким брендовым акцентом слева. */}
+          <dl className="mt-8 grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-4">
+            {stats.map((s, i) => (
+              <div key={i} className="border-l-2 border-[var(--primary-soft)] pl-3">
+                <dt className="font-display text-lg font-bold leading-tight text-[var(--primary)] md:text-xl">
+                  {s.value}
+                </dt>
+                <dd className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[var(--text-3)]">
+                  {s.label}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </div>
     </section>

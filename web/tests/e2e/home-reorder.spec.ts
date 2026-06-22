@@ -14,7 +14,6 @@ import { test, expect, type Page } from '@playwright/test';
 test.use({ viewport: { width: 1280, height: 800 } });
 
 const SELECTOR_HEADING = 'На что вам нужны средства?';
-const METRICS_REGION = 'Почему АКК';
 
 /** Открыть /ru и дождаться селектора целей (теперь это первый экран). */
 async function openHome(page: Page) {
@@ -30,41 +29,37 @@ function selectorRegion(page: Page) {
 // --- 1. Порядок секций лендинга ----------------------------------------
 
 test.describe('Лендинг — новый порядок секций (v1)', () => {
-  test('hero сверху, затем intent-selector, затем метрики', async ({ page }) => {
+  test('hero сверху с метриками внутри, intent-selector ниже', async ({ page }) => {
     await openHome(page);
 
     const heroH1 = page.getByRole('heading', { level: 1 });
-    const selector = page.getByRole('heading', { name: SELECTOR_HEADING });
     const metric = page.getByText('Кредитный портфель', { exact: true });
+    const selector = page.getByRole('heading', { name: SELECTOR_HEADING });
 
     const heroBox = await heroH1.boundingBox();
-    const selBox = await selector.boundingBox();
     const metricBox = await metric.boundingBox();
+    const selBox = await selector.boundingBox();
 
     expect(heroBox, 'hero виден').not.toBeNull();
-    expect(selBox, 'селектор виден').not.toBeNull();
     expect(metricBox, 'метрики видны').not.toBeNull();
+    expect(selBox, 'селектор виден').not.toBeNull();
 
-    // Hero → селектор → метрики (сверху вниз).
-    expect(heroBox!.y).toBeLessThan(selBox!.y);
-    expect(selBox!.y).toBeLessThan(metricBox!.y);
+    // Заголовок hero → метрики (внутри hero, под кнопками) → селектор целей ниже.
+    expect(heroBox!.y).toBeLessThan(metricBox!.y);
+    expect(metricBox!.y).toBeLessThan(selBox!.y);
   });
 
-  test('полоса финансовых метрик присутствует (4 показателя)', async ({ page }) => {
+  test('финансовые метрики присутствуют под кнопками hero (4 показателя)', async ({ page }) => {
     await openHome(page);
-    const metrics = selectorRegionMetrics(page);
-    await expect(metrics.getByText('Кредитный портфель', { exact: true })).toBeVisible();
+    await expect(page.getByText('Кредитный портфель', { exact: true })).toBeVisible();
     await expect(
-      metrics.getByText('Клиентов получили финансирование', { exact: true }),
+      page.getByText('Клиентов получили финансирование', { exact: true }),
     ).toBeVisible();
-    await expect(metrics.getByText('Профинансировано за год', { exact: true })).toBeVisible();
+    await expect(page.getByText('Профинансировано за год', { exact: true })).toBeVisible();
+    // Рейтинг Fitch — 4-й показатель.
+    await expect(page.getByText('BBB', { exact: true })).toBeVisible();
   });
 });
-
-/** Регион полосы метрик (section aria-label = funnel.whyAkk.title). */
-function selectorRegionMetrics(page: Page) {
-  return page.getByRole('region', { name: METRICS_REGION });
-}
 
 // --- 2. Двухуровневая сетка целей --------------------------------------
 

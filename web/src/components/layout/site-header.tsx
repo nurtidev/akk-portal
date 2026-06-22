@@ -59,7 +59,7 @@ function NavDropdown({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="inline-flex items-center gap-1 text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+        className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
       >
         {label}
         <svg
@@ -166,29 +166,32 @@ export function SiteHeader() {
             </span>
           </Link>
 
-          {/* Навигация — скрываем на мобильных: 5 разделов (волна 3) */}
+          {/* Навигация — полный десктоп-режим с xl (≥1280); ниже — бургер.
+              5 разделов + логотип + действия + профиль не помещаются в одну
+              строку на ≤lg при залогиненном профиле (пункты переносились на
+              2 строки). whitespace-nowrap страхует каждый пункт от переноса. */}
           <nav
-            className="site-nav hidden md:flex items-center gap-6"
+            className="site-nav hidden xl:flex items-center gap-5"
             aria-label="Основная навигация"
           >
             <NavDropdown label={nav("corp")} items={corpItems} locale={locale} />
             <NavDropdown label={nav("clients")} items={clientsItems} locale={locale} />
             <Link
               href={`/${locale}/partners`}
-              className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+              className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
             >
               {nav("partners")}
             </Link>
             {/* Пресс-центр — верхний уровень (был в выпадашке «О корпорации», волна 3) */}
             <Link
               href={`/${locale}/press`}
-              className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+              className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
             >
               {nav("press")}
             </Link>
             <Link
               href={`/${locale}/contacts`}
-              className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+              className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
             >
               {nav("contacts")}
             </Link>
@@ -196,11 +199,12 @@ export function SiteHeader() {
 
           {/* Действия справа */}
           <div className="header-actions flex items-center gap-2">
-            {/* Тема и язык — на мобиле переезжают в бургер (шапка была перегружена) */}
-            <span className="hidden md:inline-flex">
+            {/* Тема и язык — вне полного десктоп-режима переезжают в бургер
+                (иначе шапка перегружена при залогиненном профиле). */}
+            <span className="hidden xl:inline-flex">
               <ThemeToggle />
             </span>
-            <span className="hidden md:inline-flex">
+            <span className="hidden xl:inline-flex">
               <LangSwitcher />
             </span>
 
@@ -221,8 +225,11 @@ export function SiteHeader() {
               >
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
               </svg>
-              {/* Полный текст ≥sm */}
-              <span className="hidden sm:inline">{t("callCenter")}</span>
+              {/* Полный текст «1408 · Колл-центр» — только на широких экранах (≥2xl),
+                  чтобы при полном десктоп-меню (xl) шапка не переполнялась. */}
+              <span className="hidden 2xl:inline">{t("callCenter")}</span>
+              {/* На xl показываем короткое «1408» рядом с иконкой. */}
+              <span className="hidden xl:inline 2xl:hidden">{t("callCenterShort")}</span>
             </a>
             {/* Короткий вариант 1408 на xs */}
             <a
@@ -236,10 +243,10 @@ export function SiteHeader() {
             {/* Слот авторизации — вход по SMS / SSO + кабинет (трек D) */}
             <AuthSlot />
 
-            {/* Бургер — только ≤md */}
+            {/* Бургер — пока не включён полный десктоп-режим (<xl) */}
             <button
               type="button"
-              className="md:hidden inline-flex items-center justify-center rounded-[var(--radius-sm)] p-2 text-[var(--text-2)] hover:text-[var(--primary)] hover:bg-[var(--primary-soft)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+              className="xl:hidden inline-flex items-center justify-center rounded-[var(--radius-sm)] p-2 text-[var(--text-2)] hover:text-[var(--primary)] hover:bg-[var(--primary-soft)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? nav("close") : nav("menu")}
               aria-expanded={mobileOpen}
@@ -279,10 +286,10 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Мобильное меню — раскрывается по бургеру ≤md */}
+      {/* Мобильное меню — раскрывается по бургеру (<xl) */}
       <nav
         id="mobile-nav"
-        className={`md:hidden border-t border-[var(--border)] bg-[var(--surface)] transition-all duration-200 ${
+        className={`xl:hidden border-t border-[var(--border)] bg-[var(--surface)] transition-all duration-200 ${
           mobileOpen ? "block" : "hidden"
         }`}
         aria-label="Мобильная навигация"

@@ -10,7 +10,6 @@
 
 import { useEffect, useRef } from 'react';
 import { Hero } from './hero';
-import { WhyAkk } from './why-akk';
 import { GoalCards } from './goal-cards';
 import { ProgramGrid } from './program-grid';
 import { HowSteps } from './how-steps';
@@ -79,12 +78,12 @@ export function Funnel() {
   return (
     <main id="main-content" className="flex-1">
       {/* Лендинг: hero + сетка программ — скрыты, когда воронка активна.
-          Порядок: полноэкранный hero первого вида → intent-selector (выбор цели →
-          преднастроенная воронка) → полоса финансовых метрик (trust) → далее. */}
+          Порядок: полноэкранный hero первого вида (с финансовыми метриками
+          под кнопками) → intent-selector (выбор цели → преднастроенная воронка)
+          → далее. Метрики теперь внутри hero, отдельной полосы WhyAkk нет. */}
       <div hidden={!isLanding}>
         <Hero />
         <GoalCards />
-        <WhyAkk />
         <HowSteps />
         <ProgramGrid />
         <ChairmanTeaser />
