@@ -26,7 +26,7 @@ import { Success } from './success';
 import { useFunnel } from './funnel-context';
 
 export function Funnel() {
-  const { state, startQuiz, setScreen } = useFunnel();
+  const { state, startQuiz, setScreen, reset } = useFunnel();
   const screen = state.screen;
   const isLanding = screen === 'landing';
   const flowRef = useRef<HTMLDivElement | null>(null);
@@ -54,6 +54,18 @@ export function Funnel() {
     return () => window.removeEventListener('hashchange', onHash);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Клик по логотипу (или иной ссылке «на главную») когда мы УЖЕ на /{locale}:
+  // роут не меняется, Next не перемонтирует страницу, поэтому экран воронки
+  // (квиз/результаты/визард) «залипал». Шапка шлёт событие — сбрасываем воронку
+  // в лендинг, чтобы логотип реально возвращал на главную из любого шага.
+  useEffect(() => {
+    const onGoHome = () => {
+      if (screenRef.current !== 'landing') reset();
+    };
+    window.addEventListener('akk:go-home', onGoHome);
+    return () => window.removeEventListener('akk:go-home', onGoHome);
+  }, [reset]);
 
   // При смене экрана воронки — мягкий скролл к активной секции (как showSection).
   useEffect(() => {

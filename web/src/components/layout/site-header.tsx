@@ -132,6 +132,15 @@ export function SiteHeader() {
           {/* Логотип */}
           <Link
             href={`/${locale}`}
+            onClick={() => {
+              // Уже на главной локали (/ru, /kk, /en): роут не меняется и Next
+              // не перемонтирует страницу, поэтому экран воронки сам не сбросится.
+              // Шлём событие — <Funnel/> вернётся на лендинг. На других страницах
+              // событие безвредно: слушателя нет, Link навигирует на главную как обычно.
+              if (pathname === `/${locale}`) {
+                window.dispatchEvent(new Event('akk:go-home'));
+              }
+            }}
             className="logo flex items-center gap-3 min-w-0 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
             aria-label="АКК — на главную"
           >
