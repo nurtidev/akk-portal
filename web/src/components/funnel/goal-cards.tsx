@@ -288,7 +288,7 @@ const GOAL_ACCENT_DEFAULT = '#0A8050';
 // SVG-иллюстрацию того же размера. Лёгкий подъём+зум по hover — живость
 // (тень даёт пьедестал, не сам объект).
 // ------------------------------------------------------------------
-function GoalArt({ value }: { value: string }) {
+function GoalArt({ value, small = false }: { value: string; small?: boolean }) {
   const [imgOk, setImgOk] = useState(true);
   const ref = useRef<HTMLImageElement | null>(null);
 
@@ -298,16 +298,21 @@ function GoalArt({ value }: { value: string }) {
     if (el && el.complete && el.naturalWidth === 0) setImgOk(false);
   }, []);
 
+  // Два размера: крупный (первый уровень плиток) и компактный (второй уровень).
+  const sizeClass = small
+    ? 'h-[72px] w-[72px] md:h-[80px] md:w-[80px]'
+    : 'h-[104px] w-[104px] md:h-[116px] md:w-[116px]';
+
   const artClass =
-    'relative z-10 h-[104px] w-[104px] object-contain ' +
-    'transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-hover:scale-[1.06] ' +
-    'motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100 ' +
-    'md:h-[116px] md:w-[116px]';
+    'relative z-10 object-contain ' +
+    sizeClass +
+    ' transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-hover:scale-[1.06] ' +
+    'motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100';
 
   if (!imgOk) {
     return (
       <span className={artClass + ' flex items-center justify-center'}>
-        <GoalIllustration value={value} size={110} />
+        <GoalIllustration value={value} size={small ? 80 : 110} />
       </span>
     );
   }
@@ -328,11 +333,21 @@ function GoalArt({ value }: { value: string }) {
 // ------------------------------------------------------------------
 // Основной компонент — секция с сеткой карточек
 // ------------------------------------------------------------------
+// Первый уровень — самые востребованные направления (по данным портфеля:
+// растениеводство/посевная → Кең дала 2 и животноводство). Остальные цели —
+// вторым, компактным уровнем. Значения совпадают с purpose-опциями квиза.
+const PRIMARY_GOALS = ['vprir', 'livestock'];
+
 export function GoalCards() {
   const t = useTranslations('funnel.goals');
   const qt = useQuestionL10n();
   const { startQuizWith } = useFunnel();
   const options = purposeQuestion?.options ?? [];
+
+  const primary = PRIMARY_GOALS.map((v) => options.find((o) => o.value === v)).filter(
+    (o): o is NonNullable<typeof o> => Boolean(o),
+  );
+  const secondary = options.filter((o) => !PRIMARY_GOALS.includes(o.value));
 
   return (
     <section className="container mx-auto px-4 pt-10 pb-16 md:pt-14 md:pb-20" aria-label={t('title')}>
@@ -345,12 +360,11 @@ export function GoalCards() {
       </div>
 
       {/*
-        Ряд «парящих» объектов. На десктопе (lg) — одна линия из 6 целей;
-        на планшете — 3 в ряд, на мобиле — 2. Объекты на прозрачном фоне,
-        под каждым — мягкий круг-пьедестал.
+        Первый уровень — две крупные плитки-панели (арт слева, текст + CTA справа).
+        Это самые частые цели по данным портфеля: посевная (Кең дала 2) и скот.
       */}
-      <div className="mt-12 grid grid-cols-2 gap-x-2 gap-y-8 sm:grid-cols-3 sm:gap-x-4 md:mt-14 lg:grid-cols-6 lg:gap-x-3">
-        {options.map((o) => {
+      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-12 md:gap-6">
+        {primary.map((o) => {
           const label = purposeQuestion ? qt.optLabel(purposeQuestion, o.value) : o.label;
           const desc = purposeQuestion ? qt.optDesc(purposeQuestion, o.value) : undefined;
           const accent = GOAL_ACCENT[o.value] ?? GOAL_ACCENT_DEFAULT;
@@ -361,51 +375,87 @@ export function GoalCards() {
               type="button"
               onClick={() => startQuizWith(o.value)}
               className={[
-                'group flex flex-col items-center text-center',
-                'rounded-[var(--radius-lg)] px-2 py-4',
-                'transition-colors duration-200',
-                'hover:bg-[var(--surface)]',
+                'group relative flex items-center gap-4 overflow-hidden text-left',
+                'rounded-[var(--radius-lg)] border border-[var(--border)]',
+                'bg-[var(--surface)] shadow-[var(--shadow-sm)]',
+                'p-5 md:p-6',
+                'transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2',
               ].join(' ')}
             >
-              {/* Объект + пьедестал */}
-              <span className="relative flex h-[140px] w-full items-end justify-center md:h-[150px]">
-                {/* Мягкий круг-пьедестал: брендовое свечение (radial). По hover ярче. */}
+              {/* Арт + пьедестал */}
+              <span className="relative flex h-[112px] w-[112px] flex-shrink-0 items-end justify-center md:h-[128px] md:w-[128px]">
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute bottom-5 h-[88px] w-[88px] rounded-full opacity-70 blur-md transition-all duration-300 group-hover:scale-110 group-hover:opacity-100 md:h-[96px] md:w-[96px]"
+                  className="pointer-events-none absolute bottom-3 h-[84px] w-[84px] rounded-full opacity-70 blur-md transition-all duration-300 group-hover:scale-110 group-hover:opacity-100 md:h-[96px] md:w-[96px]"
                   style={{ background: `radial-gradient(circle, ${accent}40 0%, ${accent}1a 45%, transparent 72%)` }}
                 />
-                {/* Контактная тень-эллипс — «приземляет» объект */}
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute bottom-4 h-3 w-20 rounded-[50%] bg-black/20 blur-md transition-all duration-300 group-hover:w-16 group-hover:opacity-70"
+                  className="pointer-events-none absolute bottom-2 h-3 w-20 rounded-[50%] bg-black/20 blur-md transition-all duration-300 group-hover:w-16 group-hover:opacity-70"
                 />
-                {/* Сам объект (PNG или SVG-фолбэк) */}
                 <GoalArt value={o.value} />
               </span>
 
+              {/* Текст + CTA */}
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="font-display text-lg font-bold leading-snug text-[var(--text)] md:text-xl">
+                  {label}
+                </span>
+                {desc && (
+                  <span className="mt-1.5 text-sm leading-snug text-[var(--text-3)]">{desc}</span>
+                )}
+                <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[var(--primary)] opacity-80 transition-opacity group-hover:opacity-100">
+                  {t('cta')} →
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/*
+        Второй уровень — остальные цели, компактным рядом «парящих» объектов.
+        2 в ряд на мобиле, 4 на sm+.
+      */}
+      <div className="mt-4 grid grid-cols-2 gap-x-2 gap-y-6 sm:grid-cols-4 sm:gap-x-3 md:mt-6">
+        {secondary.map((o) => {
+          const label = purposeQuestion ? qt.optLabel(purposeQuestion, o.value) : o.label;
+          const accent = GOAL_ACCENT[o.value] ?? GOAL_ACCENT_DEFAULT;
+
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => startQuizWith(o.value)}
+              className={[
+                'group flex flex-col items-center text-center',
+                'rounded-[var(--radius-lg)] px-2 py-3',
+                'transition-colors duration-200 hover:bg-[var(--surface)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2',
+              ].join(' ')}
+            >
+              {/* Объект + пьедестал (компактный) */}
+              <span className="relative flex h-[104px] w-full items-end justify-center">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute bottom-3 h-[66px] w-[66px] rounded-full opacity-60 blur-md transition-all duration-300 group-hover:scale-110 group-hover:opacity-90"
+                  style={{ background: `radial-gradient(circle, ${accent}40 0%, ${accent}1a 45%, transparent 72%)` }}
+                />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute bottom-2 h-2.5 w-16 rounded-[50%] bg-black/20 blur-md transition-all duration-300 group-hover:w-12 group-hover:opacity-70"
+                />
+                <GoalArt value={o.value} small />
+              </span>
+
               {/* Название цели */}
-              <span className="mt-1 block text-sm font-semibold leading-snug text-[var(--text)]">
+              <span className="mt-1 block text-xs font-semibold leading-snug text-[var(--text)] sm:text-sm">
                 {label}
               </span>
 
-              {/* Описание — скрыто на очень узких экранах */}
-              {desc && (
-                <span className="mt-1 hidden max-w-[18ch] text-[11px] leading-snug text-[var(--text-3)] sm:block">
-                  {desc}
-                </span>
-              )}
-
-              {/* CTA — бледная, ярче по hover */}
-              <span
-                className={[
-                  'mt-2 block text-xs font-semibold',
-                  'text-[var(--primary)] opacity-60',
-                  'transition-opacity duration-200',
-                  'group-hover:opacity-100',
-                ].join(' ')}
-              >
+              {/* CTA */}
+              <span className="mt-1.5 block text-[11px] font-semibold text-[var(--primary)] opacity-60 transition-opacity duration-200 group-hover:opacity-100">
                 {t('cta')} →
               </span>
             </button>
