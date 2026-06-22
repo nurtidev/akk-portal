@@ -125,12 +125,26 @@ func (h *Handler) sendCode(c echo.Context, iin, phone, purpose string) error {
 		return h.serverError(c, err)
 	}
 	resp := map[string]any{"sent": true}
+	// Маскированный телефон, на который ушёл код («подтянули номер из базы») —
+	// фронт показывает его на шаге ввода кода.
+	if masked := maskPhoneForResp(phone); masked != "" {
+		resp["phone"] = masked
+	}
 	if h.demoMode {
 		// Демо-режим: фронт сам подставит код в ячейки (без реальной SMS).
 		resp["demoCode"] = code
 		resp["debugCode"] = code // алиас для совместимости с локальными тестами
 	}
 	return c.JSON(http.StatusOK, resp)
+}
+
+// maskPhoneForResp маскирует телефон для ответа API: +7 700 ***67.
+func maskPhoneForResp(phone string) string {
+	d := onlyDigits(phone)
+	if len(d) < 6 {
+		return ""
+	}
+	return "+" + d[:1] + " " + d[1:4] + " ***" + d[len(d)-2:]
 }
 
 // verifySMS проверяет код. Для purpose=login дополнительно возвращает токены.

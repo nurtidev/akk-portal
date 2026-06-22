@@ -48,6 +48,12 @@ func main() {
 		}
 	}
 
+	// Сидинг фейковой «базы мобильных граждан» для демо-входа по ИИН
+	// (список — auth.DemoCitizens). Идемпотентно; безопасно при рестартах.
+	sctx, scancel := context.WithTimeout(context.Background(), 15*time.Second)
+	auth.SeedDemoCitizens(sctx, db, logger)
+	scancel()
+
 	sender := sms.New(cfg.SMSProvider, cfg.SMSURL, cfg.SMSLogin, cfg.SMSPassword, cfg.SMSOriginator, logger)
 	otp := auth.NewOTP(db, sender, cfg.OTPTTL, cfg.OTPRateLimit, cfg.OTPMaxPerHr)
 	issuer := auth.NewIssuer(cfg.JWTSecret, cfg.JWTIssuer, cfg.AccessTTL)

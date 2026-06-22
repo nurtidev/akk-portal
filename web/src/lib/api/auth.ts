@@ -14,6 +14,8 @@ export type SmsPurpose = "login" | "registration";
 /** Ответ sendCode: { sent, demoCode?, debugCode? } (demoCode только в DEMO_MODE). */
 export interface SendSmsResponse {
   sent?: boolean;
+  /** Маскированный телефон, на который ушёл код («подтянули из базы»): +7 700 ***67. */
+  phone?: string;
   /** Демо-код, если бэкенд в DEMO_MODE (фронт подставит его в ячейки OTP). */
   demoCode?: string;
   debugCode?: string;

@@ -24,13 +24,13 @@ import {
 } from "@/lib/api";
 import { useAuth, type AuthView } from "./auth-provider";
 import { OtpInput } from "./otp-input";
-import { SsoButtons } from "./sso-buttons";
 
 /** Контекст текущего флоу OTP. */
 interface OtpCtx {
   mode: "login" | "register";
   iin: string;
   phone: string; // +7XXXXXXXXXX для регистрации, '' для логина
+  maskedPhone?: string; // маскированный номер «из базы» для логина (с бэка)
   demoCode?: string;
   lastName?: string;
   firstName?: string;
@@ -142,7 +142,6 @@ function AuthBody({
     />
   ) : (
     <LoginForm
-      switchView={switchView}
       onSent={(c) => {
         setCtx(c);
         setStep("otp");
@@ -157,15 +156,14 @@ type TFn = ReturnType<typeof useTranslations>;
 // --- Вход по ИИН ---------------------------------------------------------
 
 function LoginForm({
-  switchView,
   onSent,
   t,
 }: {
-  switchView: (v: AuthView) => void;
   onSent: (ctx: OtpCtx) => void;
   t: TFn;
 }) {
   const [iin, setIin] = useState("");
+  const [consent, setConsent] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -173,6 +171,10 @@ function LoginForm({
     setErr("");
     if (iin.length !== 12) {
       setErr(t("auth.errIin"));
+      return;
+    }
+    if (!consent) {
+      setErr(t("auth.consentRequired"));
       return;
     }
     setBusy(true);
@@ -190,7 +192,8 @@ function LoginForm({
       setErr(errText(r, t("auth.errSms")));
       return;
     }
-    onSent({ mode: "login", iin, phone: "", demoCode: r.data?.demoCode });
+    // maskedPhone — «подтянутый из базы» номер, фронт покажет его на шаге кода.
+    onSent({ mode: "login", iin, phone: "", maskedPhone: r.data?.phone, demoCode: r.data?.demoCode });
   }
 
   return (
@@ -212,30 +215,27 @@ function LoginForm({
           className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[15px] text-[var(--text)] tracking-wider focus-visible:outline-none focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
         />
       </div>
+
+      {/* Согласие на обработку персональных данных — обязательно перед отправкой кода */}
+      <label className="mt-4 flex cursor-pointer select-none items-start gap-2.5">
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+          className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+        />
+        <span className="text-xs leading-snug text-[var(--text-2)]">{t("auth.consentLabel")}</span>
+      </label>
+
       {err && <p className="mt-2 text-sm text-[var(--danger)]">{err}</p>}
       <button
         type="button"
         onClick={submit}
-        disabled={busy}
-        className="mt-5 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary-2,#247035)] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+        disabled={busy || !consent || iin.length !== 12}
+        className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary-2,#247035)] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
       >
         {busy ? t("auth.sending") : t("auth.getCode")}
       </button>
-
-      <p className="mt-3 text-center text-sm text-[var(--text-3)]">
-        {t("auth.noAccount")}{" "}
-        <button
-          type="button"
-          onClick={() => switchView("register")}
-          className="font-semibold text-[var(--primary)] hover:underline"
-        >
-          {t("auth.toRegister")}
-        </button>
-      </p>
-
-      <SsoDivider t={t} />
-      {/* SsoButtons сам вызывает completeLogin через useAuth. */}
-      <SsoButtons />
     </div>
   );
 }
@@ -444,7 +444,7 @@ function OtpStep({
     onResend({ ...ctx, demoCode: r.data?.demoCode });
   }
 
-  const where = maskPhone(ctx.phone) || t("auth.linkedNumber");
+  const where = ctx.maskedPhone || maskPhone(ctx.phone) || t("auth.linkedNumber");
 
   return (
     <div>
@@ -492,12 +492,3 @@ function OtpStep({
   );
 }
 
-function SsoDivider({ t }: { t: TFn }) {
-  return (
-    <div className="my-5 flex items-center gap-3 text-[11px] font-medium uppercase tracking-wider text-[var(--text-3)]">
-      <span className="h-px flex-1 bg-[var(--border-soft)]" />
-      {t("auth.or")}
-      <span className="h-px flex-1 bg-[var(--border-soft)]" />
-    </div>
-  );
-}
