@@ -58,6 +58,13 @@ test.describe('Лендинг — новый порядок секций (v1)', 
     await expect(page.getByText('Профинансировано за год', { exact: true })).toBeVisible();
     // Рейтинг Fitch — 4-й показатель.
     await expect(page.getByText('BBB', { exact: true })).toBeVisible();
+
+    // Сумма «1 362,5 млрд ₸» — в одну строку (не переносится).
+    const portfolioValue = page.getByText('1 362,5 млрд ₸', { exact: true });
+    await expect(portfolioValue).toBeVisible();
+    const box = await portfolioValue.boundingBox();
+    expect(box, 'значение видно').not.toBeNull();
+    expect(box!.height, 'сумма в одну строку').toBeLessThan(30);
   });
 });
 

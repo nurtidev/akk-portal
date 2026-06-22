@@ -141,21 +141,22 @@ export function Hero() {
             <button
               type="button"
               onClick={requestConsultation}
-              className="inline-flex h-[52px] items-center justify-center rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]/80 px-7 text-base font-semibold text-[var(--text-2)] backdrop-blur transition hover:border-[var(--primary)] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
+              className="inline-flex h-[52px] items-center justify-center rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-7 text-base font-semibold text-[var(--text)] shadow-[var(--shadow-sm)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
             >
               {t('ctaAlt')}
             </button>
           </div>
 
           {/* Метрики — компактной строкой под кнопками (на десктопе 4 в ряд,
-              на мобиле 2×2). Каждый показатель — с тонким брендовым акцентом слева. */}
+              на мобиле 2×2). Каждый показатель — с брендовым акцентом слева.
+              Значение — в одну строку (whitespace-nowrap), подпись — контрастная. */}
           <dl className="mt-8 grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-4">
             {stats.map((s, i) => (
-              <div key={i} className="border-l-2 border-[var(--primary-soft)] pl-3">
-                <dt className="font-display text-lg font-bold leading-tight text-[var(--primary)] md:text-xl">
+              <div key={i} className="border-l-2 border-[var(--primary)] pl-3">
+                <dt className="whitespace-nowrap font-display text-base font-bold leading-tight text-[var(--primary)] md:text-lg">
                   {s.value}
                 </dt>
-                <dd className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[var(--text-3)]">
+                <dd className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-[var(--text-2)]">
                   {s.label}
                 </dd>
               </div>
