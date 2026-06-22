@@ -66,11 +66,14 @@ export function Funnel() {
 
   return (
     <main id="main-content" className="flex-1">
-      {/* Лендинг: hero + сетка программ — скрыты, когда воронка активна */}
+      {/* Лендинг: hero + сетка программ — скрыты, когда воронка активна.
+          Порядок (data-driven): сначала intent-selector (выбор цели → преднастроенная
+          воронка), сразу под ним — полоса финансовых метрик (trust), затем hero ниже.
+          92% заёмщиков — частники/ИП, сегментация по цели/отрасли важнее формы собственности. */}
       <div hidden={!isLanding}>
-        <Hero />
-        <WhyAkk />
         <GoalCards />
+        <WhyAkk />
+        <Hero />
         <HowSteps />
         <ProgramGrid />
         <ChairmanTeaser />
