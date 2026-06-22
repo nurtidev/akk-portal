@@ -51,4 +51,20 @@ test.describe('Демо-вход по ИИН', () => {
     await consent.uncheck();
     await expect(getCode).toBeDisabled();
   });
+
+  test('в согласии есть ссылка на политику ПДн → /ru/privacy', async ({ page }) => {
+    await openLogin(page);
+    const link = page.getByRole('link', { name: 'Политика обработки персональных данных' });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', '/ru/privacy');
+  });
+
+  test('страница политики ПДн открывается (не 404)', async ({ page }) => {
+    await page.goto('/ru/privacy');
+    await expect(
+      page.getByRole('heading', { name: 'Политика обработки персональных данных', level: 1 }),
+    ).toBeVisible();
+    // Ключевые разделы присутствуют.
+    await expect(page.getByRole('heading', { name: 'Ваши права' })).toBeVisible();
+  });
 });

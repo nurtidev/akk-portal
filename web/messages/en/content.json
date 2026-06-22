@@ -3,6 +3,42 @@
     "breadcrumbs": {
       "home": "Home"
     },
+    "privacy": {
+      "meta": {
+        "title": "Personal Data Processing Policy — AKK",
+        "description": "How the Agrarian Credit Corporation collects, uses and protects personal data."
+      },
+      "title": "Personal Data Processing Policy",
+      "subtitle": "How we collect, use and protect your data",
+      "intro": "Agrarian Credit Corporation (AKK) processes personal data in accordance with the Law of the Republic of Kazakhstan “On Personal Data and Its Protection”. This policy describes what data we collect, for what purposes, and what rights you have.",
+      "dataTitle": "What data we process",
+      "dataItems": [
+        "Identification data: IIN, full name, date of birth",
+        "Contact data: phone number, email address",
+        "Application review data — from government information systems and the credit bureau (only with your consent)"
+      ],
+      "purposeTitle": "Purposes of processing",
+      "purposeItems": [
+        "Identification and sign-in to the personal account (SMS code confirmation)",
+        "Loan program matching and application review",
+        "Contacting you regarding your request",
+        "Compliance with the legislation of the Republic of Kazakhstan"
+      ],
+      "basisTitle": "Legal basis",
+      "basisText": "Processing is carried out on the basis of your consent, as well as to perform a contract and comply with the legislation of the Republic of Kazakhstan. Consent may be withdrawn at any time via the AKK contact center.",
+      "rightsTitle": "Your rights",
+      "rightsItems": [
+        "Obtain information about the processing of your personal data",
+        "Request clarification, blocking or destruction of data",
+        "Withdraw previously given consent",
+        "Appeal the operator's actions to the authorized personal data protection body"
+      ],
+      "contactsTitle": "Personal data contacts",
+      "contactsText": "For personal data matters, contact the AKK contact center.",
+      "phoneLabel": "Contact center",
+      "phone": "1408",
+      "note": "The current version of the policy is approved by AKK and published on the official website."
+    },
     "about": {
       "meta": {
         "title": "About — ACC",

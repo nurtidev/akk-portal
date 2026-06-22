@@ -34,6 +34,7 @@
       "linkedNumber": "привязанный к ИИН номер",
       "consentLabel": "I agree to the processing of personal data and receiving a login SMS code",
       "consentRequired": "Please confirm consent to personal data processing to continue",
+      "consentPolicyLink": "Personal data processing policy",
       "noAccount": "Нет аккаунта?",
       "toRegister": "Регистрация",
       "haveAccount": "Уже есть аккаунт?",

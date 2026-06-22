@@ -8,7 +8,8 @@
 // =====================================================
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import Link from "next/link";
 import { createPortal } from "react-dom";
 import {
   checkBmgAndSendSmsForRegister,
@@ -162,6 +163,7 @@ function LoginForm({
   onSent: (ctx: OtpCtx) => void;
   t: TFn;
 }) {
+  const locale = useLocale();
   const [iin, setIin] = useState("");
   const [consent, setConsent] = useState(false);
   const [err, setErr] = useState("");
@@ -224,7 +226,17 @@ function LoginForm({
           onChange={(e) => setConsent(e.target.checked)}
           className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
         />
-        <span className="text-xs leading-snug text-[var(--text-2)]">{t("auth.consentLabel")}</span>
+        <span className="text-xs leading-snug text-[var(--text-2)]">
+          {t("auth.consentLabel")}{" "}
+          <Link
+            href={`/${locale}/privacy`}
+            target="_blank"
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium text-[var(--primary)] underline hover:no-underline"
+          >
+            {t("auth.consentPolicyLink")}
+          </Link>
+        </span>
       </label>
 
       {err && <p className="mt-2 text-sm text-[var(--danger)]">{err}</p>}
