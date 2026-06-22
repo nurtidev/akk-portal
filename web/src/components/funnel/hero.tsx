@@ -25,7 +25,7 @@ export function Hero() {
     { value: AKK_STATS.portfolio, label: t('statPortfolioLabel') },
     { value: AKK_STATS.clients, label: t('statClientsLabel') },
     { value: AKK_STATS.financed, label: t('statFinancedLabel') },
-    { value: tw('b.value'), label: tw('b.label') }, // рейтинг Fitch BBB
+    { value: tw('b.value'), label: t('statRatingLabel') }, // рейтинг Fitch BBB (короткая подпись для hero)
   ];
   const [photoOk, setPhotoOk] = useState(true);
   const [nightOk, setNightOk] = useState(true);
