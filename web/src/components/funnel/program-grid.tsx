@@ -19,6 +19,25 @@ import { ProgramIcon } from './program-media';
 import { RateDisplay } from './rate-display';
 import { applyGlossary } from './glossary';
 
+// Склонение русского «год/года/лет» (для kk все формы = «жыл», для en — yr/yrs).
+function ruPluralForm(n: number): 'One' | 'Few' | 'Many' {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return 'One';
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'Few';
+  return 'Many';
+}
+
+// Срок: целые годы (≥24 мес, кратно 12) — в годах с правильным склонением,
+// иначе в месяцах. Решает путаницу «144 мес» вместо «12 лет» (фидбэк фермеров).
+function formatTerm(months: number, t: (key: string) => string): string {
+  if (months >= 24 && months % 12 === 0) {
+    const years = months / 12;
+    return `${years} ${t('year' + ruPluralForm(years))}`;
+  }
+  return `${months} ${t('months')}`;
+}
+
 function StarIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -97,7 +116,7 @@ function ProgramTile({ p, onOpen }: { p: Program; onOpen: (id: string) => void }
           <div className="flex justify-between">
             <dt className="text-[var(--text-3)]">{t('termUpTo')}</dt>
             <dd className="font-semibold text-[var(--text)]">
-              {p.maxTerm} {t('months')}
+              {formatTerm(p.maxTerm, t)}
             </dd>
           </div>
         </dl>
@@ -136,7 +155,7 @@ function ProgramModalBody({ p, onApply }: { p: Program; onApply: (id: string) =>
         <div>
           <div className="text-xs text-[var(--text-3)]">{t('termUpTo')}</div>
           <div className="mt-0.5 text-sm font-bold text-[var(--text)]">
-            {p.maxTerm} {t('months')}
+            {formatTerm(p.maxTerm, t)}
           </div>
         </div>
       </div>

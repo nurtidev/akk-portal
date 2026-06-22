@@ -184,9 +184,6 @@ export function SiteFooter() {
             color: "rgba(255,255,255,0.45)",
           }}
         >
-          <strong style={{ color: "rgba(255,255,255,0.6)" }}>
-            Демо-прототип онбординга.{" "}
-          </strong>
           {t("disclaimer")}
         </div>
       </div>
