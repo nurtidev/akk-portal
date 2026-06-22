@@ -30,24 +30,24 @@ function selectorRegion(page: Page) {
 // --- 1. Порядок секций лендинга ----------------------------------------
 
 test.describe('Лендинг — новый порядок секций (v1)', () => {
-  test('intent-selector выше метрик, метрики выше hero', async ({ page }) => {
+  test('hero сверху, затем intent-selector, затем метрики', async ({ page }) => {
     await openHome(page);
 
+    const heroH1 = page.getByRole('heading', { level: 1 });
     const selector = page.getByRole('heading', { name: SELECTOR_HEADING });
     const metric = page.getByText('Кредитный портфель', { exact: true });
-    const heroH1 = page.getByRole('heading', { level: 1 });
 
+    const heroBox = await heroH1.boundingBox();
     const selBox = await selector.boundingBox();
     const metricBox = await metric.boundingBox();
-    const heroBox = await heroH1.boundingBox();
 
+    expect(heroBox, 'hero виден').not.toBeNull();
     expect(selBox, 'селектор виден').not.toBeNull();
     expect(metricBox, 'метрики видны').not.toBeNull();
-    expect(heroBox, 'hero виден').not.toBeNull();
 
-    // Селектор → метрики → hero (сверху вниз).
+    // Hero → селектор → метрики (сверху вниз).
+    expect(heroBox!.y).toBeLessThan(selBox!.y);
     expect(selBox!.y).toBeLessThan(metricBox!.y);
-    expect(metricBox!.y).toBeLessThan(heroBox!.y);
   });
 
   test('полоса финансовых метрик присутствует (4 показателя)', async ({ page }) => {

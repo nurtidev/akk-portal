@@ -31,10 +31,11 @@ export function Hero() {
   }, []);
 
   return (
-    // Hero намеренно НЕ занимает весь экран: на десктопе он чуть ниже вьюпорта,
-    // чтобы под ним в тот же первый экран красиво вписалась полоса «Почему АКК»
-    // (hero + цифры = один экран). На мобиле фото скрыто — высота по контенту.
-    <section className="relative overflow-hidden md:flex md:min-h-[56svh] md:items-center">
+    // Полноэкранный hero первого вида: на всю ширину страницы (full-bleed),
+    // высокий (≈первый вьюпорт), контент вертикально по центру. Фото справа
+    // «тает» в фон страницы слева; на мобиле фото скрыто, фон — мягкий
+    // брендовый градиент, чтобы экран не был пустым.
+    <section className="relative isolate flex w-full items-center overflow-hidden min-h-[60svh] md:min-h-[80svh]">
       {/* Полноширинное фото: объект справа, слева — спокойная зона под текст.
           Светлая тема — день; тёмная — ночная версия с включёнными фарами
           («комбайн убирает в ночи»), плавный кросс-фейд при смене темы.
@@ -61,57 +62,65 @@ export function Hero() {
           onError={() => setNightOk(false)}
         />
       )}
-      {/* Градиент-«перетекание»: фото тает в фон страницы слева (и сверху чуть-чуть) */}
+      {/* Градиент-«перетекание»: фото тает в фон страницы слева (десктоп) */}
       {photoOk && (
         <div
           className="absolute inset-0 hidden md:block"
           style={{
             background:
-              'linear-gradient(90deg, var(--bg) 0%, var(--bg) 34%, color-mix(in srgb, var(--bg) 55%, transparent) 52%, transparent 72%)',
+              'linear-gradient(90deg, var(--bg) 0%, var(--bg) 32%, color-mix(in srgb, var(--bg) 58%, transparent) 50%, transparent 72%)',
           }}
           aria-hidden="true"
         />
       )}
-      {/* Нижнее растворение: без него фото обрывалось жёсткой линией о следующую
-          секцию (слева спасал боковой градиент, справа линия была голой) */}
-      {photoOk && (
-        <div
-          className="absolute inset-x-0 bottom-0 hidden h-32 md:block"
-          style={{
-            background:
-              'linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 60%, transparent) 50%, transparent 100%)',
-          }}
-          aria-hidden="true"
-        />
-      )}
+      {/* Мобильный фон: мягкий брендовый градиент (фото на мобиле скрыто) */}
+      <div
+        className="absolute inset-0 md:hidden"
+        style={{
+          background:
+            'radial-gradient(130% 90% at 100% 0%, var(--primary-soft) 0%, transparent 55%), linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%)',
+        }}
+        aria-hidden="true"
+      />
+      {/* Нижнее растворение в следующую секцию (мягкий стык) */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-24 md:h-36"
+        style={{
+          background:
+            'linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 55%, transparent) 55%, transparent 100%)',
+        }}
+        aria-hidden="true"
+      />
       {/* Орнамент — в текстовой зоне */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
         style={{
           backgroundImage: 'url(/ornament.svg)',
           backgroundSize: '120px',
-          maskImage: 'linear-gradient(90deg, black 0%, black 40%, transparent 65%)',
-          WebkitMaskImage: 'linear-gradient(90deg, black 0%, black 40%, transparent 65%)',
+          maskImage: 'linear-gradient(90deg, black 0%, black 42%, transparent 66%)',
+          WebkitMaskImage: 'linear-gradient(90deg, black 0%, black 42%, transparent 66%)',
         }}
         aria-hidden="true"
       />
 
-      <div className="container relative mx-auto w-full px-4 py-10 md:py-12">
-        <div className="max-w-xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)]">
+      <div className="container relative mx-auto w-full px-4 py-16 md:py-24">
+        <div className="max-w-2xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)]/80 px-3.5 py-1.5 text-xs font-medium text-[var(--text-2)] shadow-[var(--shadow-sm)] backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
             {t('eyebrow')}
           </span>
-          <h1 className="mt-5 font-display text-4xl font-bold leading-tight text-[var(--text)] md:text-5xl">
+          <h1 className="mt-6 font-display text-4xl font-bold leading-[1.07] tracking-tight text-[var(--text)] sm:text-5xl md:text-6xl">
             {t('titleStart')} <em className="not-italic text-[var(--primary)]">{t('titleEm')}</em>{' '}
             {t('titleEnd')}
           </h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-[var(--text-2)]">{t('lede')}</p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--text-2)] md:text-xl">
+            {t('lede')}
+          </p>
+          <div className="mt-9 flex flex-wrap gap-3">
             <button
               type="button"
               onClick={startQuiz}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius)] bg-[var(--primary)] px-6 font-semibold text-white transition hover:bg-[var(--primary-2)]"
+              className="inline-flex h-[52px] items-center justify-center gap-2 rounded-[var(--radius)] bg-[var(--primary)] px-7 text-base font-semibold text-white shadow-[var(--shadow-sm)] transition hover:bg-[var(--primary-2)] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
             >
               {t('cta')}
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -121,7 +130,7 @@ export function Hero() {
             <button
               type="button"
               onClick={requestConsultation}
-              className="inline-flex h-12 items-center justify-center rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-6 font-semibold text-[var(--text-2)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              className="inline-flex h-[52px] items-center justify-center rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]/80 px-7 text-base font-semibold text-[var(--text-2)] backdrop-blur transition hover:border-[var(--primary)] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
             >
               {t('ctaAlt')}
             </button>
