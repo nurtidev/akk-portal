@@ -49,6 +49,12 @@ test.describe('Лендинг — новый порядок секций (v1)', 
     expect(metricBox!.y).toBeLessThan(selBox!.y);
   });
 
+  test('футер без «Демо-прототип» (доверие)', async ({ page }) => {
+    await openHome(page);
+    // Надпись «Демо-прототип онбординга» убита везде (футер + дисклеймер).
+    await expect(page.getByText(/Демо-прототип/)).toHaveCount(0);
+  });
+
   test('финансовые метрики присутствуют под кнопками hero (4 показателя)', async ({ page }) => {
     await openHome(page);
     await expect(page.getByText('Кредитный портфель', { exact: true })).toBeVisible();

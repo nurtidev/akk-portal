@@ -12,7 +12,11 @@ import type { Program } from '@/data/programs';
 
 export function RateDisplay({ program }: { program: Pick<Program, 'rate' | 'rateRange' | 'rateTip'> }) {
   const r = fmtRate(program);
-  if (!r.hasRange) {
+  // Тултип показываем при диапазоне (≈%) ИЛИ когда у программы есть пояснение к
+  // ставке (rateTip) — даже у субсидируемых «от %» (прозрачность ставки).
+  // Видимый текст (r.text) не меняется — паритет с легаси сохранён.
+  const tip = r.hasRange ? r.tip : program.rateTip;
+  if (!tip) {
     return <span>{r.text}</span>;
   }
   return (
@@ -31,7 +35,7 @@ export function RateDisplay({ program }: { program: Pick<Program, 'rate' | 'rate
           sideOffset={6}
           className="z-[120] max-w-[260px] rounded-[var(--radius-sm)] bg-[var(--text)] px-3 py-2 text-xs leading-snug text-[var(--bg)] shadow-lg"
         >
-          {r.tip}
+          {tip}
           <Tooltip.Arrow className="fill-[var(--text)]" />
         </Tooltip.Content>
       </Tooltip.Portal>
