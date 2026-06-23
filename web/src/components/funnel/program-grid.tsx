@@ -12,12 +12,13 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import * as Dialog from '@radix-ui/react-dialog';
-import { PROGRAMS, PROGRAM_DETAILS, type Program } from '@/data/programs';
+import { PROGRAMS, type Program } from '@/data/programs';
 import { fmtAmount } from '@/lib/format';
 import { useFunnel } from './funnel-context';
 import { ProgramIcon } from './program-media';
 import { RateDisplay } from './rate-display';
 import { applyGlossary } from './glossary';
+import { useProgramL10n } from './use-program-l10n';
 
 // Склонение русского «год/года/лет» (для kk все формы = «жыл», для en — yr/yrs).
 function ruPluralForm(n: number): 'One' | 'Few' | 'Many' {
@@ -46,8 +47,9 @@ function StarIcon() {
   );
 }
 
-function ProgramTile({ p, onOpen }: { p: Program; onOpen: (id: string) => void }) {
+function ProgramTile({ p: pRaw, onOpen }: { p: Program; onOpen: (id: string) => void }) {
   const t = useTranslations('funnel.programs');
+  const p = useProgramL10n().localize(pRaw);
   return (
     <div
       role="button"
@@ -125,9 +127,11 @@ function ProgramTile({ p, onOpen }: { p: Program; onOpen: (id: string) => void }
   );
 }
 
-function ProgramModalBody({ p, onApply }: { p: Program; onApply: (id: string) => void }) {
+function ProgramModalBody({ p: pRaw, onApply }: { p: Program; onApply: (id: string) => void }) {
   const t = useTranslations('funnel.programs');
-  const d = PROGRAM_DETAILS[p.id];
+  const lp = useProgramL10n();
+  const p = lp.localize(pRaw);
+  const d = lp.detail(pRaw.id);
   if (!d) return null;
   return (
     <>

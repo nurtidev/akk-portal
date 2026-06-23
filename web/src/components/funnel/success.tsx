@@ -9,11 +9,13 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { PROGRAMS } from '@/data/programs';
 import { useFunnel } from './funnel-context';
+import { useProgramL10n } from './use-program-l10n';
 
 export function Success() {
   const t = useTranslations('funnel.success');
   const locale = useLocale();
   const { state, reset } = useFunnel();
+  const lp = useProgramL10n();
   const p = state.selectedProgram ? PROGRAMS.find((x) => x.id === state.selectedProgram) : null;
 
   return (
@@ -26,7 +28,7 @@ export function Success() {
         {t('numberLabel')} <strong className="text-[var(--text)]">{state.leadNumber}</strong>
       </div>
       <p className="mt-3 text-sm leading-relaxed text-[var(--text-2)]">
-        {p ? t('textProgram', { title: p.title }) : t('text')}
+        {p ? t('textProgram', { title: lp.title(p.id, p.title) }) : t('text')}
       </p>
       <p className="mt-2 text-xs text-[var(--text-3)]">{t('urgent')}</p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

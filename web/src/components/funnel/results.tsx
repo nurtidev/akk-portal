@@ -21,6 +21,7 @@ import { RateDisplay } from './rate-display';
 import { applyGlossary } from './glossary';
 import { WhyMatch } from './why-match';
 import { Calculator } from './calculator';
+import { useProgramL10n } from './use-program-l10n';
 
 function ResultCard({
   program,
@@ -38,7 +39,7 @@ function ResultCard({
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? 'ru';
   const [pdfLoading, setPdfLoading] = useState(false);
-  const p = program;
+  const p = useProgramL10n().localize(program);
 
   const handleDownloadPdf = async () => {
     setPdfLoading(true);

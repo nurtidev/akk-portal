@@ -18,6 +18,7 @@ import { PROGRAMS } from '@/data/programs';
 import { fmtAmount } from '@/lib/format';
 import { calculateSchedule } from '@/lib/schedule';
 import { useFunnel } from './funnel-context';
+import { useProgramL10n } from './use-program-l10n';
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider';
 import { AuthModal } from '@/components/auth/auth-modal';
 
@@ -40,7 +41,9 @@ function ApplyWizardInner() {
   const t = useTranslations('funnel.wizard');
   const { user, openAuth } = useAuth();
   const { state, setScreen, submit } = useFunnel();
-  const program = state.selectedProgram ? PROGRAMS.find((p) => p.id === state.selectedProgram) : null;
+  const lp = useProgramL10n();
+  const programRaw = state.selectedProgram ? PROGRAMS.find((p) => p.id === state.selectedProgram) : null;
+  const program = programRaw ? lp.localize(programRaw) : null;
   const calc = state.selectedProgram ? state.calc[state.selectedProgram] : undefined;
 
   const [step, setStep] = useState(0);

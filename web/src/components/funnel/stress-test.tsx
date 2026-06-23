@@ -15,6 +15,7 @@ import { FAJR_NORMS, type AnimalType } from '@/data/fajr-norms';
 import { fmtAmount } from '@/lib/format';
 import type { StressState } from './funnel-state';
 import { useFunnel } from './funnel-context';
+import { useProgramL10n } from './use-program-l10n';
 
 const NUMERIC_FIELDS: Array<{
   field: keyof StressState;
@@ -40,6 +41,7 @@ const VERDICT_STYLES: Record<string, string> = {
 export function StressTest() {
   const t = useTranslations('funnel.stress');
   const { state, setStressField, runStress, skipStress } = useFunnel();
+  const lp = useProgramL10n();
   const [herdError, setHerdError] = useState('');
   const p = PROGRAMS.find((x) => x.id === state.selectedProgram);
   if (!p) return null;
@@ -104,7 +106,7 @@ export function StressTest() {
               className="w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-[var(--text)] outline-none focus:border-[var(--primary)]"
             />
             <div className="mt-1 text-xs text-[var(--text-3)]">
-              {f.field === 'plannedHerd' ? t('plannedHerdHint', { title: p.title }) : t(f.hintKey)}
+              {f.field === 'plannedHerd' ? t('plannedHerdHint', { title: lp.title(p.id, p.title) }) : t(f.hintKey)}
             </div>
           </div>
         ))}
