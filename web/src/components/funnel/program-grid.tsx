@@ -138,7 +138,7 @@ function ProgramModalBody({ p, onApply }: { p: Program; onApply: (id: string) =>
         {p.title}
       </Dialog.Title>
       <Dialog.Description className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">
-        {d.summary}
+        {applyGlossary(d.summary)}
       </Dialog.Description>
 
       <div className="my-5 grid grid-cols-3 gap-3 rounded-[var(--radius)] bg-[var(--surface-warm)] p-4">
@@ -163,14 +163,14 @@ function ProgramModalBody({ p, onApply }: { p: Program; onApply: (id: string) =>
       <ModalSection title={t('spendTitle')}>
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-[var(--text-2)]">
           {d.spend.map((s, i) => (
-            <li key={i}>{s}</li>
+            <li key={i}>{applyGlossary(s)}</li>
           ))}
         </ul>
       </ModalSection>
       <ModalSection title={t('requirementsTitle')}>
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-[var(--text-2)]">
           {d.requirements.map((s, i) => (
-            <li key={i}>{s}</li>
+            <li key={i}>{applyGlossary(s)}</li>
           ))}
         </ul>
       </ModalSection>
@@ -181,7 +181,7 @@ function ProgramModalBody({ p, onApply }: { p: Program; onApply: (id: string) =>
       </ModalSection>
 
       <ModalSection title={t('repaymentTitle')}>
-        <p className="text-sm leading-relaxed text-[var(--text-2)]">{d.repayment}</p>
+        <p className="text-sm leading-relaxed text-[var(--text-2)]">{applyGlossary(d.repayment)}</p>
       </ModalSection>
       {d.note && (
         <div className="mt-4 rounded-[var(--radius)] border border-[var(--accent-soft)] bg-[var(--accent-soft)] px-4 py-3 text-sm leading-relaxed text-[var(--text-2)]">
