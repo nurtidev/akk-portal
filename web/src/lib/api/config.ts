@@ -28,8 +28,13 @@ export const apiAvailable = API_BASE.length > 0;
 // Пусто → creditApiAvailable=false → credit-вызовы идут в demo-fallback.
 // =====================================================
 
-/** Базовый URL creditapp credit-backend без хвостового слэша (может быть пустым). */
-const RAW_CREDIT_BASE = (process.env.NEXT_PUBLIC_CREDIT_API_BASE || "").trim();
+/** Базовый URL creditapp credit-backend без хвостового слэша.
+ * Дефолт — стенд creditapp (внутренний хост, не секрет; доступен на корп. VPN).
+ * Railway не всегда пробрасывает NEXT_PUBLIC_ build-arg надёжно, поэтому дефолт
+ * гарантирует, что кредитный флоу бьёт в creditapp; env переопределяет при наличии. */
+const RAW_CREDIT_BASE = (
+  process.env.NEXT_PUBLIC_CREDIT_API_BASE || "https://creditapp-api-dev.agrocredit.kz"
+).trim();
 
 /** Нормализованная база creditapp без хвостового слэша. */
 export const CREDIT_API_BASE = RAW_CREDIT_BASE.replace(/\/+$/, "");
