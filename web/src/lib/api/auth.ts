@@ -3,7 +3,15 @@
 // Типы запросов/ответов — из backend/internal/auth/handler.go.
 // =====================================================
 
-import { AUTH_PREFIX } from "./config";
+import {
+  AUTH_PREFIX,
+  EGOV_AUTHORIZE_URL,
+  EGOV_CLIENT_ID,
+  EGOV_REDIRECT_URI,
+  EGOV_SCOPE,
+  EGOV_STATE_KEY,
+  egovSsoEnabled,
+} from "./config";
 import { http, type ApiResult } from "./http";
 
 /** purpose для VerifySmsCode (контракт backend). */
@@ -121,6 +129,51 @@ export function ssoDemoLogin(
     method: "POST",
     body: { provider },
   });
+}
+
+/**
+ * Реальный вход через eGov: обмен authorization code (после редиректа с idp.egov.kz)
+ * на профиль + токены. redirectUri передаём тот же, что слали в /authorize — eGov сверяет точно.
+ */
+export function ssoEgovLogin(
+  code: string,
+  redirectUri: string,
+): Promise<ApiResult<SsoResponse>> {
+  return http<SsoResponse>(AUTH_PREFIX + "/ssoEgovLogin", {
+    method: "POST",
+    body: { code, redirectUri },
+  });
+}
+
+/**
+ * Запускает реальный eGov-поток: генерирует anti-CSRF state, кладёт его в sessionStorage
+ * и уводит браузер на страницу авторизации eGov. На странице eGov пользователь выбирает
+ * метод входа (логин/пароль, ЭЦП, МЭЦП). Возврат — на EGOV_REDIRECT_URI с ?code=&state=.
+ * Возвращает false, если eGov не сконфигурирован (тогда вызывающий код идёт в демо).
+ */
+export function startEgovLogin(lang: "ru" | "kk" | "en" = "ru"): boolean {
+  if (!egovSsoEnabled || typeof window === "undefined") return false;
+
+  const state =
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Date.now().toString(36);
+  try {
+    sessionStorage.setItem(EGOV_STATE_KEY, state);
+  } catch {
+    /* приватный режим — продолжаем без сверки state */
+  }
+
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: EGOV_CLIENT_ID,
+    redirect_uri: EGOV_REDIRECT_URI,
+    scope: EGOV_SCOPE,
+    state,
+    lang: lang === "kk" ? "kk" : lang === "en" ? "en" : "ru",
+  });
+  window.location.href = `${EGOV_AUTHORIZE_URL}?${params.toString()}`;
+  return true;
 }
 
 /** Профиль текущего пользователя (Bearer). */

@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
+	"akk-railway-backend/internal/egov"
 	"akk-railway-backend/internal/store"
 )
 
@@ -19,16 +20,17 @@ type Handler struct {
 	store    *store.Store
 	otp      *OTP
 	issuer   *Issuer
+	egov     *egov.Client // nil → реальный eGov-вход не сконфигурирован (только демо)
 	logger   *slog.Logger
 	demoMode bool // вернуть код в ответе (demoCode) — демо без реальной SMS
 }
 
-// NewHandler создаёт auth-хендлер.
-func NewHandler(s *store.Store, otp *OTP, issuer *Issuer, demoMode bool, logger *slog.Logger) *Handler {
+// NewHandler создаёт auth-хендлер. egovClient может быть nil (тогда /ssoEgovLogin → 404).
+func NewHandler(s *store.Store, otp *OTP, issuer *Issuer, egovClient *egov.Client, demoMode bool, logger *slog.Logger) *Handler {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Handler{store: s, otp: otp, issuer: issuer, demoMode: demoMode, logger: logger}
+	return &Handler{store: s, otp: otp, issuer: issuer, egov: egovClient, demoMode: demoMode, logger: logger}
 }
 
 // Register вешает маршруты на группу /Account.
@@ -39,6 +41,7 @@ func (h *Handler) Register(g *echo.Group) {
 	g.POST("/smsRegister", h.smsRegister)
 	g.POST("/login", h.passwordLoginDisabled)
 	g.POST("/ssoDemoLogin", h.ssoDemoLogin)
+	g.POST("/ssoEgovLogin", h.ssoEgovLogin)
 	g.GET("/me", h.me, h.Middleware)
 }
 
@@ -285,6 +288,68 @@ func (h *Handler) ssoDemoLogin(c echo.Context) error {
 		"iin":          client.IIN,
 		"phone":        client.Phone,
 		"via":          req.Provider,
+	})
+}
+
+// ssoEgovLogin — РЕАЛЬНЫЙ вход через eGov SSO (OAuth2 authorization code).
+// Фронт после авторизации на idp.egov.kz (в т.ч. по ЭЦП) присылает code + redirectUri.
+// Бэкенд меняет code → данные пользователя, находит/создаёт клиента, выдаёт токены.
+// Доступен только когда сконфигурирован eGov-клиент (EGOV_TOKEN_URL).
+func (h *Handler) ssoEgovLogin(c echo.Context) error {
+	if h.egov == nil {
+		return c.JSON(http.StatusNotFound, errBody("вход через eGov не сконфигурирован"))
+	}
+	var req struct {
+		Code        string `json:"code"`
+		RedirectURI string `json:"redirectUri"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return badRequest(c, "некорректный запрос")
+	}
+	if strings.TrimSpace(req.Code) == "" {
+		return badRequest(c, "отсутствует код авторизации")
+	}
+
+	info, err := h.egov.ExchangeCodeAndGetUser(c.Request().Context(), strings.TrimSpace(req.Code), strings.TrimSpace(req.RedirectURI))
+	if err != nil {
+		h.logger.Error("auth: eGov обмен code не удался", "err", err)
+		return c.JSON(http.StatusBadGateway, errBody("не удалось получить данные из eGov"))
+	}
+
+	iin := onlyDigits(info.IIN)
+	if len(iin) != 12 {
+		h.logger.Error("auth: eGov вернул некорректный ИИН", "len", len(iin))
+		return c.JSON(http.StatusBadGateway, errBody("eGov вернул некорректные данные пользователя"))
+	}
+
+	// Пустой телефон не нормализуем — иначе normalizePhone("") вернёт "+" и положит мусор в БД.
+	phone := ""
+	if strings.TrimSpace(info.Phone) != "" {
+		phone = normalizePhone(info.Phone)
+	}
+	client, err := h.store.UpsertClient(c.Request().Context(), hashIIN(iin), store.Client{
+		IIN:        iin,
+		LastName:   strings.TrimSpace(info.LastName),
+		FirstName:  strings.TrimSpace(info.FirstName),
+		MiddleName: strings.TrimSpace(info.MiddleName),
+		Phone:      phone,
+	})
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	tokens, err := h.issuer.Issue(client)
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	h.logger.Info("auth: eGov SSO вход", "uid", client.UID, "iin", maskIIN(iin))
+	return c.JSON(http.StatusOK, map[string]any{
+		"uid":          client.UID.String(),
+		"accessToken":  tokens.AccessToken,
+		"refreshToken": tokens.RefreshToken,
+		"name":         client.FullName(),
+		"iin":          client.IIN,
+		"phone":        client.Phone,
+		"via":          "egov",
 	})
 }
 

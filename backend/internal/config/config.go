@@ -35,6 +35,17 @@ type Config struct {
 	// DemoMode=true → код возвращается в теле ответа (demoCode), фронт подставляет его
 	// автоматически. Для демо без реальной SMS. Когда заработает боевая SMS — выставить false.
 	DemoMode bool
+
+	// eGov SSO (OAuth2). Реальный вход через eGov/ЭЦП включается, когда задан EGovTokenURL.
+	// Пусто → эндпоинт /ssoEgovLogin отвечает 404 (остаётся только демо-вход).
+	EGovClientID     string
+	EGovClientSecret string
+	EGovTokenURL     string // https://idp.egov.kz/idp/oauth/token
+	EGovBaseURL      string // https://idp.egov.kz (схема+хост; ресурсы — base+/idp/resource/...)
+	EGovRedirectURI  string // точный callback фронта, как зарегистрирован в eGov
+	// EGovResolve — host-pinning для тестового IDP (нет в публичном DNS на Railway).
+	// Формат: "test.idp.egov.kz=195.12.114.235[,test.egov.kz=195.12.114.235]". Пусто на проде.
+	EGovResolve string
 }
 
 // Load собирает конфиг из окружения с разумными дефолтами для локального запуска.
@@ -59,6 +70,13 @@ func Load() Config {
 		OTPMaxPerHr:  envInt("OTP_MAX_PER_HOUR", 5),
 
 		DemoMode: envBool("DEMO_MODE", true),
+
+		EGovClientID:     env("EGOV_CLIENT_ID", ""),
+		EGovClientSecret: env("EGOV_CLIENT_SECRET", ""),
+		EGovTokenURL:     env("EGOV_TOKEN_URL", ""),
+		EGovBaseURL:      env("EGOV_BASE_URL", ""),
+		EGovRedirectURI:  env("EGOV_REDIRECT_URI", ""),
+		EGovResolve:      env("EGOV_RESOLVE", ""),
 	}
 }
 

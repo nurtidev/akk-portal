@@ -16,6 +16,7 @@ import (
 	"akk-railway-backend/internal/auth"
 	"akk-railway-backend/internal/config"
 	"akk-railway-backend/internal/credit"
+	"akk-railway-backend/internal/egov"
 	"akk-railway-backend/internal/sms"
 	"akk-railway-backend/internal/store"
 )
@@ -58,7 +59,17 @@ func main() {
 	otp := auth.NewOTP(db, sender, cfg.OTPTTL, cfg.OTPRateLimit, cfg.OTPMaxPerHr)
 	issuer := auth.NewIssuer(cfg.JWTSecret, cfg.JWTIssuer, cfg.AccessTTL)
 
-	authH := auth.NewHandler(db, otp, issuer, cfg.DemoMode, logger)
+	// eGov SSO включается только при заданном EGOV_TOKEN_URL; иначе клиент nil → /ssoEgovLogin отдаёт 404.
+	var egovClient *egov.Client
+	if cfg.EGovTokenURL != "" {
+		egovClient = egov.New(cfg.EGovClientID, cfg.EGovClientSecret, cfg.EGovTokenURL,
+			cfg.EGovBaseURL, cfg.EGovRedirectURI, cfg.EGovResolve, logger)
+		logger.Info("eGov SSO: реальный клиент", "token_url", cfg.EGovTokenURL, "redirect_uri", cfg.EGovRedirectURI)
+	} else {
+		logger.Info("eGov SSO: не сконфигурирован (только демо-вход)")
+	}
+
+	authH := auth.NewHandler(db, otp, issuer, egovClient, cfg.DemoMode, logger)
 	creditH := credit.NewHandler(db, logger)
 
 	e := echo.New()

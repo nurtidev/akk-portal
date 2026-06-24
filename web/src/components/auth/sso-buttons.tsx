@@ -10,8 +10,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
-import { errText, ssoDemoLogin } from "@/lib/api";
+import { useTranslations, useLocale } from "next-intl";
+import { errText, ssoDemoLogin, startEgovLogin, egovSsoEnabled } from "@/lib/api";
 import { useAuth } from "./auth-provider";
 
 interface SsoButtonsProps {
@@ -33,6 +33,7 @@ const PROVIDERS: {
 
 export function SsoButtons({ onAuthorized }: SsoButtonsProps) {
   const t = useTranslations("cabinet");
+  const locale = useLocale() as "ru" | "kk" | "en";
   const { completeLogin } = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState("");
@@ -40,6 +41,13 @@ export function SsoButtons({ onAuthorized }: SsoButtonsProps) {
 
   async function login(provider: "egov" | "baiterek") {
     setErr("");
+    // Реальный eGov-вход (если сконфигурирован): уводим браузер на idp.egov.kz —
+    // там пользователь входит, в т.ч. по ЭЦП. Возврат обработает /auth/egov/callback.
+    if (provider === "egov" && egovSsoEnabled) {
+      setBusy(provider);
+      if (startEgovLogin(locale)) return; // редирект уже идёт
+      setBusy(null);
+    }
     setBusy(provider);
     const r = await ssoDemoLogin(provider);
     setBusy(null);
