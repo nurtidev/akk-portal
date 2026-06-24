@@ -14,6 +14,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG NEXT_PUBLIC_API_BASE
 ENV NEXT_PUBLIC_API_BASE=$NEXT_PUBLIC_API_BASE
+# creditapp credit-backend — кредитный флоу идёт сюда (build-time, инлайнится в бандл).
+ARG NEXT_PUBLIC_CREDIT_API_BASE
+ENV NEXT_PUBLIC_CREDIT_API_BASE=$NEXT_PUBLIC_CREDIT_API_BASE
 # eGov SSO — тоже build-time (инлайнятся в клиентский бандл). Railway прокидывает
 # свои variables в build args автоматически, но каждую нужно объявить ARG здесь.
 ARG NEXT_PUBLIC_EGOV_AUTHORIZE_URL
