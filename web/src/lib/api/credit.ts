@@ -6,9 +6,16 @@
 // Статус:   GET  /api/v1/credit/applications/{uid}/status
 // =====================================================
 
-import { CREDIT_PREFIX, DEMO_BRANCH_UID, DEMO_PRODUCT_CODE, SUBMIT_TYPE } from "./config";
-import { http, type ApiResult } from "./http";
-import { loadTokens, profileFromTokens } from "./tokens";
+import {
+  CREDIT_API_BASE,
+  CREDIT_PREFIX,
+  creditApiAvailable,
+  DEMO_BRANCH_UID,
+  DEMO_PRODUCT_CODE,
+  SUBMIT_TYPE,
+} from "./config";
+import { type ApiResult } from "./http";
+import { getCreditToken, refreshCreditToken } from "./credit-session";
 
 /** Заявка (DTO — нормализованный вид для UI). */
 export interface Application {
@@ -131,12 +138,73 @@ export interface CreateApplicationPayload {
   onboarding?: unknown;
 }
 
-/** Создать заявку (Bearer). Маппит ответ в Application для UI. */
+// ─── Запрос к creditapp credit-backend через мост-токен ──────────────────────
+// НЕ используем общий http(auth:true): там akk-backend токен/база. creditapp —
+// отдельный хост (CREDIT_API_BASE) со своим JWT и базой, мост-токен из
+// getCreditToken(). При 401 — один перебутстрап токена и повтор.
+
+/** Низкоуровневый запрос к creditapp с мост-токеном. Никогда не бросает. */
+async function creditRequest<T>(
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown,
+): Promise<ApiResult<T>> {
+  if (!creditApiAvailable) {
+    return { ok: false, status: -1, data: null, unavailable: true };
+  }
+
+  let token = await getCreditToken();
+  if (!token) {
+    // ИИН недоступен или creditapp не сконфигурирован → demo-fallback.
+    return { ok: false, status: -1, data: null, unavailable: true };
+  }
+
+  const send = async (bearer: string): Promise<ApiResult<T>> => {
+    try {
+      const init: RequestInit = {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + bearer,
+        },
+      };
+      if (body !== undefined) init.body = JSON.stringify(body);
+
+      const res = await fetch(CREDIT_API_BASE + path, init);
+      const txt = await res.text();
+      let data: unknown = null;
+      try {
+        data = txt ? JSON.parse(txt) : null;
+      } catch {
+        data = txt;
+      }
+      return { ok: res.ok, status: res.status, data: data as T };
+    } catch {
+      return { ok: false, status: 0, data: null };
+    }
+  };
+
+  let result = await send(token);
+
+  // 401 → мост-токен протух/невалиден: перебутстрап и одна повторная попытка.
+  if (result.status === 401) {
+    const fresh = await refreshCreditToken();
+    if (!fresh) {
+      return { ok: false, status: -1, data: null, unavailable: true };
+    }
+    token = fresh;
+    result = await send(token);
+  }
+
+  return result;
+}
+
+/** Создать заявку в creditapp (мост-токен). Маппит ответ в Application для UI.
+ * borrower_iin/name НЕ передаём — creditapp берёт личность из мост-токена.
+ */
 export async function createApplication(
   payload: CreateApplicationPayload,
 ): Promise<ApiResult<Application>> {
-  const profile = profileFromTokens(loadTokens());
-
   // loan_purpose обязан быть минимум 3 символа
   const loanPurpose =
     (payload.loan_purpose || "").length >= 3
@@ -144,20 +212,18 @@ export async function createApplication(
       : payload.loan_purpose + "   ".slice(payload.loan_purpose.length);
 
   const body = {
-    borrower_iin: profile.iin,
-    borrower_name: profile.name,
-    branch_uid: DEMO_BRANCH_UID,
     requested_amount: String(Math.round(payload.requested_amount || 0)),
     loan_purpose: loanPurpose.trim() || "Не указана",
+    branch_uid: DEMO_BRANCH_UID,
     product_code: DEMO_PRODUCT_CODE,
     submit_type: SUBMIT_TYPE,
   };
 
-  const raw = await http<BackendCreateResponse>(CREDIT_PREFIX + "/applications", {
-    method: "POST",
-    auth: true,
+  const raw = await creditRequest<BackendCreateResponse>(
+    "POST",
+    CREDIT_PREFIX + "/applications",
     body,
-  });
+  );
 
   if (!raw.ok || !raw.data) {
     return { ok: raw.ok, status: raw.status, data: null, unavailable: raw.unavailable };
@@ -170,15 +236,12 @@ export async function createApplication(
   };
 }
 
-/** Список заявок клиента.
- * credit-backend возвращает {items:[...], total, page, page_size}, НЕ плоский массив.
+/** Список заявок клиента из creditapp (мост-токен).
+ * creditapp возвращает {items:[...], total, page, page_size}, НЕ плоский массив.
  * Сигнатура сохраняет ApiResult<Application[]> для совместимости с кабинетом.
  */
 export async function listApplications(): Promise<ApiResult<Application[]>> {
-  const raw = await http<BackendListResponse>(CREDIT_PREFIX + "/applications", {
-    method: "GET",
-    auth: true,
-  });
+  const raw = await creditRequest<BackendListResponse>("GET", CREDIT_PREFIX + "/applications");
 
   if (raw.unavailable) {
     return { ok: false, status: raw.status, data: null, unavailable: true };

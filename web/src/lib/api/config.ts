@@ -18,9 +18,34 @@ export const API_BASE = RAW_BASE.replace(/\/+$/, "");
 /** true → бэкенд сконфигурирован и к нему можно обращаться. */
 export const apiAvailable = API_BASE.length > 0;
 
+// =====================================================
+// ===== CREDIT-бэкенд (creditapp) — отдельный хост ====
+// AUTH (вход по ИИН+OTP, /me) живёт на akk-backend (API_BASE).
+// CREDIT (создание/список заявок) идёт в creditapp credit-backend
+// (CREDIT_API_BASE). У creditapp своя БД и свой JWT-секрет: токен akk-backend
+// он НЕ примет, поэтому для кредитных вызовов портал бутстрапит ОТДЕЛЬНУЮ
+// creditapp-сессию по ИИН заёмщика (см. credit-session.ts).
+// Пусто → creditApiAvailable=false → credit-вызовы идут в demo-fallback.
+// =====================================================
+
+/** Базовый URL creditapp credit-backend без хвостового слэша (может быть пустым). */
+const RAW_CREDIT_BASE = (process.env.NEXT_PUBLIC_CREDIT_API_BASE || "").trim();
+
+/** Нормализованная база creditapp без хвостового слэша. */
+export const CREDIT_API_BASE = RAW_CREDIT_BASE.replace(/\/+$/, "");
+
+/** true → creditapp сконфигурирован; иначе credit-вызовы идут в demo-fallback. */
+export const creditApiAvailable = CREDIT_API_BASE.length > 0;
+
+/** Ключ localStorage для отдельного creditapp access-токена (мост-сессия). */
+export const CREDIT_TOKEN_KEY = "akk-credit-token";
+
 /** Префиксы групп маршрутов (контракт main.go). */
 export const AUTH_PREFIX = "/api/v1/auth/Account";
 export const CREDIT_PREFIX = "/api/v1/credit";
+
+/** Префикс auth-эндпоинтов creditapp (мост-сессия заёмщика). */
+export const CREDIT_AUTH_PREFIX = "/api/v1/auth/Account";
 
 /** Ключ localStorage для токенов — совместим с легаси (__auth-integration.js). */
 export const TOKENS_KEY = "akk-tokens";

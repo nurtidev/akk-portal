@@ -8,6 +8,7 @@ export * from "./text";
 export * from "./tokens";
 export * from "./http";
 export * from "./auth";
+export * from "./credit-session";
 export * from "./credit";
 export * from "./status";
 export * from "./submit-application";
