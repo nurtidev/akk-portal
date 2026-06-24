@@ -67,7 +67,7 @@ export function SuccessStories() {
           {stories.map((s) => (
             <article
               key={s.slug}
-              className="w-[85%] flex-shrink-0 snap-start overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)] sm:w-[420px]"
+              className="flex w-[85%] flex-shrink-0 flex-col snap-start overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)] sm:w-[420px]"
             >
               <div
                 className="relative h-[180px] overflow-hidden"
@@ -79,7 +79,7 @@ export function SuccessStories() {
                   className="absolute inset-0 h-full w-full object-cover"
                 />
               </div>
-              <div className="flex flex-col p-5">
+              <div className="flex flex-1 flex-col p-5">
                 {/* Герой истории: аватар (кроп фото) + имя + область — паттерн руководителя */}
                 {s.personRu && (
                   <div className="mb-3 flex items-center gap-3">
@@ -103,7 +103,7 @@ export function SuccessStories() {
                 </p>
                 <Link
                   href={`/${locale}/press/${s.slug}`}
-                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+                  className="mt-auto inline-flex w-fit items-center gap-1.5 pt-4 text-sm font-semibold text-[var(--primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
                 >
                   {t('readMore')}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">

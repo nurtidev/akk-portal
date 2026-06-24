@@ -13,7 +13,11 @@
       "statFinancedLabel": "Financed this year",
       "statRatingLabel": "Fitch credit rating",
       "statYearsLabel": "years developing Kazakhstan's agriculture",
-      "photoChip": "Финансируем аграриев по всему Казахстану"
+      "photoChip": "Финансируем аграриев по всему Казахстану",
+      "missionLead": "We finance those who feed",
+      "missionEm": "the nation",
+      "trustLabel": "Our clients",
+      "trustClosing": "The next success story is yours"
     },
     "programs": {
       "eyebrow": "Все программы АКК",
@@ -377,8 +381,8 @@
       "next": "Следующая история"
     },
     "goals": {
-      "title": "На что вам нужны средства?",
-      "sub": "Выберите цель — подбор начнётся сразу с неё",
+      "title": "The next success story is yours",
+      "sub": "Choose a suitable lending program",
       "cta": "Подобрать"
     },
     "howSteps": {
@@ -439,6 +443,20 @@
     "constitutionBanner": {
       "title": "Constitution of the Republic of Kazakhstan",
       "subtitle": "The fundamental law of the country"
+    },
+    "esgStrip": {
+      "eyebrow": "Sustainable development",
+      "branchesLabel": "Branches across all regions",
+      "unionsLabel": "Credit partnerships",
+      "farmersLabel": "Farmers supported",
+      "yearsLabel": "years developing Kazakhstan's agriculture",
+      "ratingLabel": "Sustainable Fitch ESG rating"
+    },
+    "sustainabilityPromo": {
+      "title": "Sustainable development",
+      "text": "Sustainable Fitch ESG rating, green lending under the RK Taxonomy, and a contribution to 14 of the 17 UN Sustainable Development Goals.",
+      "ctaPrimary": "Learn more",
+      "ctaSecondary": "Green loan for your farm"
     }
   }
 }

@@ -619,24 +619,39 @@
         "description": "Политика устойчивого развития АО «Аграрная кредитная корпорация»: экономическая, социальная и экологическая составляющие."
       },
       "title": "Устойчивое развитие",
-      "subtitle": "Экономическая, социальная и экологическая ответственность",
-      "pillarsTitle": "Три составляющие устойчивого развития",
-      "pillarsDescription": "АКК интегрирует принципы устойчивого развития в свою деятельность по трём ключевым направлениям.",
+      "subtitle": "Environmental, social and governance responsibility",
+      "pillarsTitle": "Our ESG approach",
+      "pillarsDescription": "Environmental, social and governance responsibility — the three pillars of AKK's sustainable development.",
       "pillars": [
         {
-          "title": "Экономическая",
-          "description": "Безубыточность, защита интересов акционеров и инвесторов, эффективность через кредитование субъектов АПК.",
-          "icon": ""
+          "title": "Environmental responsibility",
+          "description": "Reducing environmental impact across agribusiness operations and growing green finance.",
+          "points": [
+            "Emissions reduction and water-saving technologies",
+            "Green lending under the RK Taxonomy",
+            "Green office",
+            "Climate analysis of credit risks"
+          ]
         },
         {
-          "title": "Социальная",
-          "description": "Прозрачные конкурсные процедуры найма, справедливое вознаграждение и соблюдение прав работников, безопасность труда, профессиональное развитие.",
-          "icon": ""
+          "title": "Social responsibility",
+          "description": "Support for farmers, rural areas and fair labour conditions.",
+          "points": [
+            "Gender equality",
+            "Charity",
+            "Occupational safety",
+            "Development of villages and regions"
+          ]
         },
         {
-          "title": "Экологическая",
-          "description": "Содействие экологически ответственному сельскому хозяйству, снижение воздействия на окружающую среду в деятельности АПК.",
-          "icon": ""
+          "title": "Corporate governance",
+          "description": "Transparency, ethics and accountability of management.",
+          "points": [
+            "Sustainability policy approved by the Board",
+            "Anti-corruption policy and code of ethics publicly available",
+            "Disclosure under GRI and TCFD",
+            "Sustainable Fitch rating ER3 -> target ER2"
+          ]
         }
       ],
       "commitmentsTitle": "Обязательства АКК",
@@ -671,9 +686,226 @@
       "downloadLabel": "Скачать PDF",
       "documents": [
         {
-          "title": "Политика устойчивого развития АКК",
+          "title": "AKK Sustainable Development Policy",
           "url": "https://agrocredit.kz/ru/main/about/reports/",
           "meta": "PDF"
+        },
+        {
+          "title": "Code of Ethics and Business Conduct",
+          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "meta": "PDF"
+        },
+        {
+          "title": "Anti-corruption Policy",
+          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "meta": "PDF"
+        },
+        {
+          "title": "AKK Non-financial Report",
+          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "meta": "PDF"
+        },
+        {
+          "title": "Green Lending Methodology",
+          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "meta": "PDF · in preparation"
+        }
+      ],
+      "rating": {
+        "title": "ESG rating",
+        "agency": "Sustainable Fitch",
+        "current": "ER3",
+        "currentLabel": "Current rating",
+        "target": "ER2",
+        "targetLabel": "Target by November 2026",
+        "note": "Assessment of ESG integration into core processes. G-component — ESG disclosure.",
+        "disclosure": "Disclosure under GRI and TCFD standards. Next assessment — November 2026."
+      },
+      "greenFinanceTitle": "Green finance",
+      "greenFinanceDescription": "Eligibility criteria for green lending across 6 environmental categories based on the Taxonomy of the Republic of Kazakhstan.",
+      "greenFinanceNote": "Pilot programme — classification of the current portfolio; results to be published in November 2026.",
+      "greenCategories": [
+        {
+          "title": "Water resource management",
+          "description": "Irrigation, drip irrigation, water-saving technologies. Reducing water consumption by >=20%."
+        },
+        {
+          "title": "Renewable energy",
+          "description": "Solar panels, wind turbines, biogas at agricultural enterprises. Replacing diesel generators."
+        },
+        {
+          "title": "Organic farming",
+          "description": "No synthetic pesticides, biological plant protection, crop rotation."
+        },
+        {
+          "title": "Waste management",
+          "description": "Separate collection, composting of organics, biogas units at livestock farms."
+        },
+        {
+          "title": "Carbon sequestration",
+          "description": "Agroforestry, conservation agriculture, restoration of degraded farmland."
+        },
+        {
+          "title": "Climate adaptation",
+          "description": "Agricultural insurance against climate risks, drought-resistant varieties, resilient irrigation systems."
+        }
+      ],
+      "sdgTitle": "UN Sustainable Development Goals",
+      "sdgDescription": "AKK contributes to 14 of the 17 UN Sustainable Development Goals through its lending products, social programmes and corporate governance principles.",
+      "sdgActiveNote": "14 active SDGs — AKK contribution",
+      "sdgOutNote": "3 SDGs — outside direct scope",
+      "sdgGoals": [
+        {
+          "num": 1,
+          "name": "No Poverty",
+          "active": true
+        },
+        {
+          "num": 2,
+          "name": "Zero Hunger",
+          "active": true
+        },
+        {
+          "num": 3,
+          "name": "Good Health and Well-being",
+          "active": false
+        },
+        {
+          "num": 4,
+          "name": "Quality Education",
+          "active": true
+        },
+        {
+          "num": 5,
+          "name": "Gender Equality",
+          "active": true
+        },
+        {
+          "num": 6,
+          "name": "Clean Water and Sanitation",
+          "active": true
+        },
+        {
+          "num": 7,
+          "name": "Affordable and Clean Energy",
+          "active": true
+        },
+        {
+          "num": 8,
+          "name": "Decent Work and Economic Growth",
+          "active": true
+        },
+        {
+          "num": 9,
+          "name": "Industry, Innovation and Infrastructure",
+          "active": true
+        },
+        {
+          "num": 10,
+          "name": "Reduced Inequalities",
+          "active": true
+        },
+        {
+          "num": 11,
+          "name": "Sustainable Cities and Communities",
+          "active": false
+        },
+        {
+          "num": 12,
+          "name": "Responsible Consumption and Production",
+          "active": true
+        },
+        {
+          "num": 13,
+          "name": "Climate Action",
+          "active": true
+        },
+        {
+          "num": 14,
+          "name": "Life Below Water",
+          "active": false
+        },
+        {
+          "num": 15,
+          "name": "Life on Land",
+          "active": true
+        },
+        {
+          "num": 16,
+          "name": "Peace, Justice and Strong Institutions",
+          "active": true
+        },
+        {
+          "num": 17,
+          "name": "Partnerships for the Goals",
+          "active": true
+        }
+      ],
+      "climateTitle": "Climate data",
+      "climateDescription": "AKK discloses greenhouse gas emissions under the GHG Protocol. Scope 1 and 2 are verified, Scope 3 is in development.",
+      "climateTotalValue": "2,162.6 tCO₂e",
+      "climateTotalLabel": "Total greenhouse gas emissions",
+      "climateTotalMeta": "Base year — 2024",
+      "climateStandardsNote": "Disclosure standards: GRI 305 (emissions), TCFD (climate risk governance), SASB FN-CB (financial services). Base year — 2024.",
+      "scopes": [
+        {
+          "code": "Scope 1",
+          "title": "Direct emissions",
+          "description": "Own fuel combustion sources, transport, production processes.",
+          "status": "verified",
+          "statusLabel": "Verified"
+        },
+        {
+          "code": "Scope 2",
+          "title": "Indirect energy",
+          "description": "Purchased electricity and heating of AKK offices and branches.",
+          "status": "verified",
+          "statusLabel": "Verified"
+        },
+        {
+          "code": "Scope 3",
+          "title": "Other indirect",
+          "description": "Value-chain emissions. Methodology under development per the GHG Protocol.",
+          "status": "draft",
+          "statusLabel": "In development"
+        }
+      ],
+      "socialTitle": "Social responsibility",
+      "socialDescription": "AKK supports socially responsible rural development, gender equality and transparent reporting.",
+      "wep": {
+        "title": "UN WEP Declaration",
+        "description": "AKK has signed the UN Women's Empowerment Principles (WEP).",
+        "progressLabel": "In progress",
+        "progressText": "Developing gender-equality targets and lending programmes for women farmers. Publication — 2026."
+      },
+      "socialStats": [
+        {
+          "value": "5.1 bn ₸",
+          "label": "Debt restructuring",
+          "note": "reducing borrowers' debt burden"
+        },
+        {
+          "value": "Annually",
+          "label": "Non-financial reporting",
+          "note": "ESG results disclosure"
+        }
+      ],
+      "newsTitle": "ESG news",
+      "news": [
+        {
+          "date": "28 May 2026",
+          "title": "AKK joined the UN WEP principles at the Astana Economic Forum",
+          "minutes": "3 min"
+        },
+        {
+          "date": "15 April 2026",
+          "title": "AKK became the first agrarian credit institution in Kazakhstan to disclose climate data — 2,162.6 tCO₂e",
+          "minutes": "5 min"
+        },
+        {
+          "date": "3 March 2026",
+          "title": "Launch of the green lending pilot under the RK Taxonomy",
+          "minutes": "4 min"
         }
       ]
     },
@@ -865,18 +1097,45 @@
       "uniqueDataTitle": "Чем наши данные уникальны",
       "uniqueDataDescription": "АКК — единственный оператор в Казахстане, объединяющий пять источников агро-специфических данных, которых нет ни в ПКБ, ни в ГКБ.",
       "dataFactors": [
-        { "title": "Кадастровые данные", "description": "Право на землю, площадь и категория угодий из государственного кадастра" },
-        { "title": "Поголовье скота", "description": "Данные МСХ о видах и численности животных в хозяйстве" },
-        { "title": "Субсидии МСХ", "description": "История государственной поддержки и активность участия в программах" },
-        { "title": "История в АКК", "description": "Платёжная дисциплина по займам Аграрной кредитной корпорации" },
-        { "title": "Климат и урожай", "description": "NDVI-индекс растительности и оценка засухоустойчивости региона" }
+        {
+          "title": "Кадастровые данные",
+          "description": "Право на землю, площадь и категория угодий из государственного кадастра"
+        },
+        {
+          "title": "Поголовье скота",
+          "description": "Данные МСХ о видах и численности животных в хозяйстве"
+        },
+        {
+          "title": "Субсидии МСХ",
+          "description": "История государственной поддержки и активность участия в программах"
+        },
+        {
+          "title": "История в АКК",
+          "description": "Платёжная дисциплина по займам Аграрной кредитной корпорации"
+        },
+        {
+          "title": "Климат и урожай",
+          "description": "NDVI-индекс растительности и оценка засухоустойчивости региона"
+        }
       ],
       "howWorksTitle": "Как это работает",
       "steps": [
-        { "title": "Запрос профиля", "description": "Банк-партнёр направляет запрос агро-профиля фермера по ИИН через защищённый канал АКК." },
-        { "title": "Согласие фермера", "description": "Фермер получает уведомление и даёт информированное согласие на обработку данных (ЗРК «О персональных данных»)." },
-        { "title": "Формирование АгроСкора", "description": "АКК автоматически формирует балл, рейтинг и разбор факторов по пяти блокам данных." },
-        { "title": "Решение банка", "description": "Банк получает готовый профиль и принимает кредитное решение быстрее и с меньшим риском." }
+        {
+          "title": "Запрос профиля",
+          "description": "Банк-партнёр направляет запрос агро-профиля фермера по ИИН через защищённый канал АКК."
+        },
+        {
+          "title": "Согласие фермера",
+          "description": "Фермер получает уведомление и даёт информированное согласие на обработку данных (ЗРК «О персональных данных»)."
+        },
+        {
+          "title": "Формирование АгроСкора",
+          "description": "АКК автоматически формирует балл, рейтинг и разбор факторов по пяти блокам данных."
+        },
+        {
+          "title": "Решение банка",
+          "description": "Банк получает готовый профиль и принимает кредитное решение быстрее и с меньшим риском."
+        }
       ],
       "previewTitle": "Что видит банк-партнёр",
       "previewDescription": "Пример агро-профиля фермера рейтинга A. Данные синтетические — только для демонстрации.",
@@ -885,15 +1144,27 @@
       "benefits": [
         {
           "title": "Банкам-партнёрам",
-          "items": ["Ниже кредитный риск за счёт агро-данных", "Доступ к новому сегменту надёжных заёмщиков", "Ускоренное принятие решений"]
+          "items": [
+            "Ниже кредитный риск за счёт агро-данных",
+            "Доступ к новому сегменту надёжных заёмщиков",
+            "Ускоренное принятие решений"
+          ]
         },
         {
           "title": "Фермерам",
-          "items": ["Доступ к финансированию от нескольких банков", "Прозрачность оценки и факторов", "Потенциально более низкая ставка"]
+          "items": [
+            "Доступ к финансированию от нескольких банков",
+            "Прозрачность оценки и факторов",
+            "Потенциально более низкая ставка"
+          ]
         },
         {
           "title": "АКК / государству",
-          "items": ["Развитие агропромышленного комплекса РК", "Монетизация уникальных данных", "Выполнение стратегической миссии"]
+          "items": [
+            "Развитие агропромышленного комплекса РК",
+            "Монетизация уникальных данных",
+            "Выполнение стратегической миссии"
+          ]
         }
       ],
       "legalTitle": "Правовая рамка",

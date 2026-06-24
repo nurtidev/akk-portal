@@ -1,12 +1,13 @@
 'use client';
 
 // =====================================================
-// ===== B7: Hero — full-bleed (виденье руководителя) ==
-// Фото на всю ширину первого экрана, слева «тает» в фон страницы через
-// градиент (var(--bg) — работает в обеих темах); текст и CTA — на спокойной
-// зоне слева. На мобиле фото скрыто (текст и кнопки приоритетнее).
-// CTA: «Подобрать программу» (квиз) + «Получить консультацию» (поток
-// консультации без программы). Без фото — прежний фон с орнаментом.
+// ===== Hero — full-bleed (виденье руководителя) ======
+// Фото комбайна на всю ширину первого экрана, слева «тает» в фон
+// страницы через градиент (var(--bg) — обе темы); текст и CTA — на
+// спокойной зоне слева. На мобиле фото скрыто (текст приоритетнее).
+// Заголовок — миссия: «Финансируем тех, кто кормит страну».
+// Стена логотипов клиентов вынесена в отдельную секцию ClientTrust.
+// CTA: «Подобрать программу» (квиз) + «Получить консультацию».
 // =====================================================
 
 import { useEffect, useRef, useState } from 'react';
@@ -19,13 +20,12 @@ export function Hero() {
   const tw = useTranslations('funnel.whyAkk');
   const { startQuiz, requestConsultation } = useFunnel();
 
-  // Ключевые цифры — теперь прямо в hero, компактной строкой под кнопками
-  // (чтобы первый экран = hero + метрики). Источник тот же: akk-stats + i18n.
+  // Ключевые цифры — компактной строкой под кнопками (первый экран = hero + метрики)
   const stats: { value: string; label: string }[] = [
     { value: AKK_STATS.portfolio, label: t('statPortfolioLabel') },
     { value: AKK_STATS.clients, label: t('statClientsLabel') },
     { value: AKK_STATS.financed, label: t('statFinancedLabel') },
-    { value: tw('b.value'), label: t('statRatingLabel') }, // рейтинг Fitch BBB (короткая подпись для hero)
+    { value: tw('b.value'), label: t('statRatingLabel') }, // рейтинг Fitch BBB
   ];
   const [photoOk, setPhotoOk] = useState(true);
   const [nightOk, setNightOk] = useState(true);
@@ -42,15 +42,12 @@ export function Hero() {
   }, []);
 
   return (
-    // Полноэкранный hero первого вида: на всю ширину страницы (full-bleed),
-    // высокий (≈первый вьюпорт), контент вертикально по центру. Фото справа
-    // «тает» в фон страницы слева; на мобиле фото скрыто, фон — мягкий
-    // брендовый градиент, чтобы экран не был пустым.
+    // Полноэкранный hero первого вида: full-bleed, высокий (≈первый вьюпорт),
+    // контент вертикально по центру. Фото справа «тает» в фон слева; на мобиле
+    // фото скрыто, фон — мягкий брендовый градиент.
     <section className="relative isolate flex w-full items-center overflow-hidden min-h-[calc(100svh-4rem)]">
       {/* Полноширинное фото: объект справа, слева — спокойная зона под текст.
-          Светлая тема — день; тёмная — ночная версия с включёнными фарами
-          («комбайн убирает в ночи»), плавный кросс-фейд при смене темы.
-          Пока ночного файла нет — дневное фото остаётся в обеих темах. */}
+          Светлая тема — день; тёмная — ночная версия, плавный кросс-фейд. */}
       {photoOk && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -102,7 +99,7 @@ export function Hero() {
         }}
         aria-hidden="true"
       />
-      {/* Орнамент — в текстовой зоне */}
+      {/* Орнамент — в текстовой зоне слева */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
         style={{
@@ -120,9 +117,9 @@ export function Hero() {
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
             {t('eyebrow')}
           </span>
-          <h1 className="mt-6 font-display text-4xl font-bold leading-[1.08] tracking-tight text-[var(--text)] sm:text-5xl">
-            {t('titleStart')} <em className="not-italic text-[var(--primary)]">{t('titleEm')}</em>{' '}
-            {t('titleEnd')}
+          {/* H1 — миссия: «Финансируем тех, кто кормит страну» */}
+          <h1 className="mt-6 font-display text-4xl font-bold leading-[1.08] tracking-tight text-[var(--text)] sm:text-5xl md:text-6xl">
+            {t('missionLead')} <em className="not-italic text-[var(--primary)]">{t('missionEm')}</em>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--text-2)] md:text-lg">
             {t('lede')}
@@ -147,9 +144,7 @@ export function Hero() {
             </button>
           </div>
 
-          {/* Метрики — компактной строкой под кнопками (на десктопе 4 в ряд,
-              на мобиле 2×2). Каждый показатель — с брендовым акцентом слева.
-              Значение — в одну строку (whitespace-nowrap), подпись — контрастная. */}
+          {/* Метрики — компактной строкой под кнопками (4 в ряд / 2×2 на мобиле) */}
           <dl className="mt-8 grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-4">
             {stats.map((s, i) => (
               <div key={i} className="border-l-2 border-[var(--primary)] pl-3">
