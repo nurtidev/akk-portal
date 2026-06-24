@@ -58,6 +58,15 @@ export interface DocumentsDTO {
   stages: DocStage[];
 }
 
+/** Ответ GET /applications/:uid/status (контракт creditapp credit-backend). */
+export interface ApplicationStatus {
+  uid: string;
+  workflow_status: string;
+  is_terminal: boolean;
+  can_cancel: boolean;
+  available_actions: string[];
+}
+
 // ─── Внутренние DTO ответов credit-backend ───────────────────────────────────
 
 /** requested_amount в ответе POST /applications (объект). */
@@ -256,6 +265,36 @@ export async function listApplications(): Promise<ApiResult<Application[]>> {
     status: raw.status,
     data: items.map(mapListItem),
   };
+}
+
+/** Статус заявки из creditapp (мост-токен).
+ * GET /applications/:uid/status → { uid, workflow_status, is_terminal, can_cancel, available_actions }.
+ * Источник правды для кнопки «Отменить заявку» (can_cancel) и упрощённого трекера.
+ */
+export async function getApplicationStatus(
+  uid: string,
+): Promise<ApiResult<ApplicationStatus>> {
+  return creditRequest<ApplicationStatus>(
+    "GET",
+    CREDIT_PREFIX + "/applications/" + uid + "/status",
+  );
+}
+
+/** Отмена заявки заёмщиком (мост-токен).
+ * POST /applications/:uid/cancel, body { reason }.
+ * 200 — сигнал отмены принят (отмена асинхронная: workflow обработает, статус
+ *   через 1-2 сек сменится на cancelled_*).
+ * 409 — нельзя отменить на текущей стадии (бэкенд гейтит ранними статусами).
+ */
+export async function cancelApplication(
+  uid: string,
+  reason?: string,
+): Promise<ApiResult<unknown>> {
+  return creditRequest<unknown>(
+    "POST",
+    CREDIT_PREFIX + "/applications/" + uid + "/cancel",
+    { reason: reason || "Отменено заявителем" },
+  );
 }
 
 // ─── Функции, недоступные в credit-backend (реальный workflow управляется ARM) ─

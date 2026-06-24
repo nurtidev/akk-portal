@@ -31,7 +31,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # cache-bust: Railway иногда переиспользует кеш слоя `npm run build` даже при
 # изменённых исходниках → build-time env/дефолты не инлайнятся. Меняй значение,
 # чтобы гарантированно форсить свежую компиляцию.
-ARG CACHE_BUST=20260624-3
+ARG CACHE_BUST=20260624-4
 RUN echo "cache-bust $CACHE_BUST" && npm run build
 
 FROM node:22-alpine AS runner

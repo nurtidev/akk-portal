@@ -1,9 +1,11 @@
 "use client";
 
 // =====================================================
-// ===== D4: страница заявки (трекер + документы) ======
-// Трекер 9 этапов / ветка отказа, «Что нужно сейчас», каталог требований
-// по этапам (gov/upload/sign), демо-кнопки advance. Эталон — applicationHtml.
+// ===== D4: страница заявки (5-этапный трекер) =========
+// Упрощённый степпер из 5 этапов заёмщика (stageOf), терминальный баннер
+// (отклонена/отменена/закрыта), отмена заявки заёмщиком (can_cancel из
+// GET /applications/:uid/status → POST /applications/:uid/cancel).
+// Каталог документов мягко деградирует (у creditapp нет /documents).
 // =====================================================
 
 import { useCallback, useEffect, useState } from "react";
@@ -11,22 +13,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
-  advanceApplication,
-  APP_STAGES,
-  appStageIndex,
+  cancelApplication,
+  getApplicationStatus,
   listApplications,
   listDocuments,
-  rejectLabel,
-  uploadDocument,
   type Application,
+  type ApplicationStatus,
   type DocStage,
   type DocumentsDTO,
 } from "@/lib/api";
+import { stageOf, type StageInfo } from "@/lib/credit/stage";
 import { useAuth } from "@/components/auth/auth-provider";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { fmtMoney, programCategory, programTitle } from "./helpers";
-import { StageTimeline, RejectedTimeline } from "./stage-timeline";
+import { SimpleStepper } from "./simple-stepper";
 import { DocRow } from "./doc-row";
+
+/** Цвета терминального баннера по типу. */
+const TERMINAL_STYLE: Record<
+  NonNullable<StageInfo["terminal"]>,
+  { bg: string; border: string; text: string; icon: string }
+> = {
+  rejected: { bg: "rgba(214,51,108,0.08)", border: "#d6336c", text: "#d6336c", icon: "✕" },
+  cancelled: { bg: "var(--surface-warm)", border: "var(--border-strong)", text: "var(--text-2)", icon: "—" },
+  closed: { bg: "var(--surface-warm)", border: "var(--border-strong)", text: "var(--text-2)", icon: "•" },
+};
 
 export function ApplicationView({ uid }: { uid: string }) {
   const t = useTranslations("cabinet");
@@ -35,13 +46,15 @@ export function ApplicationView({ uid }: { uid: string }) {
   const locale = pathname.split("/")[1] || "ru";
 
   const [app, setApp] = useState<Application | null>(null);
+  const [status, setStatus] = useState<ApplicationStatus | null>(null);
   const [docs, setDocs] = useState<DocumentsDTO | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [notice, setNotice] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError("");
     // Заявка приходит из списка (отдельного GET по uid в прототипе нет).
     const listR = await listApplications();
     const found =
@@ -49,7 +62,13 @@ export function ApplicationView({ uid }: { uid: string }) {
         ? listR.data.find((a) => a.uid === uid) || null
         : null;
     setApp(found);
+
     if (found) {
+      // Статус — источник правды для трекера и кнопки отмены.
+      const statR = await getApplicationStatus(uid);
+      setStatus(statR.ok && statR.data ? statR.data : null);
+
+      // Документы у creditapp отсутствуют → мягкая деградация (каталог скрыт).
       const docR = await listDocuments(uid);
       setDocs(docR.ok && docR.data ? docR.data : null);
     }
@@ -60,24 +79,25 @@ export function ApplicationView({ uid }: { uid: string }) {
     if (user) void load();
   }, [user, load]);
 
-  async function advance(status?: string) {
-    setError("");
-    const r = await advanceApplication(uid, status);
-    if (!r.ok) {
-      setError(t("appx.advanceErr"));
+  async function doCancel() {
+    setConfirmOpen(false);
+    setCancelling(true);
+    setNotice(null);
+    const r = await cancelApplication(uid);
+    setCancelling(false);
+
+    if (r.ok) {
+      setNotice({ kind: "ok", text: t("appx.cancelOk") });
+      // Отмена асинхронная: workflow сменит статус на cancelled_* через 1-2 сек.
+      setTimeout(() => void load(), 1500);
       return;
     }
-    await load();
-  }
-
-  async function doUpload(reqKey: string, fileName: string) {
-    const r = await uploadDocument(uid, reqKey, fileName);
-    if (r.ok) await load();
-  }
-
-  async function doSign(reqKey: string) {
-    const r = await uploadDocument(uid, reqKey, `signed-${reqKey}.pdf`);
-    if (r.ok) await load();
+    if (r.status === 409) {
+      setNotice({ kind: "err", text: t("appx.cancelTooLate") });
+      void load();
+      return;
+    }
+    setNotice({ kind: "err", text: t("appx.cancelErr") });
   }
 
   const back = (
@@ -123,26 +143,24 @@ export function ApplicationView({ uid }: { uid: string }) {
     );
   }
 
-  const idx = appStageIndex(app.status);
-  const rej = rejectLabel(app.status);
-  const isFinal = idx >= APP_STAGES.length - 1;
+  // Источник правды трекера — workflow_status из /status; fallback — статус из списка.
+  const workflowStatus = status?.workflow_status || app.status;
+  const stage = stageOf(workflowStatus);
+  const terminal = stage.terminal;
+  // «Завершено» — это активный статус completed*/monitoring* (этап 5, не терминал).
+  const isDone =
+    !terminal &&
+    stage.index === 5 &&
+    /^(completed|monitoring|issued|disbursed|disbursement_completed)/.test(workflowStatus || "");
+
+  const canCancel = status?.can_cancel === true;
+
   const pid = app.program_id || "";
   const cat = programCategory(pid);
 
-  // Группировка этапов с документами на current / past / future.
-  const stages: DocStage[] = docs?.stages || [];
-  let current: DocStage | null = null;
-  const past: DocStage[] = [];
-  const future: DocStage[] = [];
-  for (const s of stages) {
-    if (!s.documents || !s.documents.length) {
-      if (s.stage_index === idx) current = s;
-      continue;
-    }
-    if (s.stage_index === idx) current = s;
-    else if (s.stage_index < idx) past.push(s);
-    else future.push(s);
-  }
+  // Группировка этапов с документами (если creditapp когда-нибудь начнёт их слать).
+  const docStages: DocStage[] = docs?.stages || [];
+  const hasDocs = docStages.some((s) => s.documents && s.documents.length > 0);
 
   return (
     <div className="mx-auto max-w-[760px] px-4 py-7">
@@ -153,9 +171,7 @@ export function ApplicationView({ uid }: { uid: string }) {
         <div className="relative h-32 bg-gradient-to-br from-[#07663D] to-[#054E2E]">
           <div className="ornament-tile pointer-events-none absolute inset-0 opacity-10" aria-hidden="true" />
           <div className="absolute inset-x-4 bottom-3 text-white">
-            <h2 className="font-display text-xl font-bold text-white">
-              {programTitle(pid)}
-            </h2>
+            <h2 className="font-display text-xl font-bold text-white">{programTitle(pid)}</h2>
             {cat && <div className="text-xs opacity-90">{cat}</div>}
           </div>
         </div>
@@ -168,113 +184,137 @@ export function ApplicationView({ uid }: { uid: string }) {
             {t("appx.amount")}{" "}
             <b className="font-semibold text-[var(--text)]">{fmtMoney(app.amount)}</b>
           </span>
-          {!rej && (
+          {!terminal && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary-soft)] px-3 py-1 text-xs font-bold text-[var(--primary)]">
-              ● {APP_STAGES[idx]}
+              ● {isDone ? t("appx.stageDone") : stage.label}
             </span>
           )}
         </div>
       </div>
 
-      {/* Трекер */}
+      {/* Терминальный баннер */}
+      {terminal && (
+        <div
+          className="mb-3.5 flex items-start gap-3 rounded-[var(--radius-lg)] border p-4"
+          style={{
+            background: TERMINAL_STYLE[terminal].bg,
+            borderColor: TERMINAL_STYLE[terminal].border,
+          }}
+        >
+          <span
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+            style={{ background: TERMINAL_STYLE[terminal].border }}
+          >
+            {TERMINAL_STYLE[terminal].icon}
+          </span>
+          <div>
+            <div
+              className="text-sm font-bold"
+              style={{ color: TERMINAL_STYLE[terminal].text }}
+            >
+              {stage.label}
+            </div>
+            <p className="mt-0.5 text-[13px] text-[var(--text-3)]">{t("appx.closed")}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Трекер 5 этапов */}
       <Card title={t("appx.movement")}>
-        {rej ? (
-          <RejectedTimeline reachedIdx={Math.min(idx, APP_STAGES.length - 1)} label={rej} />
-        ) : (
-          <StageTimeline
-            currentIdx={idx}
-            progressLabel={t("appx.progressOf", { n: Math.min(idx + 1, APP_STAGES.length), total: APP_STAGES.length })}
-            currentLabel={t("appx.currentStage")}
-          />
+        <SimpleStepper currentIndex={stage.index} done={isDone} dim={!!terminal} />
+        {/* Технический статус — мелким серым (опционально). */}
+        {workflowStatus && (
+          <div className="mt-3 text-[11px] text-[var(--text-3)]">
+            {t("appx.currentStep")}: <span className="font-mono">{workflowStatus}</span>
+          </div>
         )}
       </Card>
 
-      {rej ? (
-        <Card>
-          <p className="text-sm text-[var(--text-3)]">{t("appx.closed")}</p>
-        </Card>
-      ) : (
+      {/* Каталог документов — мягкая деградация: показываем только при наличии данных */}
+      {!terminal && hasDocs && (
         <>
-          {/* Что нужно сейчас */}
-          <div className="mb-3.5 rounded-[var(--radius-lg)] border border-[var(--primary)] bg-[var(--primary-soft)] p-4">
-            <div className="mb-1 text-[13px] font-bold text-[var(--text)]">
-              {t("appx.nowTitle")} · {APP_STAGES[idx]}
-            </div>
-            {current && current.documents.length ? (
-              current.documents.map((d) => (
-                <DocRow
-                  key={d.requirement_key}
-                  doc={d}
-                  interactive
-                  onUpload={doUpload}
-                  onSign={doSign}
-                />
-              ))
-            ) : (
-              <p className="text-sm text-[var(--text-3)]">{t("appx.nowEmpty")}</p>
-            )}
+          <div className="mb-2 mt-1.5 text-[13px] font-bold text-[var(--text)]">
+            {t("appx.docsTitle")}
           </div>
-
-          {past.length > 0 && (
-            <>
-              <div className="mb-2 mt-1.5 text-[13px] font-bold text-[var(--text)]">
-                {t("appx.passed")}
-              </div>
-              {past.map((s) => (
-                <CollapsedStage key={s.status_key} stage={s} kind="past" />
-              ))}
-            </>
-          )}
-          {future.length > 0 && (
-            <>
-              <div className="mb-2 mt-1.5 text-[13px] font-bold text-[var(--text)]">
-                {t("appx.ahead")}
-              </div>
-              {future.map((s) => (
-                <CollapsedStage key={s.status_key} stage={s} kind="future" />
-              ))}
-            </>
-          )}
+          {docStages
+            .filter((s) => s.documents && s.documents.length > 0)
+            .map((s) => (
+              <DocStageCollapsed key={s.status_key} stage={s} />
+            ))}
         </>
       )}
 
-      {/* Демо-управление */}
-      <div className="mt-3.5 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-warm)] p-4">
-        <div className="mb-1 text-[13px] font-bold text-[var(--text)]">
-          {t("appx.demoTitle")}
-        </div>
-        <p className="mb-2.5 text-[11.5px] text-[var(--text-3)]">
-          {t("appx.demoNote")}
-        </p>
-        {error && <p className="mb-2 text-sm text-[var(--danger)]">{error}</p>}
-        <div className="flex flex-wrap gap-2">
-          {!rej && !isFinal && (
-            <>
-              <button
-                type="button"
-                onClick={() => advance()}
-                className="rounded-[var(--radius-sm)] bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--primary-2)]"
-              >
-                {t("appx.advance")} →
-              </button>
-              <button
-                type="button"
-                onClick={() => advance("rejected")}
-                className="rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--danger)] hover:border-[var(--danger)]"
-              >
-                {t("appx.reject")}
-              </button>
-            </>
+      {/* Отмена заявки — только когда бэкенд разрешает (can_cancel) */}
+      {canCancel && !terminal && (
+        <div className="mt-3.5 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-4">
+          <div className="mb-1 text-[13px] font-bold text-[var(--text)]">
+            {t("appx.cancelTitle")}
+          </div>
+          <p className="mb-2.5 text-[11.5px] text-[var(--text-3)]">{t("appx.cancelNote")}</p>
+          {notice && (
+            <p
+              className="mb-2 text-sm"
+              style={{ color: notice.kind === "ok" ? "var(--primary)" : "var(--danger)" }}
+            >
+              {notice.text}
+            </p>
           )}
           <button
             type="button"
-            onClick={() => advance("new")}
-            className="rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--text-2)] hover:border-[var(--primary)]"
+            disabled={cancelling}
+            onClick={() => setConfirmOpen(true)}
+            className="rounded-[var(--radius-sm)] border border-[var(--border)] px-3.5 py-2 text-xs font-semibold text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {t("appx.reset")}
+            {cancelling ? t("appx.cancelling") : t("appx.cancelBtn")}
           </button>
         </div>
-      </div>
+      )}
+
+      {/* Сообщение об успехе/ошибке отмены, когда блок отмены уже скрыт (после отмены) */}
+      {!canCancel && notice && (
+        <p
+          className="mt-3 text-sm"
+          style={{ color: notice.kind === "ok" ? "var(--primary)" : "var(--danger)" }}
+        >
+          {notice.text}
+        </p>
+      )}
+
+      {/* Диалог подтверждения отмены */}
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setConfirmOpen(false)}
+        >
+          <div
+            className="w-full max-w-[400px] rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-2 text-base font-bold text-[var(--text)]">
+              {t("appx.confirmTitle")}
+            </h3>
+            <p className="mb-4 text-sm text-[var(--text-3)]">{t("appx.confirmText")}</p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-[var(--radius-sm)] border border-[var(--border)] px-3.5 py-2 text-sm font-semibold text-[var(--text-2)] hover:border-[var(--primary)]"
+              >
+                {t("appx.confirmNo")}
+              </button>
+              <button
+                type="button"
+                onClick={() => void doCancel()}
+                className="rounded-[var(--radius-sm)] bg-[var(--danger)] px-3.5 py-2 text-sm font-semibold text-white hover:opacity-90"
+              >
+                {t("appx.confirmYes")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -283,34 +323,18 @@ function Card({ title, children }: { title?: string; children: React.ReactNode }
   return (
     <div className="mb-3.5 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-4">
       {title && (
-        <div className="mb-1 text-[13px] font-bold tracking-wide text-[var(--text)]">
-          {title}
-        </div>
+        <div className="mb-1 text-[13px] font-bold tracking-wide text-[var(--text)]">{title}</div>
       )}
       {children}
     </div>
   );
 }
 
-function CollapsedStage({
-  stage,
-  kind,
-}: {
-  stage: DocStage;
-  kind: "past" | "future";
-}) {
+function DocStageCollapsed({ stage }: { stage: DocStage }) {
   const t = useTranslations("cabinet");
   return (
     <details className="mb-2.5 overflow-hidden rounded-[var(--radius)] border border-[var(--border-soft)] bg-[var(--surface-warm)]">
       <summary className="flex cursor-pointer list-none items-center gap-2.5 px-3.5 py-3 text-[13px] font-semibold text-[var(--text-2)] [&::-webkit-details-marker]:hidden">
-        <span
-          className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-[9px] leading-none text-white"
-          style={{
-            background: kind === "past" ? "var(--primary)" : "var(--border-strong)",
-          }}
-        >
-          {kind === "past" ? "✓" : ""}
-        </span>
         <span>{stage.label}</span>
         <span className="ml-auto text-[11px] text-[var(--text-3)]">
           {stage.documents.length} {t("appx.docsCount")}
@@ -318,13 +342,7 @@ function CollapsedStage({
       </summary>
       <div className="px-3.5 pb-3 pt-1">
         {stage.documents.map((d) => (
-          <DocRow
-            key={d.requirement_key}
-            doc={d}
-            interactive={false}
-            onUpload={() => {}}
-            onSign={() => {}}
-          />
+          <DocRow key={d.requirement_key} doc={d} interactive={false} onUpload={() => {}} onSign={() => {}} />
         ))}
       </div>
     </details>
