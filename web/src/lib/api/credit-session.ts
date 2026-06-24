@@ -31,6 +31,11 @@ interface BorrowerIdentity {
   phone: string;
 }
 
+// Кеш creditapp-токена ПРИВЯЗАН к ИИН заёмщика, под которого он выпущен.
+// Без этого при смене пользователя akk-backend (демо с несколькими юзерами)
+// переиспользовался бы чужой токен → заявка уходила под прошлого заёмщика.
+const CREDIT_IIN_KEY = CREDIT_TOKEN_KEY + "-iin";
+
 /** Прочитать кешированный creditapp-токен из localStorage. */
 function loadCreditToken(): string {
   if (!isBrowser) return "";
@@ -41,21 +46,33 @@ function loadCreditToken(): string {
   }
 }
 
-/** Сохранить creditapp-токен в localStorage. */
-function saveCreditToken(token: string): void {
+/** ИИН, под который выпущен кешированный creditapp-токен. */
+function loadCreditTokenIIN(): string {
+  if (!isBrowser) return "";
+  try {
+    return localStorage.getItem(CREDIT_IIN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+/** Сохранить creditapp-токен в localStorage вместе с ИИН-владельцем. */
+function saveCreditToken(token: string, iin: string): void {
   if (!isBrowser) return;
   try {
     localStorage.setItem(CREDIT_TOKEN_KEY, token);
+    localStorage.setItem(CREDIT_IIN_KEY, iin);
   } catch {
     /* приватный режим / квота — игнорируем */
   }
 }
 
-/** Сбросить кешированный creditapp-токен (вызов при 401 от creditapp). */
+/** Сбросить кешированный creditapp-токен (вызов при 401 / смене пользователя). */
 export function clearCreditToken(): void {
   if (!isBrowser) return;
   try {
     localStorage.removeItem(CREDIT_TOKEN_KEY);
+    localStorage.removeItem(CREDIT_IIN_KEY);
   } catch {
     /* игнорируем */
   }
@@ -183,7 +200,7 @@ async function bootstrapCreditSession(id: BorrowerIdentity): Promise<string | nu
   const token = verify.data?.accessToken?.trim() || "";
   if (!verify.ok || !token) return null;
 
-  saveCreditToken(token);
+  saveCreditToken(token, id.iin);
   return token;
 }
 
@@ -197,12 +214,15 @@ async function bootstrapCreditSession(id: BorrowerIdentity): Promise<string | nu
 export async function getCreditToken(): Promise<string | null> {
   if (!creditApiAvailable) return null;
 
-  const cached = loadCreditToken();
-  if (cached) return cached;
-
   const id = resolveBorrowerIdentity();
   if (!id) return null;
 
+  // Кеш валиден ТОЛЬКО если выпущен под текущего заёмщика akk-backend.
+  // Иначе (смена пользователя на демо) сбрасываем и пере-бутстрапим.
+  const cached = loadCreditToken();
+  if (cached && loadCreditTokenIIN() === id.iin) return cached;
+
+  clearCreditToken();
   return bootstrapCreditSession(id);
 }
 
