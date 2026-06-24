@@ -28,7 +28,7 @@ const PROVIDERS: {
   labelKey: string;
 }[] = [
   { id: "egov", logo: "/img/egov.png", labelKey: "auth.ssoEgov" },
-  { id: "baiterek", logo: "/img/baiterek.png", labelKey: "auth.ssoBaiterek" },
+  // Baiterek временно убран — оставляем только вход через eGov.
 ];
 
 export function SsoButtons({ onAuthorized }: SsoButtonsProps) {
@@ -74,7 +74,7 @@ export function SsoButtons({ onAuthorized }: SsoButtonsProps) {
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {PROVIDERS.map((p) => (
           <button
             key={p.id}
