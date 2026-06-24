@@ -125,15 +125,18 @@ func (c *Client) exchangeCode(ctx context.Context, code, redirectURI string) (st
 		"redirect_uri": {redirectURI},
 		"client_id":    {c.clientID},
 	}
-	if c.clientSecret != "" {
-		data.Set("client_secret", c.clientSecret)
-	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.tokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// eGov требует Basic-аутентификацию клиента: Authorization: Basic base64(client_id:client_secret).
+	// (IDP_описание: «Метод требует Basic аутентификацию клиента».) client_secret — только в
+	// заголовке, не в теле; в теле остаётся client_id (как в примере eGov).
+	if c.clientSecret != "" {
+		req.SetBasicAuth(c.clientID, c.clientSecret)
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
