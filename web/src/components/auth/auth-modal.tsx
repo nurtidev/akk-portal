@@ -25,6 +25,7 @@ import {
 } from "@/lib/api";
 import { useAuth, type AuthView } from "./auth-provider";
 import { OtpInput } from "./otp-input";
+import { SsoButtons } from "./sso-buttons";
 
 /** Контекст текущего флоу OTP. */
 interface OtpCtx {
@@ -248,6 +249,14 @@ function LoginForm({
       >
         {busy ? t("auth.sending") : t("auth.getCode")}
       </button>
+
+      {/* Вход через гос-сервисы (eGov / Baiterek) */}
+      <div className="my-5 flex items-center gap-3">
+        <span className="h-px flex-1 bg-[var(--border)]" />
+        <span className="text-xs text-[var(--text-3)]">{t("auth.or")}</span>
+        <span className="h-px flex-1 bg-[var(--border)]" />
+      </div>
+      <SsoButtons />
     </div>
   );
 }
@@ -334,6 +343,15 @@ function RegisterForm({
       >
         {busy ? t("auth.sending") : t("auth.register")}
       </button>
+
+      {/* Вход через гос-сервисы (eGov / Baiterek) */}
+      <div className="my-5 flex items-center gap-3">
+        <span className="h-px flex-1 bg-[var(--border)]" />
+        <span className="text-xs text-[var(--text-3)]">{t("auth.or")}</span>
+        <span className="h-px flex-1 bg-[var(--border)]" />
+      </div>
+      <SsoButtons />
+
       <p className="mt-3 text-center text-sm text-[var(--text-3)]">
         {t("auth.haveAccount")}{" "}
         <button
