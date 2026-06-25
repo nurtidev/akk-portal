@@ -39,3 +39,18 @@ export const AKK_ESG_STATS = {
   /** ESG-рейтинг Sustainable Fitch (текущий) */
   esgRating: 'ER3',
 } as const;
+
+/**
+ * «Масштаб АКК» — блок инфографики-достижений на главной (заменил стену
+ * партнёров по запросу ПП: «не рекламировать партнёров — показать масштаб»).
+ * ВНИМАНИЕ: значения и формулировки ЧЕРНОВЫЕ (с презентации ПП) —
+ * TODO: подтвердить у бизнеса перед публичным релизом. Подписи — в i18n
+ * (funnel.scale.items по key), значения и порядок — здесь.
+ */
+export const AKK_SCALE_STATS = [
+  { key: 'horsemeat', value: '⅓' },
+  { key: 'clients', value: '⅓' },
+  { key: 'land', value: '⅓' },
+  { key: 'apkShare', value: '85%' },
+  { key: 'mtPark', value: '+20%' },
+] as const;
