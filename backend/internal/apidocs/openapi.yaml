@@ -1,0 +1,571 @@
+openapi: 3.0.3
+info:
+  title: AKK Portal Backend API
+  version: "1.0.0"
+  description: |
+    API клиентского портала АО «Аграрная кредитная корпорация» (АКК).
+    Единая точка для веб-портала (`web/`) и мобильного приложения.
+
+    Контур: SMS-OTP авторизация, демо-вход eGov/Байтерек, подача кредитной
+    заявки, движение по этапам (Смарт30-лестница), документы по этапам.
+
+    **Авторизация.** Все эндпоинты `/api/v1/credit/*` и `/me` требуют
+    `Authorization: Bearer <accessToken>`. Токен выдаётся при входе
+    (`VerifySmsCode` с `purpose=login`), регистрации (`smsRegister`) или
+    демо-SSO (`ssoDemoLogin`/`ssoEgovLogin`).
+
+    **Demo-режим (`DEMO_MODE=true`, включён по умолчанию).** Реальная SMS не
+    шлётся: код возвращается в поле `demoCode`. Демо-SSO eGov/Байтерек создаёт
+    фиксированных клиентов и сразу выдаёт токены.
+
+servers:
+  - url: https://akk-backend-production.up.railway.app
+    description: Production (Railway)
+  - url: http://localhost:8080
+    description: Local dev (PORT по умолчанию 8080)
+
+tags:
+  - name: health
+    description: Проверка доступности
+  - name: auth
+    description: Авторизация и регистрация (SMS-OTP, демо-SSO)
+  - name: credit
+    description: Кредитные заявки, этапы, документы
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Проверка живости сервиса
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  /api/v1/auth/Account/CheckBmgAndSendSmsForRegister:
+    post:
+      tags: [auth]
+      summary: Регистрация, шаг 1 — отправить SMS-код
+      description: БМГ-проверка в прототипе мокается. Код шлётся на указанный телефон.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [iin, phone]
+              properties:
+                iin: { type: string, description: ИИН (12 цифр), example: "900101300123" }
+                phone: { type: string, description: Телефон, example: "+77011234567" }
+      responses:
+        "200":
+          description: Код отправлен (в demo — см. demoCode)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SmsSentResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+
+  /api/v1/auth/Account/RequestSms:
+    post:
+      tags: [auth]
+      summary: Вход, шаг 1 — отправить SMS-код зарегистрированному клиенту
+      description: Код уходит на телефон из профиля клиента (а не из запроса).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [iin]
+              properties:
+                iin: { type: string, description: ИИН (12 цифр), example: "900101300123" }
+                phoneNumber: { type: string, description: Резервный телефон (если в профиле пуст) }
+      responses:
+        "200":
+          description: Код отправлен (в demo — см. demoCode)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SmsSentResponse" }
+        "404":
+          description: Пользователь с таким ИИН не зарегистрирован
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+
+  /api/v1/auth/Account/VerifySmsCode:
+    post:
+      tags: [auth]
+      summary: Проверить SMS-код; при purpose=login вернуть токены
+      description: |
+        Всегда возвращает HTTP 200 — читать поле `verified`, а не статус.
+        При `purpose=login` и `verified=true` дополнительно отдаёт токены.
+        При `purpose=registration` подтверждение запоминается для `smsRegister`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [iin, code]
+              properties:
+                iin: { type: string, example: "900101300123" }
+                code: { type: string, example: "123456" }
+                purpose:
+                  type: string
+                  enum: [login, registration]
+                  default: registration
+      responses:
+        "200":
+          description: Результат проверки (verified)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified: { type: boolean }
+                  attemptsLeft: { type: integer }
+                  message: { type: string, description: Текст при verified=false }
+                  accessToken: { type: string, description: Только при purpose=login и verified=true }
+                  refreshToken: { type: string, description: Только при purpose=login и verified=true }
+
+  /api/v1/auth/Account/smsRegister:
+    post:
+      tags: [auth]
+      summary: Регистрация, шаг 2 — создать клиента и выдать токены
+      description: Доступно только после подтверждённого кода (purpose=registration).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [iin, lastName, firstName, phoneNumber]
+              properties:
+                iin: { type: string, example: "900101300123" }
+                lastName: { type: string, example: "Сапаров" }
+                firstName: { type: string, example: "Бауыржан" }
+                middleName: { type: string, example: "Канатович" }
+                phoneNumber: { type: string, example: "+77011234567" }
+      responses:
+        "200":
+          description: Клиент создан, выданы токены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uid: { type: string, format: uuid }
+                  accessToken: { type: string }
+                  refreshToken: { type: string }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /api/v1/auth/Account/ssoDemoLogin:
+    post:
+      tags: [auth]
+      summary: Демо-вход через eGov / Байтерек
+      description: |
+        Без реального SSO: создаёт фиксированного демо-клиента и выдаёт токены.
+        Доступно только в DEMO_MODE. eGov → Сапаров Бауыржан; baiterek → Нурланова Айгуль.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider]
+              properties:
+                provider:
+                  type: string
+                  enum: [egov, baiterek]
+      responses:
+        "200":
+          description: Вход выполнен, профиль + токены
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SsoLoginResponse" }
+        "404":
+          description: Демо-вход недоступен (DEMO_MODE выключен)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/auth/Account/ssoEgovLogin:
+    post:
+      tags: [auth]
+      summary: Реальный вход через eGov SSO (OAuth2 authorization code)
+      description: |
+        Доступен только при сконфигурированном eGov-клиенте (EGOV_TOKEN_URL).
+        Фронт после авторизации на idp.egov.kz присылает code + redirectUri.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, redirectUri]
+              properties:
+                code: { type: string }
+                redirectUri: { type: string }
+      responses:
+        "200":
+          description: Вход выполнен, профиль + токены
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SsoLoginResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404":
+          description: Вход через eGov не сконфигурирован
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Не удалось получить данные из eGov
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/auth/Account/me:
+    get:
+      tags: [auth]
+      summary: Профиль текущего пользователя
+      responses:
+        "200":
+          description: Профиль
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/v1/credit/applications:
+    post:
+      tags: [credit]
+      summary: Создать кредитную заявку
+      description: |
+        Личность берётся из токена. Данные воронки клиента сохраняются в `onboarding`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requested_amount, loan_purpose]
+              properties:
+                requested_amount:
+                  type: number
+                  description: Запрошенная сумма, ₸
+                  example: 5000000
+                loan_purpose:
+                  type: string
+                  example: "Пополнение оборотных средств"
+                program_id:
+                  type: string
+                  description: id выбранной программы (см. web data/programs)
+                  example: "agrobusiness"
+                onboarding:
+                  type: object
+                  description: Снимок воронки (ответы квиза, программа, параметры, контакт, стресс)
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Заявка создана
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Application" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    get:
+      tags: [credit]
+      summary: Список заявок текущего клиента (новые сверху)
+      responses:
+        "200":
+          description: Массив заявок
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Application" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/v1/credit/applications/{uid}/status:
+    get:
+      tags: [credit]
+      summary: Статус заявки + флаги для трекера и кнопки отмены
+      parameters:
+        - $ref: "#/components/parameters/AppUid"
+      responses:
+        "200":
+          description: Статус заявки
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApplicationStatus" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/credit/applications/{uid}/advance:
+    post:
+      tags: [credit]
+      summary: Демо-движение заявки по этапам
+      description: |
+        Без тела — переход на следующий этап лестницы. Со `status` — установка
+        конкретного (`new` — сброс, `rejected` — отказ). В прод движением управляет
+        реальный процесс; здесь — ручное управление для демонстрации.
+      parameters:
+        - $ref: "#/components/parameters/AppUid"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  description: Целевой статус (этап лестницы / rejected / cancelled)
+      responses:
+        "200":
+          description: Обновлённая заявка
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Application" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/credit/applications/{uid}/cancel:
+    post:
+      tags: [credit]
+      summary: Самостоятельная отмена заявки заёмщиком
+      description: Доступна только до решения кредитного комитета (new/scoring/expertise).
+      parameters:
+        - $ref: "#/components/parameters/AppUid"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, example: "Передумал" }
+      responses:
+        "200":
+          description: Заявка отменена (status=cancelled)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Application" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: На текущем этапе отмена недоступна
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/credit/applications/{uid}/documents:
+    get:
+      tags: [credit]
+      summary: Чек-лист документов заявки, сгруппированный по этапам
+      parameters:
+        - $ref: "#/components/parameters/AppUid"
+      responses:
+        "200":
+          description: Документы по этапам
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DocumentsDTO" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [credit]
+      summary: Отметить требование как загруженное/подписанное (метаданные)
+      description: Файл не передаётся — сохраняются только метаданные действия.
+      parameters:
+        - $ref: "#/components/parameters/AppUid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requirement_key]
+              properties:
+                requirement_key:
+                  type: string
+                  description: Ключ требования из каталога (см. /documents)
+                  example: "business_plan"
+                file_name: { type: string, example: "biznes-plan.pdf" }
+      responses:
+        "200":
+          description: Документ отмечен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requirement_key: { type: string }
+                  status: { type: string, example: uploaded }
+                  file_name: { type: string, nullable: true }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    AppUid:
+      name: uid
+      in: path
+      required: true
+      description: UUID заявки
+      schema: { type: string, format: uuid }
+
+  responses:
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: Требуется авторизация / недействительный токен
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Не найдено
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    TooManyRequests:
+      description: Слишком частые запросы (rate-limit OTP)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+
+    SmsSentResponse:
+      type: object
+      properties:
+        sent: { type: boolean, example: true }
+        phone: { type: string, description: Маскированный номер ("+7 700 ***67"), nullable: true }
+        demoCode: { type: string, description: Только в DEMO_MODE — код для автоподстановки }
+        debugCode: { type: string, description: Алиас demoCode (совместимость) }
+
+    SsoLoginResponse:
+      type: object
+      properties:
+        uid: { type: string, format: uuid }
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        name: { type: string }
+        iin: { type: string }
+        phone: { type: string }
+        via: { type: string, example: egov }
+
+    Profile:
+      type: object
+      properties:
+        uid: { type: string, format: uuid }
+        iin: { type: string }
+        name: { type: string, description: ФИО одной строкой }
+        phone: { type: string }
+
+    Application:
+      type: object
+      properties:
+        uid: { type: string, format: uuid }
+        number: { type: string, example: "AKK-2026-000123" }
+        program_id: { type: string }
+        program: { type: string, description: Алиас program_id }
+        purpose: { type: string }
+        amount: { type: number, description: Сумма, ₸ }
+        status:
+          type: string
+          description: Статус-этап лестницы (см. ApplicationStatus.workflow_status)
+        onboarding:
+          type: object
+          description: Снимок воронки клиента
+          additionalProperties: true
+        created_at: { type: string, format: date-time }
+
+    ApplicationStatus:
+      type: object
+      properties:
+        uid: { type: string, format: uuid }
+        workflow_status:
+          type: string
+          description: |
+            Текущий этап. Лестница: new → scoring_in_progress → expertise →
+            cc_approved → collateral_valuation → contract_signing → disbursed →
+            monitoring → completed. Ветки: rejected, cancelled.
+          example: scoring_in_progress
+        is_terminal:
+          type: boolean
+          description: true → конечное состояние (completed/rejected/cancelled)
+        can_cancel:
+          type: boolean
+          description: true → заёмщик может отменить (до решения КК)
+        available_actions:
+          type: array
+          items: { type: string }
+          description: Доступные действия (например ["cancel"])
+
+    DocumentsDTO:
+      type: object
+      properties:
+        application_uid: { type: string, format: uuid }
+        current_status: { type: string }
+        current_stage_index: { type: integer }
+        stages:
+          type: array
+          items: { $ref: "#/components/schemas/DocStage" }
+
+    DocStage:
+      type: object
+      properties:
+        status_key: { type: string, example: expertise }
+        stage_index: { type: integer }
+        label: { type: string, example: "На рассмотрении" }
+        documents:
+          type: array
+          items: { $ref: "#/components/schemas/AppDocument" }
+
+    AppDocument:
+      type: object
+      properties:
+        requirement_key: { type: string, example: business_plan }
+        title: { type: string, example: "Бизнес-план / проектная смета" }
+        source:
+          type: string
+          enum: [gov, upload, sign]
+          description: gov — из госисточников (verified); upload — загрузка; sign — подпись ЭЦП
+        status:
+          type: string
+          description: required | verified | uploaded
+        file_name: { type: string, nullable: true }
+
+security:
+  - bearerAuth: []

@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"akk-railway-backend/internal/apidocs"
 	"akk-railway-backend/internal/auth"
 	"akk-railway-backend/internal/config"
 	"akk-railway-backend/internal/credit"
@@ -91,6 +92,9 @@ func main() {
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
+
+	// Документация API: /openapi.yaml + /swagger (для мобильного приложения).
+	apidocs.Register(e)
 
 	authH.Register(e.Group("/api/v1/auth/Account"))
 	creditH.Register(e.Group("/api/v1/credit"), authH.Middleware)
