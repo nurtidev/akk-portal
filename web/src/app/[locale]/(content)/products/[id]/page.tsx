@@ -9,6 +9,7 @@ import { ProductCalculator } from '@/components/products/product-calculator';
 import { PROGRAMS, PROGRAM_DETAILS, type Program } from '@/data/programs';
 import { getChecklist } from '@/data/loan-documents';
 import { getProgramFaq } from '@/data/program-faq';
+import { getProgramRequirements } from '@/data/program-requirements';
 import { fmtAmount } from '@/lib/format';
 
 // Только видимые программы (скрытая «Кең дала» исключена). dynamicParams=false →
@@ -121,10 +122,20 @@ export default async function ProductDetailPage({
     </div>
   );
 
-  // --- 2. Требования ---
+  // --- 2. Требования (развёрнуто из регламента: заёмщик / проект / особые условия) ---
+  const reqGroups = getProgramRequirements(id);
   const requirements = (
-    <div className="space-y-4">
-      {d?.requirements && d.requirements.length > 0 ? (
+    <div className="space-y-6">
+      {reqGroups.length > 0 ? (
+        reqGroups.map((g) => (
+          <div key={g.title}>
+            <h3 className="mb-3 font-display text-base font-semibold text-[var(--primary)]">{g.title}</h3>
+            <ul className="list-disc space-y-2 pl-5 text-sm text-[var(--text-2)]">
+              {g.items.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+        ))
+      ) : d?.requirements && d.requirements.length > 0 ? (
         <ul className="list-disc space-y-2 pl-5 text-sm text-[var(--text-2)]">
           {d.requirements.map((s, i) => <li key={i}>{s}</li>)}
         </ul>

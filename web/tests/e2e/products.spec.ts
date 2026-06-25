@@ -58,9 +58,11 @@ test.describe('Раздел «Продукты»', () => {
     await expect(page.getByRole('tab', { name: 'Условия' })).toHaveAttribute('aria-selected', 'true');
     await page.screenshot({ path: shot('detail-conditions', testInfo.project.name), fullPage: true });
 
-    // Переключение на «Требования».
+    // Переключение на «Требования» — сгруппированные блоки из регламента.
     await page.getByRole('tab', { name: 'Требования' }).click();
     await expect(page.getByRole('tab', { name: 'Требования' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('heading', { name: 'Требования к заёмщику' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Требования к проекту' })).toBeVisible();
 
     // Переключение на «Документы» — видны бейджи «обязательно».
     await page.getByRole('tab', { name: 'Документы' }).click();
