@@ -59,9 +59,8 @@ function ProductCard({
   tProg: (k: string) => string;
 }) {
   return (
-    <Link
-      href={`/${locale}/products/${p.id}`}
-      className={`group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
+    <div
+      className={`group relative flex flex-col overflow-hidden rounded-[var(--radius-lg)] border bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:shadow-lg ${
         p.featured ? 'border-[var(--primary)]' : 'border-[var(--border)]'
       }`}
     >
@@ -81,7 +80,15 @@ function ProductCard({
           {tProg('indirectBadge')}
         </span>
       )}
-      <h3 className="mb-1.5 font-display text-lg font-bold text-[var(--text)]">{p.title}</h3>
+      {/* Заголовок-ссылка на детальную — растянут на всю карточку (stretched link) */}
+      <h3 className="mb-1.5 font-display text-lg font-bold text-[var(--text)]">
+        <Link
+          href={`/${locale}/products/${p.id}`}
+          className="rounded before:absolute before:inset-0 before:content-[''] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+        >
+          {p.title}
+        </Link>
+      </h3>
       <p className="mb-4 flex-1 text-sm leading-relaxed text-[var(--text-2)]">{p.description}</p>
       <dl className="space-y-1.5 border-t border-[var(--border-soft)] pt-3 text-sm">
         <div className="flex justify-between gap-3">
@@ -97,13 +104,22 @@ function ProductCard({
           <dd className="text-right font-semibold text-[var(--text)]">{formatTerm(p.maxTerm, tProg)}</dd>
         </div>
       </dl>
-      <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[var(--primary)]">
-        {tp('detailCta')}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
-          <path d="M9 18l6-6-6-6" />
-        </svg>
-      </span>
-    </Link>
+      {/* Действия: «Подробнее» (вся карточка) + отдельная кнопка расчёта (→ #calc) */}
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--primary)]">
+          {tp('detailCta')}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </span>
+        <Link
+          href={`/${locale}/products/${p.id}#calc`}
+          className="relative z-10 inline-flex items-center rounded-[var(--radius-sm)] border border-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+        >
+          {tp('calcCta')}
+        </Link>
+      </div>
+    </div>
   );
 }
 

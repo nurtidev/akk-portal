@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { ContentPage, AccordionItem } from '@/components/content/content-page';
 import { ProductTabs, type ProductTab } from '@/components/products/product-tabs';
+import { ProductCalculator } from '@/components/products/product-calculator';
 import { PROGRAMS, PROGRAM_DETAILS, type Program } from '@/data/programs';
 import { getChecklist } from '@/data/loan-documents';
 import { getProgramFaq } from '@/data/program-faq';
@@ -207,6 +208,15 @@ export default async function ProductDetailPage({
       ]}
     >
       <ProductTabs tabs={tabs} />
+
+      {/* Калькулятор платежа (публичный pre-screen) */}
+      <section
+        id="calc"
+        className="mt-10 scroll-mt-24 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)]"
+      >
+        <h2 className="font-display text-xl font-bold text-[var(--text)]">{tp('calcTitle')}</h2>
+        <ProductCalculator program={program} />
+      </section>
 
       {/* CTA-блок */}
       <div className="mt-10 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)]">

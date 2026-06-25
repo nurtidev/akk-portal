@@ -31,7 +31,19 @@ test.describe('Раздел «Продукты»', () => {
     await expect(page.getByRole('heading', { name: 'Іскер', exact: true })).toBeVisible();
     // «Кең дала» (hidden) убрана из каталога — точного заголовка нет.
     await expect(page.getByRole('heading', { name: 'Кең дала', exact: true })).toHaveCount(0);
+    // На карточках — CTA «Рассчитать платёж» → детальная #calc.
+    await expect(page.getByRole('link', { name: 'Рассчитать платёж' }).first()).toBeVisible();
     await page.screenshot({ path: shot('catalog', testInfo.project.name), fullPage: true });
+  });
+
+  test('Калькулятор на странице программы считает график', async ({ page }) => {
+    await page.goto('/ru/products/agrobusiness_2#calc');
+    await expect(page.getByRole('heading', { name: 'Калькулятор платежа' })).toBeVisible();
+    // Есть строка переплаты (график посчитан).
+    await expect(page.getByText('Общая переплата').first()).toBeVisible();
+    // Смена срока не роняет расчёт.
+    await page.getByRole('button', { name: '60 мес', exact: true }).click();
+    await expect(page.getByText('Общая переплата').first()).toBeVisible();
   });
 
   test('Детальная: 4 вкладки переключаются (Условия→Требования→Документы)', async ({ page }, testInfo) => {
