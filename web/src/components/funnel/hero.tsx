@@ -2,15 +2,15 @@
 
 // =====================================================
 // ===== Hero — full-bleed (виденье руководителя) ======
-// Фото комбайна на всю ширину первого экрана, слева «тает» в фон
-// страницы через градиент (var(--bg) — обе темы); текст и CTA — на
-// спокойной зоне слева. На мобиле фото скрыто (текст приоритетнее).
-// Заголовок — миссия: «Финансируем тех, кто кормит страну».
-// Стена логотипов клиентов вынесена в отдельную секцию ClientTrust.
-// CTA: «Подобрать программу» (квиз) + «Получить консультацию».
+// Фоновое ВИДЕО комбайна на всю ширину первого экрана (день — светлая тема,
+// ночь с фарами — тёмная, плавный кросс-фейд по теме). Слева «тает» в фон
+// через градиент; на мобиле видео скрыто (текст приоритетнее, фон — градиент).
+// Постер каждого видео — соответствующее фото (фолбэк, пока/если видео не
+// подгрузилось). prefers-reduced-motion → видео на паузе.
+// Заголовок — миссия; CTA: «Подобрать программу» + «Получить консультацию».
 // =====================================================
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { AKK_STATS } from '@/data/akk-stats';
 import { useFunnel } from './funnel-context';
@@ -19,69 +19,66 @@ export function Hero() {
   const t = useTranslations('funnel.hero');
   const tw = useTranslations('funnel.whyAkk');
   const { startQuiz, requestConsultation } = useFunnel();
+  const sectionRef = useRef<HTMLElement | null>(null);
 
-  // Ключевые цифры — компактной строкой под кнопками (первый экран = hero + метрики)
+  // Ключевые цифры — компактной строкой под кнопками.
   const stats: { value: string; label: string }[] = [
     { value: AKK_STATS.portfolio, label: t('statPortfolioLabel') },
     { value: AKK_STATS.clients, label: t('statClientsLabel') },
     { value: AKK_STATS.financed, label: t('statFinancedLabel') },
     { value: tw('b.value'), label: t('statRatingLabel') }, // рейтинг Fitch BBB
   ];
-  const [photoOk, setPhotoOk] = useState(true);
-  const [nightOk, setNightOk] = useState(true);
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const nightRef = useRef<HTMLImageElement | null>(null);
 
-  // onError может сработать ДО гидратации (SSR) и потеряться — проверяем
-  // naturalWidth уже смонтированной картинки.
+  // Доступность: при prefers-reduced-motion ставим фоновые видео на паузу
+  // (остаётся спокойный кадр/постер).
   useEffect(() => {
-    const el = imgRef.current;
-    if (el && el.complete && el.naturalWidth === 0) setPhotoOk(false);
-    const nel = nightRef.current;
-    if (nel && nel.complete && nel.naturalWidth === 0) setNightOk(false);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      sectionRef.current?.querySelectorAll('video').forEach((v) => v.pause());
+    }
   }, []);
 
   return (
-    // Полноэкранный hero первого вида: full-bleed, высокий (≈первый вьюпорт),
-    // контент вертикально по центру. Фото справа «тает» в фон слева; на мобиле
-    // фото скрыто, фон — мягкий брендовый градиент.
-    <section className="relative isolate flex w-full items-center overflow-hidden min-h-[calc(100svh-4rem)]">
-      {/* Полноширинное фото: объект справа, слева — спокойная зона под текст.
-          Светлая тема — день; тёмная — ночная версия, плавный кросс-фейд. */}
-      {photoOk && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          ref={imgRef}
-          src="/img/content/hero-main.jpg"
-          alt=""
-          aria-hidden="true"
-          className={`absolute inset-0 hidden h-full w-full object-cover object-[72%_center] transition-opacity duration-700 md:block ${nightOk ? 'dark:opacity-0' : ''}`}
-          onError={() => setPhotoOk(false)}
-        />
-      )}
-      {nightOk && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          ref={nightRef}
-          src="/img/content/hero-main-night.jpg"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 hidden h-full w-full object-cover object-[72%_center] opacity-0 transition-opacity duration-700 dark:opacity-100 md:block"
-          onError={() => setNightOk(false)}
-        />
-      )}
-      {/* Градиент-«перетекание»: фото тает в фон страницы слева (десктоп) */}
-      {photoOk && (
-        <div
-          className="absolute inset-0 hidden md:block"
-          style={{
-            background:
-              'linear-gradient(90deg, var(--bg) 0%, var(--bg) 32%, color-mix(in srgb, var(--bg) 58%, transparent) 50%, transparent 72%)',
-          }}
-          aria-hidden="true"
-        />
-      )}
-      {/* Мобильный фон: мягкий брендовый градиент (фото на мобиле скрыто) */}
+    <section
+      ref={sectionRef}
+      className="relative isolate flex w-full items-center overflow-hidden min-h-[calc(100svh-4rem)]"
+    >
+      {/* Фоновое видео — день (светлая тема). Постер-фото = фолбэк. */}
+      <video
+        className="absolute inset-0 hidden h-full w-full object-cover object-[72%_center] transition-opacity duration-700 md:block dark:opacity-0"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        poster="/img/content/hero-main.jpg"
+        aria-hidden="true"
+      >
+        <source src="/img/content/hero-main.mp4" type="video/mp4" />
+      </video>
+      {/* Фоновое видео — ночь с фарами (тёмная тема). */}
+      <video
+        className="absolute inset-0 hidden h-full w-full object-cover object-[72%_center] opacity-0 transition-opacity duration-700 md:block dark:opacity-100"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        poster="/img/content/hero-main-night.jpg"
+        aria-hidden="true"
+      >
+        <source src="/img/content/hero-main-night.mp4" type="video/mp4" />
+      </video>
+
+      {/* Градиент-«перетекание»: видео тает в фон страницы слева (десктоп) */}
+      <div
+        className="absolute inset-0 hidden md:block"
+        style={{
+          background:
+            'linear-gradient(90deg, var(--bg) 0%, var(--bg) 32%, color-mix(in srgb, var(--bg) 58%, transparent) 50%, transparent 72%)',
+        }}
+        aria-hidden="true"
+      />
+      {/* Мобильный фон: мягкий брендовый градиент (видео на мобиле скрыто) */}
       <div
         className="absolute inset-0 md:hidden"
         style={{

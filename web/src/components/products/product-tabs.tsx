@@ -25,7 +25,7 @@ export function ProductTabs({ tabs }: { tabs: ProductTab[] }) {
       <div
         role="tablist"
         aria-label="Разделы программы"
-        className="sticky top-16 z-30 -mx-4 mb-8 flex gap-1 overflow-x-auto border-b border-[var(--border)] bg-[var(--bg)]/95 px-4 backdrop-blur-sm sm:gap-2"
+        className="sticky top-16 z-30 -mx-4 mb-8 flex gap-2 overflow-x-auto border-b border-[var(--border)] bg-[var(--bg)]/95 px-4 backdrop-blur-sm sm:gap-5"
       >
         {tabs.map((tb) => {
           const selected = active === tb.id;
@@ -38,7 +38,7 @@ export function ProductTabs({ tabs }: { tabs: ProductTab[] }) {
               aria-controls={`panel-${tb.id}`}
               id={`tab-${tb.id}`}
               onClick={() => setActive(tb.id)}
-              className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] sm:px-4 ${
+              className={`whitespace-nowrap border-b-[3px] px-3 py-4 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] sm:px-5 sm:text-lg md:text-xl ${
                 selected
                   ? 'border-[var(--primary)] text-[var(--primary)]'
                   : 'border-transparent text-[var(--text-3)] hover:text-[var(--text)]'

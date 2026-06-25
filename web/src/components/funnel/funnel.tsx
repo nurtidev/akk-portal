@@ -10,8 +10,6 @@
 
 import { useEffect, useRef } from 'react';
 import { Hero } from './hero';
-import { ScaleMetrics } from './scale-metrics';
-import { ProcessSpeed } from './process-speed';
 import { GoalCards } from './goal-cards';
 import { ProgramGrid } from './program-grid';
 import { HowSteps } from './how-steps';
@@ -86,10 +84,8 @@ export function Funnel() {
           → далее. Метрики теперь внутри hero, отдельной полосы WhyAkk нет. */}
       <div hidden={!isLanding}>
         <Hero />
-        <ScaleMetrics />
         <GoalCards />
         <HowSteps />
-        <ProcessSpeed />
         <SustainabilityPromo />
         <ProgramGrid />
         <ChairmanTeaser />
