@@ -54,3 +54,15 @@ export const AKK_SCALE_STATS = [
   { key: 'apkShare', value: '85%' },
   { key: 'mtPark', value: '+20%' },
 ] as const;
+
+/**
+ * «Быстро и онлайн» — блок цифрового процесса на главной (приём bankffin.kz).
+ * `apply`/`score` опираются на реальные фичи (онлайн-визард, АгроСкор);
+ * `decision` (SLA в днях) — ЧЕРНОВОЕ, TODO подтвердить реальный срок у бизнеса.
+ * fill — декоративное заполнение полукруглого гейджа (0..1).
+ */
+export const AKK_SPEED_STATS = [
+  { key: 'apply', value: '15 мин', fill: 0.55 },
+  { key: 'score', value: 'сразу', fill: 0.92 },
+  { key: 'decision', value: 'от 5 дней', fill: 0.7 }, // TODO: реальный SLA
+] as const;
