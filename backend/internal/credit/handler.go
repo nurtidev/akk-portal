@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"akk-railway-backend/internal/auth"
+	"akk-railway-backend/internal/programs"
 	"akk-railway-backend/internal/store"
 )
 
@@ -30,6 +31,10 @@ func NewHandler(s *store.Store, logger *slog.Logger) *Handler {
 
 // Register вешает маршруты. mw — auth-middleware (Bearer).
 func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
+	// Публичные (без авторизации): калькулятор pre-screen и каталог программ.
+	g.GET("/programs", h.listPrograms)
+	g.POST("/calculator", h.calculate)
+
 	g.POST("/applications", h.create, mw)
 	g.GET("/applications", h.list, mw)
 	g.GET("/applications/:uid/status", h.status, mw)
@@ -37,6 +42,7 @@ func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
 	g.POST("/applications/:uid/cancel", h.cancel, mw)
 	g.GET("/applications/:uid/documents", h.listDocuments, mw)
 	g.POST("/applications/:uid/documents", h.uploadDocument, mw)
+	g.GET("/notifications", h.notifications, mw)
 }
 
 type createReq struct {
@@ -249,6 +255,159 @@ func (h *Handler) uploadDocument(c echo.Context) error {
 		"status":          doc.Status,
 		"file_name":       doc.FileName,
 	})
+}
+
+// --- Калькулятор и каталог программ (публичные) --------------------------
+
+// programDTO — программа для витрины калькулятора (поля расчёта + флаги).
+func programDTO(p programs.Program) map[string]any {
+	m := map[string]any{
+		"id":            p.ID,
+		"title":         p.Title,
+		"category":      p.Category,
+		"rate":          p.Rate,
+		"max_amount":    p.MaxAmount,
+		"max_term":      p.MaxTerm,
+		"schedule_type": string(p.ScheduleType),
+		"indirect_only": p.IndirectOnly,
+		"hidden":        p.Hidden,
+		"featured":      p.Featured,
+	}
+	if p.RateRange != "" {
+		m["rate_range"] = p.RateRange
+	}
+	if len(p.TermByPurpose) > 0 {
+		m["term_by_purpose"] = p.TermByPurpose
+	}
+	return m
+}
+
+// listPrograms отдаёт каталог программ (для калькулятора и пикера). Публично.
+func (h *Handler) listPrograms(c echo.Context) error {
+	out := make([]map[string]any, 0, len(programs.Programs))
+	for _, p := range programs.Programs {
+		out = append(out, programDTO(p))
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+type calcReq struct {
+	ProgramID string      `json:"program_id"`
+	Amount    json.Number `json:"amount"`
+	Term      int         `json:"term"`
+	Purpose   string      `json:"purpose"`
+}
+
+// calculate — публичный pre-screen калькулятор платежа. Логика 1-в-1 с веб
+// (schedule.ts): сумма клампится в [100000, maxAmount]; срок для biannual =
+// effectiveMaxTerm, для annual — заданный (или pickInitialTerm), не выше потолка.
+func (h *Handler) calculate(c echo.Context) error {
+	var req calcReq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "некорректный запрос"})
+	}
+	p, ok := programs.ByID(req.ProgramID)
+	if !ok {
+		return c.JSON(http.StatusNotFound, map[string]any{"message": "программа не найдена"})
+	}
+	amount, _ := req.Amount.Float64()
+	if amount > p.MaxAmount {
+		amount = p.MaxAmount
+	}
+	if amount < 100000 {
+		amount = 100000
+	}
+	effMax := programs.EffectiveMaxTerm(p, req.Purpose)
+	term := effMax
+	if p.ScheduleType != programs.ScheduleBiannualWinter {
+		term = req.Term
+		if term <= 0 {
+			term = programs.PickInitialTerm(effMax)
+		}
+		if term > effMax {
+			term = effMax
+		}
+		if term < 1 {
+			term = 1
+		}
+	}
+	sch := programs.CalculateSchedule(p, amount, term)
+	return c.JSON(http.StatusOK, map[string]any{
+		"program_id": p.ID,
+		"rate":       p.Rate,
+		"amount":     amount,
+		"term":       term,
+		"schedule":   sch,
+	})
+}
+
+// --- Уведомления (личный кабинет) ----------------------------------------
+
+// appStages — клиентские этапы (зеркало web APP_STAGES / status.ts).
+var appStages = []string{
+	"Регистрация заявки", "Новая заявка", "На рассмотрении", "Одобрена",
+	"Оценка залога", "Договор", "Средства выданы", "Мониторинг", "Завершена",
+}
+
+// rejectLabels — подписи терминальных статусов (зеркало web REJECTED_STATUS).
+var rejectLabels = map[string]string{
+	"rejected":         "Отказано",
+	"rejected_scoring": "Отказано (скоринг)",
+	"rejected_cc":      "Отказано (КК)",
+	"cc_rejected":      "Отказано (КК)",
+	"scoring_negative": "Отказано (скоринг)",
+	"cancelled":        "Отменена",
+}
+
+// notifications строит ленту уведомлений из статусов заявок клиента.
+// Логика 1-в-1 с web buildNotifEvents (simple-tabs.tsx). Возвращает items + unread
+// (счётчик по эвристике сайдбара cabinet-view.tsx). Тексты — RU; code — для i18n мобайла.
+func (h *Handler) notifications(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	apps, err := h.store.ListApplications(c.Request().Context(), client.UID)
+	if err != nil {
+		h.logger.Error("credit: уведомления", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить уведомления"})
+	}
+
+	items := make([]map[string]any, 0)
+	unread := 0
+	for _, a := range apps {
+		c := 1 // событие «принята»
+		if lbl, isRej := rejectLabels[a.Status]; isRej {
+			items = append(items, map[string]any{
+				"kind": "danger", "code": "application_rejected",
+				"application_number": a.Number,
+				"title":              "Заявка № " + a.Number + " отклонена",
+				"text":               lbl,
+			})
+			c++
+		} else if idx := store.StatusIndex(a.Status); idx > 0 && idx < len(appStages) {
+			items = append(items, map[string]any{
+				"kind": "info", "code": "application_stage",
+				"application_number": a.Number,
+				"stage_index":        idx,
+				"title":              "Заявка № " + a.Number,
+				"text":               "Текущий этап: " + appStages[idx],
+			})
+			c++
+		}
+		items = append(items, map[string]any{
+			"kind": "ok", "code": "application_accepted",
+			"application_number": a.Number,
+			"title":              "Заявка № " + a.Number + " принята",
+			"text":               "Данные подтянуты из госбаз (ГБД ФЛ, КГД, ПКБ)",
+		})
+		unread += c
+	}
+	if len(items) == 0 {
+		items = append(items, map[string]any{
+			"kind": "ok", "code": "profile_ok",
+			"title": "Профиль подтверждён",
+			"text":  "Вход выполнен. Подайте заявку — статус будет виден здесь.",
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]any{"items": items, "unread": unread})
 }
 
 func toDTO(a store.Application) map[string]any {

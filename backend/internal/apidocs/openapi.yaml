@@ -423,6 +423,82 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /api/v1/credit/programs:
+    get:
+      tags: [credit]
+      summary: Каталог кредитных программ (для калькулятора и пикера)
+      description: Публичный эндпоинт. Поля флагов hidden/indirect_only — клиент решает, что показывать.
+      security: []
+      responses:
+        "200":
+          description: Массив программ
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Program" }
+
+  /api/v1/credit/calculator:
+    post:
+      tags: [credit]
+      summary: Калькулятор платежа (публичный pre-screen)
+      description: |
+        Расчёт графика 1-в-1 с веб-калькулятором (до тенге). Сумма клампится в
+        [100000, max_amount]; срок для biannual_winter = effectiveMaxTerm (фикс),
+        для annual — заданный term (или авто), не выше потолка цели.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [program_id, amount]
+              properties:
+                program_id: { type: string, example: agrobusiness }
+                amount: { type: number, example: 10000000 }
+                term:
+                  type: integer
+                  description: Срок, мес (для annual). Для biannual игнорируется.
+                  example: 24
+                purpose:
+                  type: string
+                  description: Цель — влияет на потолок срока (term_by_purpose)
+                  example: investments
+      responses:
+        "200":
+          description: Результат расчёта
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CalculatorResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404":
+          description: Программа не найдена
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/credit/notifications:
+    get:
+      tags: [credit]
+      summary: Лента уведомлений личного кабинета
+      description: |
+        Строится из статусов заявок клиента (1-в-1 с вебом). `code` — для
+        локализации на мобайле; `title`/`text` — готовые RU-строки.
+      responses:
+        "200":
+          description: Уведомления + счётчик непрочитанных
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unread: { type: integer, description: Счётчик для бейджа }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Notification" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -566,6 +642,87 @@ components:
           type: string
           description: required | verified | uploaded
         file_name: { type: string, nullable: true }
+
+    Program:
+      type: object
+      properties:
+        id: { type: string, example: agrobusiness }
+        title: { type: string, example: "Агробизнес" }
+        category: { type: string, example: "Инвестиции" }
+        rate: { type: number, description: Числовая ставка для калькулятора, example: 21.5 }
+        rate_range: { type: string, description: Текстовый диапазон ставки (опц.), example: "НБРК+7,5%" }
+        max_amount: { type: number, example: 15000000000 }
+        max_term: { type: integer, description: "Потолок срока, мес", example: 144 }
+        term_by_purpose:
+          type: object
+          additionalProperties: { type: integer }
+          description: Потолки срока по цели (опц.)
+        schedule_type:
+          type: string
+          enum: [biannual_winter, annual]
+        indirect_only: { type: boolean, description: Только через КТ/МФО/БВУ }
+        hidden: { type: boolean, description: Скрыта из превью-сетки }
+        featured: { type: boolean }
+
+    CalculatorResult:
+      type: object
+      properties:
+        program_id: { type: string }
+        rate: { type: number }
+        amount: { type: number, description: "Сумма после клампа [100000, max_amount]" }
+        term: { type: integer, description: "Эффективный срок, мес" }
+        schedule: { $ref: "#/components/schemas/Schedule" }
+
+    Schedule:
+      type: object
+      description: |
+        График погашения. Дискриминатор `type`. Для biannual заполнен `payments`,
+        для annual — `years`/`yearly`/`*_payment`. Общие — `total`/`overpay`.
+      properties:
+        type:
+          type: string
+          enum: [biannual, annual]
+        total: { type: number }
+        overpay: { type: number }
+        payments:
+          type: array
+          description: Только для biannual (два зимних платежа)
+          items:
+            type: object
+            properties:
+              label: { type: string, example: "05 декабря" }
+              amount: { type: number }
+              interest: { type: number }
+              note: { type: string, example: "после уборки урожая" }
+        years: { type: integer, description: Только для annual }
+        yearly:
+          type: array
+          description: Только для annual (годовые платежи)
+          items:
+            type: object
+            properties:
+              year: { type: integer }
+              principal: { type: number }
+              interest: { type: number }
+              payment: { type: number }
+        first_year_payment: { type: number, description: Только для annual }
+        last_year_payment: { type: number, description: Только для annual }
+        avg_payment: { type: number, description: Только для annual }
+
+    Notification:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum: [ok, info, danger]
+        code:
+          type: string
+          description: Машинный код для i18n
+          enum: [application_accepted, application_stage, application_rejected, profile_ok]
+        application_number: { type: string, example: "AKK-2026-000123" }
+        stage_index: { type: integer, description: Индекс этапа (для application_stage) }
+        title: { type: string, description: Готовая RU-строка }
+        text: { type: string, description: Готовая RU-строка }
 
 security:
   - bearerAuth: []
