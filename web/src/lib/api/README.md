@@ -36,11 +36,16 @@
 | --- | --- |
 | `createApplication(payload)` | POST `/applications` |
 | `listApplications()` | GET `/applications` |
+| `getApplicationStatus(uid)` | GET `/applications/:uid/status` |
 | `advanceApplication(uid, status?)` | POST `/applications/:uid/advance` |
+| `cancelApplication(uid, reason?)` | POST `/applications/:uid/cancel` |
 | `listDocuments(uid)` | GET `/applications/:uid/documents` |
 | `uploadDocument(uid, key, fileName)` | POST `/applications/:uid/documents` |
 
 `advance` без `status` → следующий этап лестницы; `status: 'new'` — сброс, `'rejected'` — отказ.
+`status` отдаёт `{ workflow_status, is_terminal, can_cancel, available_actions }` — источник правды
+для трекера и кнопки отмены. `cancel` доступен заёмщику только до решения КК (иначе 409).
+Все credit-вызовы идут на наш backend (`API_BASE`) с akk-токеном — creditapp отключён.
 
 ## Контракт для трека B — `submitApplication`
 

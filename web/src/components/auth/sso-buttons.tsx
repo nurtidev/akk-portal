@@ -28,7 +28,7 @@ const PROVIDERS: {
   labelKey: string;
 }[] = [
   { id: "egov", logo: "/img/egov.png", labelKey: "auth.ssoEgov" },
-  // Baiterek временно убран — оставляем только вход через eGov.
+  { id: "baiterek", logo: "/img/baiterek.png", labelKey: "auth.ssoBaiterek" },
 ];
 
 export function SsoButtons({ onAuthorized }: SsoButtonsProps) {

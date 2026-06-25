@@ -19,60 +19,17 @@ export const API_BASE = RAW_BASE.replace(/\/+$/, "");
 export const apiAvailable = API_BASE.length > 0;
 
 // =====================================================
-// ===== CREDIT-бэкенд (creditapp) — отдельный хост ====
-// AUTH (вход по ИИН+OTP, /me) живёт на akk-backend (API_BASE).
-// CREDIT (создание/список заявок) идёт в creditapp credit-backend
-// (CREDIT_API_BASE). У creditapp своя БД и свой JWT-секрет: токен akk-backend
-// он НЕ примет, поэтому для кредитных вызовов портал бутстрапит ОТДЕЛЬНУЮ
-// creditapp-сессию по ИИН заёмщика (см. credit-session.ts).
-// Пусто → creditApiAvailable=false → credit-вызовы идут в demo-fallback.
+// ===== Маршруты нашего backend (единый источник) =====
+// И auth (вход по ИИН+OTP, /me), и credit (заявки/этапы/документы) живут
+// на нашем backend (API_BASE) под одним akk-токеном. creditapp отключён.
 // =====================================================
 
-/** Базовый URL creditapp credit-backend без хвостового слэша.
- * Дефолт — стенд creditapp (внутренний хост, не секрет; доступен на корп. VPN).
- * Railway не всегда пробрасывает NEXT_PUBLIC_ build-arg надёжно, поэтому дефолт
- * гарантирует, что кредитный флоу бьёт в creditapp; env переопределяет при наличии. */
-const RAW_CREDIT_BASE = (
-  process.env.NEXT_PUBLIC_CREDIT_API_BASE || "https://creditapp-api-dev.agrocredit.kz"
-).trim();
-
-/** Нормализованная база creditapp без хвостового слэша. */
-export const CREDIT_API_BASE = RAW_CREDIT_BASE.replace(/\/+$/, "");
-
-/** true → creditapp сконфигурирован; иначе credit-вызовы идут в demo-fallback. */
-export const creditApiAvailable = CREDIT_API_BASE.length > 0;
-
-/** Ключ localStorage для отдельного creditapp access-токена (мост-сессия). */
-export const CREDIT_TOKEN_KEY = "akk-credit-token";
-
-/** Префиксы групп маршрутов (контракт main.go). */
+/** Префиксы групп маршрутов (контракт backend/cmd/server/main.go). */
 export const AUTH_PREFIX = "/api/v1/auth/Account";
 export const CREDIT_PREFIX = "/api/v1/credit";
 
-/** Префикс auth-эндпоинтов creditapp (мост-сессия заёмщика). */
-export const CREDIT_AUTH_PREFIX = "/api/v1/auth/Account";
-
 /** Ключ localStorage для токенов — совместим с легаси (__auth-integration.js). */
 export const TOKENS_KEY = "akk-tokens";
-
-// =====================================================
-// ===== Демо-дефолты для credit-backend (Smart30) =====
-// При наличии реальных branch_uid/product_code —
-// переопределяйте через NEXT_PUBLIC_ env-переменные.
-// =====================================================
-
-/** UUID тестового филиала (дефолт для демо-заявок). */
-export const DEMO_BRANCH_UID = (
-  process.env.NEXT_PUBLIC_DEMO_BRANCH_UID || "a1000002-0000-0000-0000-000000000002"
-).trim();
-
-/** Код продукта Smart30 Agrobusiness (дефолт). */
-export const DEMO_PRODUCT_CODE = (
-  process.env.NEXT_PUBLIC_DEMO_PRODUCT_CODE || "000000080"
-).trim();
-
-/** submit_type для credit-backend (всегда "okaps" при подаче через ОКАПС-фронт). */
-export const SUBMIT_TYPE = "okaps" as const;
 
 // =====================================================
 // ===== eGov SSO (реальный вход, в т.ч. по ЭЦП) =======

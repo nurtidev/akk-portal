@@ -305,13 +305,38 @@ func StatusIndex(status string) int {
 	return -1
 }
 
-// StatusRejected — терминальный статус отказа (ветка вне основной лестницы).
-const StatusRejected = "rejected"
+// Терминальные статусы вне основной лестницы (ветки отказа/отмены).
+const (
+	StatusRejected  = "rejected"  // отказ (скоринг/КК)
+	StatusCancelled = "cancelled" // самостоятельная отмена заёмщиком
+)
 
-// NextStatus возвращает следующий этап лестницы; на последнем этапе и в отказе — тот же статус.
+// terminalStatuses — конечные состояния заявки: дальнейшего движения нет.
+// completed — финал основной лестницы; rejected/cancelled — ветки выхода.
+var terminalStatuses = map[string]bool{
+	StatusRejected:  true,
+	StatusCancelled: true,
+	"completed":     true,
+}
+
+// IsTerminal сообщает, находится ли заявка в конечном состоянии.
+func IsTerminal(status string) bool { return terminalStatuses[status] }
+
+// cancellableStatuses — этапы, на которых заёмщик может сам отменить заявку
+// (до решения кредитного комитета: регистрация, скоринг, рассмотрение).
+var cancellableStatuses = map[string]bool{
+	"new":                 true,
+	"scoring_in_progress": true,
+	"expertise":           true,
+}
+
+// CanCancel сообщает, допустима ли самостоятельная отмена заёмщиком на текущем этапе.
+func CanCancel(status string) bool { return cancellableStatuses[status] }
+
+// NextStatus возвращает следующий этап лестницы; на последнем этапе и в терминале — тот же статус.
 func NextStatus(cur string) string {
-	if cur == StatusRejected {
-		return cur // отказ терминален
+	if IsTerminal(cur) {
+		return cur // отказ/отмена/финал терминальны
 	}
 	for i, s := range StatusLadder {
 		if s == cur {
@@ -325,9 +350,9 @@ func NextStatus(cur string) string {
 	return StatusLadder[0]
 }
 
-// ValidStatus сообщает, допустим ли статус (этап лестницы или отказ).
+// ValidStatus сообщает, допустим ли статус (этап лестницы или ветка отказа/отмены).
 func ValidStatus(s string) bool {
-	if s == StatusRejected {
+	if s == StatusRejected || s == StatusCancelled {
 		return true
 	}
 	for _, x := range StatusLadder {

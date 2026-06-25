@@ -5,7 +5,7 @@
 // Упрощённый степпер из 5 этапов заёмщика (stageOf), терминальный баннер
 // (отклонена/отменена/закрыта), отмена заявки заёмщиком (can_cancel из
 // GET /applications/:uid/status → POST /applications/:uid/cancel).
-// Каталог документов мягко деградирует (у creditapp нет /documents).
+// Этапы, статус и каталог документов — из нашего backend (creditapp отключён).
 // =====================================================
 
 import { useCallback, useEffect, useState } from "react";
@@ -68,7 +68,7 @@ export function ApplicationView({ uid }: { uid: string }) {
       const statR = await getApplicationStatus(uid);
       setStatus(statR.ok && statR.data ? statR.data : null);
 
-      // Документы у creditapp отсутствуют → мягкая деградация (каталог скрыт).
+      // Каталог документов по этапам — из нашего backend (buildDocumentsDTO).
       const docR = await listDocuments(uid);
       setDocs(docR.ok && docR.data ? docR.data : null);
     }
@@ -158,7 +158,7 @@ export function ApplicationView({ uid }: { uid: string }) {
   const pid = app.program_id || "";
   const cat = programCategory(pid);
 
-  // Группировка этапов с документами (если creditapp когда-нибудь начнёт их слать).
+  // Группировка этапов с документами (из нашего backend buildDocumentsDTO).
   const docStages: DocStage[] = docs?.stages || [];
   const hasDocs = docStages.some((s) => s.documents && s.documents.length > 0);
 

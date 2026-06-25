@@ -32,7 +32,9 @@ func NewHandler(s *store.Store, logger *slog.Logger) *Handler {
 func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
 	g.POST("/applications", h.create, mw)
 	g.GET("/applications", h.list, mw)
+	g.GET("/applications/:uid/status", h.status, mw)
 	g.POST("/applications/:uid/advance", h.advance, mw)
+	g.POST("/applications/:uid/cancel", h.cancel, mw)
 	g.GET("/applications/:uid/documents", h.listDocuments, mw)
 	g.POST("/applications/:uid/documents", h.uploadDocument, mw)
 }
@@ -106,6 +108,69 @@ func (h *Handler) advance(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось обновить статус"})
 	}
 	h.logger.Info("credit: статус заявки изменён", "number", updated.Number, "status", updated.Status, "client", client.UID)
+	return c.JSON(http.StatusOK, toDTO(updated))
+}
+
+// status отдаёт текущий статус заявки + флаги для трекера и кнопки отмены.
+// Контракт зеркалит то, что ждёт кабинет (web/src/lib/api/credit.ts: ApplicationStatus).
+func (h *Handler) status(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	uid, err := uuid.Parse(c.Param("uid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "некорректный идентификатор заявки"})
+	}
+	app, err := h.store.GetApplication(c.Request().Context(), uid, client.UID)
+	if errors.Is(err, store.ErrNotFound) {
+		return c.JSON(http.StatusNotFound, map[string]any{"message": "заявка не найдена"})
+	}
+	if err != nil {
+		h.logger.Error("credit: чтение заявки", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить заявку"})
+	}
+	actions := []string{}
+	if store.CanCancel(app.Status) {
+		actions = append(actions, "cancel")
+	}
+	return c.JSON(http.StatusOK, map[string]any{
+		"uid":               app.UID.String(),
+		"workflow_status":   app.Status,
+		"is_terminal":       store.IsTerminal(app.Status),
+		"can_cancel":        store.CanCancel(app.Status),
+		"available_actions": actions,
+	})
+}
+
+// cancel — самостоятельная отмена заявки заёмщиком (до решения КК).
+// 200 — отменена (статус → cancelled); 409 — на текущем этапе отмена недоступна.
+func (h *Handler) cancel(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	uid, err := uuid.Parse(c.Param("uid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "некорректный идентификатор заявки"})
+	}
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	_ = c.Bind(&req) // причина необязательна
+
+	app, err := h.store.GetApplication(c.Request().Context(), uid, client.UID)
+	if errors.Is(err, store.ErrNotFound) {
+		return c.JSON(http.StatusNotFound, map[string]any{"message": "заявка не найдена"})
+	}
+	if err != nil {
+		h.logger.Error("credit: чтение заявки", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить заявку"})
+	}
+	if !store.CanCancel(app.Status) {
+		return c.JSON(http.StatusConflict, map[string]any{"message": "на текущем этапе отмена недоступна"})
+	}
+
+	updated, err := h.store.SetApplicationStatus(c.Request().Context(), uid, client.UID, store.StatusCancelled)
+	if err != nil {
+		h.logger.Error("credit: отмена заявки", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось отменить заявку"})
+	}
+	h.logger.Info("credit: заявка отменена заёмщиком", "number", updated.Number, "client", client.UID, "reason", req.Reason)
 	return c.JSON(http.StatusOK, toDTO(updated))
 }
 
