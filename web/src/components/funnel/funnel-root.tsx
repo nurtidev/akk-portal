@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { FunnelProvider, type SubmitApplication } from './funnel-context';
 import { Funnel } from './funnel';
+import { FunnelDeepLink } from './funnel-deeplink';
 import { track } from '@/lib/analytics';
 
 function PageLoaded() {
@@ -27,6 +28,7 @@ export function FunnelRoot({ submitApplication }: { submitApplication?: SubmitAp
     <Tooltip.Provider delayDuration={120} skipDelayDuration={300}>
       <FunnelProvider submitApplication={submitApplication}>
         <PageLoaded />
+        <FunnelDeepLink />
         <Funnel />
       </FunnelProvider>
     </Tooltip.Provider>

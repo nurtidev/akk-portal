@@ -176,6 +176,13 @@ export function SiteHeader() {
           >
             <NavDropdown label={nav("corp")} items={corpItems} locale={locale} />
             <NavDropdown label={nav("clients")} items={clientsItems} locale={locale} />
+            {/* Продукты — между «Клиентам» и «Партнёрам», стиль как у остальных пунктов */}
+            <Link
+              href={`/${locale}/products`}
+              className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+            >
+              {nav("products")}
+            </Link>
             <Link
               href={`/${locale}/partners`}
               className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
@@ -319,9 +326,18 @@ export function SiteHeader() {
             </div>
           ))}
 
+          {/* Продукты — между «Клиентам» и «Партнёрам» (зеркало десктопа) */}
+          <Link
+            href={`/${locale}/products`}
+            className="mt-1 pt-2 border-t border-[var(--border-soft)] block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {nav("products")}
+          </Link>
+
           <Link
             href={`/${locale}/partners`}
-            className="mt-1 pt-2 border-t border-[var(--border-soft)] block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
             onClick={() => setMobileOpen(false)}
           >
             {nav("partners")}

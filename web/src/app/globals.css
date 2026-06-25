@@ -146,6 +146,14 @@
   opacity: 0.07;
 }
 
+/* Hero контентных страниц всегда тёмно-зелёный (в обеих темах). Базовый
+   .ornament-tile в светлой теме тёмный и «тонет» на зелёном — поэтому орнамент
+   на hero осветляем всегда, не только в .dark. */
+.content-hero-ornament {
+  filter: brightness(2.6) saturate(0.5);
+  opacity: 0.14;
+}
+
 /* ===== Утилиты ===== */
 @layer utilities {
   .text-balance {
@@ -178,9 +186,5 @@
     );
   }
 
-  /* Орнамент не «шумит» поверх фото: затухает к правой (фото-)стороне */
-  .content-hero-ornament {
-    -webkit-mask-image: linear-gradient(to right, black 0%, black 38%, transparent 70%);
-    mask-image: linear-gradient(to right, black 0%, black 38%, transparent 70%);
-  }
+  /* Фото из hero убрано — орнамент идёт на всю ширину, без маски затухания. */
 }

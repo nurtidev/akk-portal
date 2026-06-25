@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { HeroImage } from "./hero-image";
 
 export interface BreadcrumbItem {
   label: string;
@@ -31,29 +30,21 @@ export function ContentPage({
   subtitle,
   breadcrumbs,
   eyebrow,
-  imageSlug,
-  imagePosition,
   children,
 }: ContentPageProps) {
   return (
     <main id="main-content" className="flex-1">
       {/* Hero-шапка страницы */}
-      <div className="relative overflow-hidden bg-[var(--primary)] text-white min-h-[200px] md:min-h-[340px] xl:min-h-[400px] md:flex md:items-center">
-        {/* Фоновое изображение (клиентский компонент: graceful-фолбэк по onError) */}
-        {imageSlug && <HeroImage slug={imageSlug} position={imagePosition} />}
-        {/* Градиент поверх картинки: на десктопе — плотный слева (зона текста),
-            справа почти прозрачный, чтобы фото читалось. На мобиле — равномернее. */}
+      <div className="relative overflow-hidden bg-[var(--primary)] text-white min-h-[180px] md:min-h-[240px] md:flex md:items-center">
+        {/* Фото в hero убрано по требованию владельца — чистый тёмно-зелёный блок
+            (градиент токенов) + орнамент. Картинки программ остаются на карточках. */}
         <div
-          className={imageSlug ? "content-hero-overlay absolute inset-0" : "absolute inset-0"}
-          style={
-            imageSlug
-              ? undefined
-              : { background: "linear-gradient(135deg, var(--primary) 0%, #043c24 100%)" }
-          }
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(135deg, var(--primary) 0%, #043c24 100%)" }}
           aria-hidden="true"
         />
-        {/* Орнамент-паттерн (декоративный) — на десктопе затухает над фото-стороной */}
-        <div className="ornament-tile content-hero-ornament absolute inset-0 opacity-30" aria-hidden="true" />
+        {/* Орнамент-паттерн (декоративный) — осветлён всегда (см. globals.css) */}
+        <div className="ornament-tile content-hero-ornament absolute inset-0" aria-hidden="true" />
 
         <div className="container relative mx-auto px-4 py-12 md:py-16">
           {/* Хлебные крошки */}
