@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"akk-railway-backend/internal/admin"
 	"akk-railway-backend/internal/apidocs"
 	"akk-railway-backend/internal/auth"
 	"akk-railway-backend/internal/config"
@@ -70,8 +71,19 @@ func main() {
 		logger.Info("eGov SSO: не сконфигурирован (только демо-вход)")
 	}
 
-	authH := auth.NewHandler(db, otp, issuer, egovClient, cfg.DemoMode, logger)
+	// Вход с мобильного по токену старой системы (.NET Agro.Identity) включается
+	// только при заданном LEGACY_JWT_SECRET; иначе legacy nil → /ssoMobileLogin → 404.
+	var legacy *auth.LegacyVerifier
+	if cfg.LegacyJWTSecret != "" {
+		legacy = auth.NewLegacyVerifier(cfg.LegacyJWTSecret, cfg.LegacyJWTIssuer, cfg.LegacyJWTAudiences)
+		logger.Info("mobile SSO: проверка legacy-токенов включена", "issuer", cfg.LegacyJWTIssuer, "audiences", cfg.LegacyJWTAudiences)
+	} else {
+		logger.Info("mobile SSO: не сконфигурирован (LEGACY_JWT_SECRET пуст)")
+	}
+
+	authH := auth.NewHandler(db, otp, issuer, egovClient, legacy, cfg.DemoMode, logger)
 	creditH := credit.NewHandler(db, logger)
+	adminH := admin.NewHandler(db, issuer, cfg.AdminUsername, cfg.AdminPassword, logger)
 
 	e := echo.New()
 	e.HideBanner = true
@@ -98,6 +110,7 @@ func main() {
 
 	authH.Register(e.Group("/api/v1/auth/Account"))
 	creditH.Register(e.Group("/api/v1/credit"), authH.Middleware)
+	adminH.Register(e.Group("/api/v1/admin"))
 
 	go func() {
 		addr := ":" + cfg.Port

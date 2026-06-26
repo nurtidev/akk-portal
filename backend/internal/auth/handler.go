@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -20,17 +21,19 @@ type Handler struct {
 	store    *store.Store
 	otp      *OTP
 	issuer   *Issuer
-	egov     *egov.Client // nil → реальный eGov-вход не сконфигурирован (только демо)
+	egov     *egov.Client    // nil → реальный eGov-вход не сконфигурирован (только демо)
+	legacy   *LegacyVerifier // nil → вход с мобильного по токену старой системы выключен
 	logger   *slog.Logger
 	demoMode bool // вернуть код в ответе (demoCode) — демо без реальной SMS
 }
 
 // NewHandler создаёт auth-хендлер. egovClient может быть nil (тогда /ssoEgovLogin → 404).
-func NewHandler(s *store.Store, otp *OTP, issuer *Issuer, egovClient *egov.Client, demoMode bool, logger *slog.Logger) *Handler {
+// legacy может быть nil (тогда /ssoMobileLogin → 404).
+func NewHandler(s *store.Store, otp *OTP, issuer *Issuer, egovClient *egov.Client, legacy *LegacyVerifier, demoMode bool, logger *slog.Logger) *Handler {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Handler{store: s, otp: otp, issuer: issuer, egov: egovClient, demoMode: demoMode, logger: logger}
+	return &Handler{store: s, otp: otp, issuer: issuer, egov: egovClient, legacy: legacy, demoMode: demoMode, logger: logger}
 }
 
 // Register вешает маршруты на группу /Account.
@@ -42,6 +45,7 @@ func (h *Handler) Register(g *echo.Group) {
 	g.POST("/login", h.passwordLoginDisabled)
 	g.POST("/ssoDemoLogin", h.ssoDemoLogin)
 	g.POST("/ssoEgovLogin", h.ssoEgovLogin)
+	g.POST("/ssoMobileLogin", h.ssoMobileLogin)
 	g.GET("/me", h.me, h.Middleware)
 }
 
@@ -353,6 +357,71 @@ func (h *Handler) ssoEgovLogin(c echo.Context) error {
 	})
 }
 
+// ssoMobileLogin — вход с мобильного приложения по токену СТАРОЙ системы (.NET Agro.Identity).
+// Мобайл присылает свой JWT; бэкенд ПРОВЕРЯЕТ его подпись (HS256, общий секрет), берёт
+// ИИН/ФИО ИЗ ПРОВЕРЕННЫХ claims (не из тела запроса!), находит/создаёт клиента и выдаёт
+// НАШИ токены. Дальше мобайл ходит с нашим токеном — старый больше не нужен.
+// Телефона в legacy-токене нет — принимаем его отдельным полем как подсказку
+// (привязанную к уже подтверждённому из токена ИИН). Доступен только при LEGACY_JWT_SECRET.
+func (h *Handler) ssoMobileLogin(c echo.Context) error {
+	if h.legacy == nil {
+		return c.JSON(http.StatusNotFound, errBody("вход с мобильного не сконфигурирован"))
+	}
+	var req struct {
+		Token       string `json:"token"`
+		PhoneNumber string `json:"phoneNumber"` // опционально: телефона нет в legacy-токене
+	}
+	if err := c.Bind(&req); err != nil {
+		return badRequest(c, "некорректный запрос")
+	}
+	if strings.TrimSpace(req.Token) == "" {
+		return badRequest(c, "отсутствует токен")
+	}
+
+	// Личность берём ТОЛЬКО из подписи токена — поля рядом не доверяем.
+	id, err := h.legacy.Verify(req.Token)
+	if err != nil {
+		h.logger.Warn("auth: невалидный legacy-токен", "err", err)
+		return c.JSON(http.StatusUnauthorized, errBody("недействительный токен"))
+	}
+
+	iinHash := hashIIN(id.IIN)
+
+	// Телефон в токене не приходит. Берём из запроса, а если пуст — сохраняем уже
+	// записанный в профиле (иначе UpsertClient затёр бы его пустым значением).
+	phone := ""
+	if strings.TrimSpace(req.PhoneNumber) != "" {
+		phone = normalizePhone(req.PhoneNumber)
+	} else if existing, gerr := h.store.GetClientByIINHash(c.Request().Context(), iinHash); gerr == nil {
+		phone = existing.Phone
+	}
+
+	client, err := h.store.UpsertClient(c.Request().Context(), iinHash, store.Client{
+		IIN:        id.IIN,
+		LastName:   id.LastName,
+		FirstName:  id.FirstName,
+		MiddleName: id.MiddleName,
+		Phone:      phone,
+	})
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	tokens, err := h.issuer.Issue(client)
+	if err != nil {
+		return h.serverError(c, err)
+	}
+	h.logger.Info("auth: вход с мобильного (legacy-токен)", "uid", client.UID, "iin", maskIIN(id.IIN))
+	return c.JSON(http.StatusOK, map[string]any{
+		"uid":          client.UID.String(),
+		"accessToken":  tokens.AccessToken,
+		"refreshToken": tokens.RefreshToken,
+		"name":         client.FullName(),
+		"iin":          client.IIN,
+		"phone":        client.Phone,
+		"via":          "mobile",
+	})
+}
+
 // me возвращает профиль текущего пользователя (для кабинета).
 func (h *Handler) me(c echo.Context) error {
 	client := ClientFromContext(c)
@@ -369,27 +438,68 @@ func (h *Handler) me(c echo.Context) error {
 const contextClientKey = "akkClient"
 
 // Middleware проверяет Bearer-токен и кладёт клиента в контекст.
+// Принимает два вида токенов:
+//  1. наш токен (issuer akk-railway) — основной путь;
+//  2. токен старой системы (.NET Agro.Identity, HS256) — для входа с мобильного,
+//     если включён LEGACY_JWT_SECRET. Клиент заводится из claims при первом запросе.
 func (h *Handler) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		raw := c.Request().Header.Get("Authorization")
 		if !strings.HasPrefix(raw, "Bearer ") {
 			return c.JSON(http.StatusUnauthorized, errBody("требуется авторизация"))
 		}
-		claims, err := h.issuer.Parse(strings.TrimPrefix(raw, "Bearer "))
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, errBody("недействительный токен"))
+		token := strings.TrimPrefix(raw, "Bearer ")
+
+		// 1. Наш токен.
+		if claims, err := h.issuer.Parse(token); err == nil {
+			uid, perr := uuid.Parse(claims.Subject)
+			if perr != nil {
+				return c.JSON(http.StatusUnauthorized, errBody("недействительный токен"))
+			}
+			client, gerr := h.store.GetClientByUID(c.Request().Context(), uid)
+			if gerr != nil {
+				return c.JSON(http.StatusUnauthorized, errBody("пользователь не найден"))
+			}
+			c.Set(contextClientKey, client)
+			return next(c)
 		}
-		uid, err := uuid.Parse(claims.Subject)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, errBody("недействительный токен"))
+
+		// 2. Токен старой системы (мобильное приложение), если вход включён.
+		if h.legacy != nil {
+			client, err := h.clientFromLegacyToken(c.Request().Context(), token)
+			if err == nil {
+				c.Set(contextClientKey, client)
+				return next(c)
+			}
+			h.logger.Warn("auth: legacy-токен отклонён", "err", err)
 		}
-		client, err := h.store.GetClientByUID(c.Request().Context(), uid)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, errBody("пользователь не найден"))
-		}
-		c.Set(contextClientKey, client)
-		return next(c)
+
+		return c.JSON(http.StatusUnauthorized, errBody("недействительный токен"))
 	}
+}
+
+// clientFromLegacyToken проверяет токен старой системы и возвращает нашего клиента.
+// В стационаре это чтение по ИИН; клиента создаём только при первом обращении
+// (auto-provision из claims). Телефона в legacy-токене нет — у нового клиента пуст.
+func (h *Handler) clientFromLegacyToken(ctx context.Context, token string) (store.Client, error) {
+	id, err := h.legacy.Verify(token)
+	if err != nil {
+		return store.Client{}, err
+	}
+	iinHash := hashIIN(id.IIN)
+	client, gerr := h.store.GetClientByIINHash(ctx, iinHash)
+	if gerr == nil {
+		return client, nil
+	}
+	if !errors.Is(gerr, store.ErrNotFound) {
+		return store.Client{}, gerr
+	}
+	return h.store.UpsertClient(ctx, iinHash, store.Client{
+		IIN:        id.IIN,
+		LastName:   id.LastName,
+		FirstName:  id.FirstName,
+		MiddleName: id.MiddleName,
+	})
 }
 
 // ClientFromContext достаёт клиента, положенного Middleware.

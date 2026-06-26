@@ -36,6 +36,10 @@ type Config struct {
 	// автоматически. Для демо без реальной SMS. Когда заработает боевая SMS — выставить false.
 	DemoMode bool
 
+	// Корп-вход администратора (демо). Логин/пароль из env; в прод заменить на SSO.
+	AdminUsername string
+	AdminPassword string
+
 	// eGov SSO (OAuth2). Реальный вход через eGov/ЭЦП включается, когда задан EGovTokenURL.
 	// Пусто → эндпоинт /ssoEgovLogin отвечает 404 (остаётся только демо-вход).
 	EGovClientID     string
@@ -46,6 +50,14 @@ type Config struct {
 	// EGovResolve — host-pinning для тестового IDP (нет в публичном DNS на Railway).
 	// Формат: "test.idp.egov.kz=195.12.114.235[,test.egov.kz=195.12.114.235]". Пусто на проде.
 	EGovResolve string
+
+	// Вход с мобильного приложения по токену старой системы (.NET Agro.Identity, HS256).
+	// LegacyJWTSecret — общий секрет Agro.Identity (AppSettings:AuthOptions:Key).
+	// Пусто → эндпоинт /ssoMobileLogin отвечает 404 (вход с мобильного выключен).
+	// Секрет только из env — в код не пишем.
+	LegacyJWTSecret    string
+	LegacyJWTIssuer    string   // ожидаемый iss токена старой системы (в .NET = "fond")
+	LegacyJWTAudiences []string // допустимые aud (в .NET = Int,Ext)
 }
 
 // Load собирает конфиг из окружения с разумными дефолтами для локального запуска.
@@ -71,12 +83,19 @@ func Load() Config {
 
 		DemoMode: envBool("DEMO_MODE", true),
 
+		AdminUsername: env("ADMIN_USERNAME", "admin"),
+		AdminPassword: env("ADMIN_PASSWORD", "akk-admin-2026"),
+
 		EGovClientID:     env("EGOV_CLIENT_ID", ""),
 		EGovClientSecret: env("EGOV_CLIENT_SECRET", ""),
 		EGovTokenURL:     env("EGOV_TOKEN_URL", ""),
 		EGovBaseURL:      env("EGOV_BASE_URL", ""),
 		EGovRedirectURI:  env("EGOV_REDIRECT_URI", ""),
 		EGovResolve:      env("EGOV_RESOLVE", ""),
+
+		LegacyJWTSecret:    env("LEGACY_JWT_SECRET", ""),
+		LegacyJWTIssuer:    env("LEGACY_JWT_ISSUER", "fond"),
+		LegacyJWTAudiences: splitCSV(env("LEGACY_JWT_AUDIENCES", "Int,Ext")),
 	}
 }
 
