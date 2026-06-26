@@ -31,6 +31,8 @@ tags:
     description: Авторизация и регистрация (SMS-OTP, демо-SSO)
   - name: credit
     description: Кредитные заявки, этапы, документы
+  - name: admin
+    description: Админ-панель кредитного администратора (role=admin)
 
 paths:
   /health:
@@ -235,6 +237,45 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
         "502":
           description: Не удалось получить данные из eGov
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/auth/Account/ssoMobileLogin:
+    post:
+      tags: [auth]
+      summary: Вход с мобильного по токену старой системы (.NET Agro.Identity)
+      description: |
+        Мобайл присылает свой legacy-JWT; бэкенд проверяет подпись (HS256, общий
+        секрет LEGACY_JWT_SECRET), берёт ИИН/ФИО из проверенных claims, находит/создаёт
+        клиента и выдаёт НАШИ токены. Дальше мобайл ходит с нашим токеном.
+        Альтернатива: тот же legacy-токен можно слать напрямую как Bearer — middleware
+        принимает его и авто-создаёт клиента. Доступно только при заданном LEGACY_JWT_SECRET.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string, description: JWT старой системы Agro.Identity }
+                phoneNumber: { type: string, description: "Опционально — телефона нет в legacy-токене" }
+      responses:
+        "200":
+          description: Вход выполнен, профиль + наши токены
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SsoLoginResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401":
+          description: Недействительный legacy-токен
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Вход с мобильного не сконфигурирован (LEGACY_JWT_SECRET не задан)
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -546,6 +587,144 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
+  /api/v1/admin/login:
+    post:
+      tags: [admin]
+      summary: Вход кредитного администратора (логин/пароль)
+      description: Корп-учётка (ADMIN_USERNAME/ADMIN_PASSWORD). Выдаёт admin-JWT (claim role=admin).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: Токен администратора
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+                  name: { type: string }
+                  role: { type: string, example: admin }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401":
+          description: Неверный логин или пароль
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/admin/applications:
+    get:
+      tags: [admin]
+      summary: Все заявки (опц. фильтр по статусу)
+      description: Требует admin-JWT (role=admin). Видны заявки всех клиентов.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Фильтр по статусу лестницы / ветке (rejected/cancelled/rework)
+          schema: { type: string }
+      responses:
+        "200":
+          description: Список заявок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  applications:
+                    type: array
+                    items: { $ref: "#/components/schemas/AdminApplication" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/v1/admin/applications/{uid}:
+    get:
+      tags: [admin]
+      summary: Карточка заявки (заёмщик, onboarding, документы, доступные действия)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/AppUid"
+      responses:
+        "200":
+          description: Детали заявки
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminApplication" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/admin/applications/{uid}/decision:
+    post:
+      tags: [admin]
+      summary: Решение по заявке (двигать / отклонить / на доработку / задать статус)
+      description: |
+        action: advance (следующий этап) | reject | rework | set.
+        comment обязателен для reject и rework.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: "#/components/parameters/AppUid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [advance, reject, rework, set]
+                status: { type: string, description: "Целевой статус (для action=set)" }
+                comment: { type: string, description: "Обязателен для reject/rework" }
+      responses:
+        "200":
+          description: Обновлённая карточка заявки
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminApplication" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Заявка в конечном состоянии — движение недоступно
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/admin/stats:
+    get:
+      tags: [admin]
+      summary: Счётчики заявок по статусам
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Статистика
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  by_status:
+                    type: object
+                    additionalProperties: { type: integer }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -574,6 +753,11 @@ components:
           schema: { $ref: "#/components/schemas/Error" }
     NotFound:
       description: Не найдено
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Forbidden:
+      description: Доступ только для администратора (role≠admin)
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -698,6 +882,28 @@ components:
         valid_until:
           type: string
           description: "Срок действия из хранилища YYYY-MM-DD (если есть)"
+
+    AdminApplication:
+      type: object
+      description: Заявка в админ-панели (list = базовые поля; detail дополнительно onboarding/документы/действия)
+      properties:
+        uid: { type: string, format: uuid }
+        number: { type: string }
+        status: { type: string }
+        status_label: { type: string, description: Человекочитаемый статус }
+        program_id: { type: string }
+        program_title: { type: string }
+        purpose: { type: string }
+        amount: { type: number }
+        client_name: { type: string }
+        client_phone: { type: string }
+        client_iin: { type: string, description: Маскированный ИИН }
+        admin_comment: { type: string }
+        created_at: { type: string, format: date-time }
+        onboarding: { type: object, additionalProperties: true, description: "Только в detail — снимок воронки" }
+        is_terminal: { type: boolean, description: "Только в detail" }
+        next_status: { type: string, description: "Только в detail (если не терминал)" }
+        next_label: { type: string, description: "Только в detail" }
 
     MyDocument:
       type: object
