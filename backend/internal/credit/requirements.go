@@ -1,6 +1,10 @@
 package credit
 
-import "akk-railway-backend/internal/store"
+import (
+	"time"
+
+	"akk-railway-backend/internal/store"
+)
 
 // DocReq — требование к документу на конкретном этапе.
 // Каталог статичен (живёт в коде), а факт загрузки/подписания хранится в application_documents.
@@ -19,7 +23,8 @@ type DocReq struct {
 var Requirements = []DocReq{
 	// new — Регистрация заявки
 	{"id_card", "Удостоверение личности", "gov", "new", nil},
-	{"fin_statements", "Финансовая отчётность", "gov", "new", nil},
+	// Финотчётность из госбаз НЕ подтягивается (только благонадёжность/ПКБ) — заёмщик прикладывает сам.
+	{"fin_statements", "Финансовая отчётность / налоговая декларация (за 2 года)", "upload", "expertise", nil},
 	// expertise — На рассмотрении
 	{"business_plan", "Бизнес-план / проектная смета", "upload", "expertise", nil},
 	{"land_right", "Право на землю / договор аренды", "gov", "expertise", nil},
@@ -36,6 +41,25 @@ var Requirements = []DocReq{
 	{"special_account", "Открытие спецсчёта для контроля расходов", "gov", "contract_signing", nil},
 	// disbursed — Средства выданы
 	{"drawdown_request", "Заявка на выборку средств", "sign", "disbursed", nil},
+}
+
+// RequirementTitle возвращает человекочитаемое название требования по ключу
+// (для админ-панели). Если ключ не найден в каталоге — возвращает сам ключ.
+func RequirementTitle(key string) string {
+	for _, r := range Requirements {
+		if r.Key == key {
+			return r.Title
+		}
+	}
+	return key
+}
+
+// StageLabel возвращает ярлык этапа лестницы по статусу (или сам статус, если не этап).
+func StageLabel(status string) string {
+	if l, ok := stageLabels[status]; ok {
+		return l
+	}
+	return status
 }
 
 // stageLabels — ярлыки этапов лестницы (зеркало клиентских APP_STAGES).
@@ -81,7 +105,9 @@ func hasRequirement(programID, key string) bool {
 
 // buildDocumentsDTO собирает ответ GET /applications/:uid/documents:
 // требования каталога, сгруппированные по этапам лестницы, с подмешанным статусом действий.
-func buildDocumentsDTO(app store.Application, stored []store.AppDocument) map[string]any {
+// vault — личное хранилище клиента: валидные документы переиспользуются (не нужно
+// загружать заново), просроченные помечаются needs_refresh.
+func buildDocumentsDTO(app store.Application, stored []store.AppDocument, vault []store.ClientDocument, now time.Time) map[string]any {
 	// факт действия по requirement_key
 	type act struct {
 		status   string
@@ -90,6 +116,10 @@ func buildDocumentsDTO(app store.Application, stored []store.AppDocument) map[st
 	done := make(map[string]act, len(stored))
 	for _, d := range stored {
 		done[d.RequirementKey] = act{status: d.Status, fileName: d.FileName}
+	}
+	vaultByType := make(map[string]store.ClientDocument, len(vault))
+	for _, v := range vault {
+		vaultByType[v.DocType] = v
 	}
 
 	reqs := requirementsFor(app.ProgramID)
@@ -104,13 +134,30 @@ func buildDocumentsDTO(app store.Application, stored []store.AppDocument) map[st
 			status = a.status
 			fileName = a.fileName
 		}
-		byStage[r.StageStatusKey] = append(byStage[r.StageStatusKey], map[string]any{
+		doc := map[string]any{
 			"requirement_key": r.Key,
 			"title":           r.Title,
 			"source":          r.Source,
 			"status":          status,
 			"file_name":       fileName,
-		})
+		}
+		// Переиспользование из «Моих документов»: если не загружено в самой заявке,
+		// а в хранилище есть подходящий тип — закрываем требование (или просим обновить).
+		if _, uploaded := done[r.Key]; !uploaded {
+			if v, ok := vaultByType[r.Key]; ok {
+				if vaultStatus(v.ValidUntil, now) == VaultExpired {
+					doc["status"] = "required"
+					doc["needs_refresh"] = true
+				} else {
+					doc["status"] = "verified"
+					doc["from_vault"] = true
+				}
+				if v.ValidUntil != nil {
+					doc["valid_until"] = v.ValidUntil.Format(dateLayout)
+				}
+			}
+		}
+		byStage[r.StageStatusKey] = append(byStage[r.StageStatusKey], doc)
 	}
 
 	stages := make([]map[string]any, 0, len(store.StatusLadder))

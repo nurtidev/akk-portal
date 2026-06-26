@@ -33,6 +33,29 @@ export interface AppDocument {
   /** required | verified | uploaded */
   status: string;
   file_name: string | null;
+  /** true → требование закрыто валидным документом из «Моих документов». */
+  from_vault?: boolean;
+  /** true → документ в хранилище просрочен, нужно обновить. */
+  needs_refresh?: boolean;
+  /** Срок действия из хранилища (YYYY-MM-DD), если есть. */
+  valid_until?: string;
+}
+
+/** Тип документа в личном хранилище «Мои документы». */
+export interface MyDocument {
+  key: string;
+  title: string;
+  source: "gov" | "upload" | "sign";
+  /** Срок годности в днях (0 = бессрочно). */
+  validity_days: number;
+  reusable: boolean;
+  /** missing | valid | expiring | expired */
+  status: "missing" | "valid" | "expiring" | "expired";
+  file_name?: string;
+  /** YYYY-MM-DD */
+  issued_at?: string;
+  /** YYYY-MM-DD (нет для бессрочных) */
+  valid_until?: string;
 }
 
 /** Этап лестницы с документами. */
@@ -137,6 +160,27 @@ export function listDocuments(uid: string): Promise<ApiResult<DocumentsDTO>> {
     CREDIT_PREFIX + "/applications/" + uid + "/documents",
     { method: "GET", auth: true },
   );
+}
+
+/** Личное хранилище «Мои документы»: типы + статус по сроку действия. */
+export function listMyDocuments(): Promise<ApiResult<MyDocument[]>> {
+  return http<MyDocument[]>(CREDIT_PREFIX + "/my-documents", {
+    method: "GET",
+    auth: true,
+  });
+}
+
+/** Сохранить/обновить документ в хранилище (метаданные; valid_until считает бэкенд). */
+export function upsertMyDocument(
+  docType: string,
+  fileName: string,
+  issuedAt?: string,
+): Promise<ApiResult<MyDocument>> {
+  return http<MyDocument>(CREDIT_PREFIX + "/my-documents", {
+    method: "POST",
+    auth: true,
+    body: { doc_type: docType, file_name: fileName, issued_at: issuedAt },
+  });
 }
 
 /** Отметить требование как загруженное/подписанное (метаданные, без файла). */

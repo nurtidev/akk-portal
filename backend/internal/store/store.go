@@ -80,9 +80,13 @@ CREATE TABLE IF NOT EXISTS applications (
     requested_amount NUMERIC(18,2) NOT NULL DEFAULT 0,
     onboarding       JSONB NOT NULL DEFAULT '{}',
     status           TEXT NOT NULL DEFAULT 'new',
+    admin_comment    TEXT NOT NULL DEFAULT '',
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_applications_client ON applications(client_uid);
+-- Колонка комментария кредитного администратора (доработка/отказ). ADD ... IF NOT EXISTS
+-- для БД, созданных до появления админ-панели.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS admin_comment TEXT NOT NULL DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS application_documents (
     id              UUID PRIMARY KEY,
@@ -95,6 +99,21 @@ CREATE TABLE IF NOT EXISTS application_documents (
     UNIQUE (application_uid, requirement_key)
 );
 CREATE INDEX IF NOT EXISTS idx_app_documents_app ON application_documents(application_uid);
+
+-- Личное хранилище документов клиента («Мои документы»): переиспользуются
+-- между заявками, со сроком действия (valid_until NULL = бессрочно).
+CREATE TABLE IF NOT EXISTS client_documents (
+    id          UUID PRIMARY KEY,
+    client_uid  UUID NOT NULL REFERENCES clients(uid),
+    doc_type    TEXT NOT NULL,
+    file_name   TEXT,
+    issued_at   TIMESTAMPTZ,
+    valid_until TIMESTAMPTZ,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (client_uid, doc_type)
+);
+CREATE INDEX IF NOT EXISTS idx_client_documents_client ON client_documents(client_uid);
 `
 
 func (s *Store) migrate(ctx context.Context) error {
@@ -249,7 +268,10 @@ type Application struct {
 	Amount      float64
 	Onboarding  json.RawMessage
 	Status      string
-	CreatedAt   time.Time
+	// AdminComment — комментарий администратора (доработка/отказ). Заполняется только
+	// admin-запросами (см. admin.go); клиентские SELECT его не выбирают и оставляют "".
+	AdminComment string
+	CreatedAt    time.Time
 }
 
 // CreateApplication вставляет заявку, генерируя номер AKK-<год>-NNNNNN.
@@ -305,10 +327,11 @@ func StatusIndex(status string) int {
 	return -1
 }
 
-// Терминальные статусы вне основной лестницы (ветки отказа/отмены).
+// Статусы вне основной лестницы (ветки отказа/отмены/доработки).
 const (
-	StatusRejected  = "rejected"  // отказ (скоринг/КК)
-	StatusCancelled = "cancelled" // самостоятельная отмена заёмщиком
+	StatusRejected  = "rejected"  // отказ (скоринг/КК) — терминальный
+	StatusCancelled = "cancelled" // самостоятельная отмена заёмщиком — терминальный
+	StatusRework    = "rework"    // возврат на доработку администратором — НЕ терминальный
 )
 
 // terminalStatuses — конечные состояния заявки: дальнейшего движения нет.
@@ -350,9 +373,9 @@ func NextStatus(cur string) string {
 	return StatusLadder[0]
 }
 
-// ValidStatus сообщает, допустим ли статус (этап лестницы или ветка отказа/отмены).
+// ValidStatus сообщает, допустим ли статус (этап лестницы или ветка отказа/отмены/доработки).
 func ValidStatus(s string) bool {
-	if s == StatusRejected || s == StatusCancelled {
+	if s == StatusRejected || s == StatusCancelled || s == StatusRework {
 		return true
 	}
 	for _, x := range StatusLadder {
@@ -472,6 +495,64 @@ func (s *Store) ListAppDocuments(ctx context.Context, appUID, clientUID uuid.UUI
 		out = append(out, d)
 	}
 	return out, rows.Err()
+}
+
+// --- Client documents (личное хранилище «Мои документы») -----------------
+
+// ClientDocument — документ в личном хранилище клиента (переиспользуемый).
+type ClientDocument struct {
+	ID         uuid.UUID
+	ClientUID  uuid.UUID
+	DocType    string
+	FileName   *string
+	IssuedAt   *time.Time
+	ValidUntil *time.Time // nil = бессрочно
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+// ListClientDocuments возвращает все документы хранилища клиента.
+func (s *Store) ListClientDocuments(ctx context.Context, clientUID uuid.UUID) ([]ClientDocument, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, client_uid, doc_type, file_name, issued_at, valid_until, created_at, updated_at
+		  FROM client_documents WHERE client_uid=$1 ORDER BY doc_type`, clientUID)
+	if err != nil {
+		return nil, fmt.Errorf("store: list client documents: %w", err)
+	}
+	defer rows.Close()
+
+	var out []ClientDocument
+	for rows.Next() {
+		var d ClientDocument
+		if err := rows.Scan(&d.ID, &d.ClientUID, &d.DocType, &d.FileName,
+			&d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("store: scan client document: %w", err)
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
+// UpsertClientDocument создаёт/обновляет документ хранилища (идемпотентно по doc_type).
+func (s *Store) UpsertClientDocument(ctx context.Context, clientUID uuid.UUID, docType, fileName string, issuedAt, validUntil *time.Time) (ClientDocument, error) {
+	var fn *string
+	if fileName != "" {
+		fn = &fileName
+	}
+	var d ClientDocument
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO client_documents (id, client_uid, doc_type, file_name, issued_at, valid_until, updated_at)
+		VALUES ($1,$2,$3,$4,$5,$6, now())
+		ON CONFLICT (client_uid, doc_type)
+		DO UPDATE SET file_name=EXCLUDED.file_name, issued_at=EXCLUDED.issued_at,
+		              valid_until=EXCLUDED.valid_until, updated_at=now()
+		RETURNING id, client_uid, doc_type, file_name, issued_at, valid_until, created_at, updated_at`,
+		uuid.New(), clientUID, docType, fn, issuedAt, validUntil).
+		Scan(&d.ID, &d.ClientUID, &d.DocType, &d.FileName, &d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt)
+	if err != nil {
+		return ClientDocument{}, fmt.Errorf("store: upsert client document: %w", err)
+	}
+	return d, nil
 }
 
 // UpsertAppDocument помечает требование как загруженное (идемпотентно по requirement_key).

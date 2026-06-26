@@ -499,6 +499,53 @@ paths:
                     items: { $ref: "#/components/schemas/Notification" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
+  /api/v1/credit/my-documents:
+    get:
+      tags: [credit]
+      summary: Личное хранилище «Мои документы» (переиспользуемые + сроки действия)
+      description: |
+        Каталог переиспользуемых типов документов клиента со статусом по сроку:
+        missing (нет) / valid / expiring (истекает ≤7 дн) / expired (просрочен).
+        Валидные документы автоматически закрывают требования новых заявок —
+        собирать одну и ту же стопку каждый раз не нужно.
+      responses:
+        "200":
+          description: Массив типов с состоянием хранилища
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MyDocument" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [credit]
+      summary: Сохранить/обновить документ в хранилище
+      description: |
+        `valid_until` вычисляется по сроку годности типа от `issued_at`
+        (бессрочные типы → без срока). Метаданные (файл хранится отдельно).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [doc_type]
+              properties:
+                doc_type: { type: string, example: tax_clearance }
+                file_name: { type: string, example: "spravka-kgd.pdf" }
+                issued_at:
+                  type: string
+                  description: "Дата выдачи YYYY-MM-DD (пусто = сегодня)"
+                  example: "2026-06-20"
+      responses:
+        "200":
+          description: Сохранено
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyDocument" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -642,6 +689,34 @@ components:
           type: string
           description: required | verified | uploaded
         file_name: { type: string, nullable: true }
+        from_vault:
+          type: boolean
+          description: true → требование закрыто валидным документом из «Моих документов»
+        needs_refresh:
+          type: boolean
+          description: true → документ в хранилище просрочен, нужно обновить
+        valid_until:
+          type: string
+          description: "Срок действия из хранилища YYYY-MM-DD (если есть)"
+
+    MyDocument:
+      type: object
+      properties:
+        key: { type: string, example: tax_clearance }
+        title: { type: string, example: "Справка об отсутствии налоговой задолженности (КГД)" }
+        source:
+          type: string
+          enum: [gov, upload, sign]
+        validity_days:
+          type: integer
+          description: "Срок годности, дней (0 = бессрочно)"
+        reusable: { type: boolean }
+        status:
+          type: string
+          enum: [missing, valid, expiring, expired]
+        file_name: { type: string }
+        issued_at: { type: string, description: "YYYY-MM-DD" }
+        valid_until: { type: string, description: "YYYY-MM-DD (нет для бессрочных)" }
 
     Program:
       type: object

@@ -21,7 +21,13 @@ type Claims struct {
 	LastName  string `json:"lastName"`
 	FirstName string `json:"firstName"`
 	Phone     string `json:"phone"`
+	// Role пустая для токенов заёмщика; "admin" для токенов кредитного администратора
+	// (выдаются IssueAdmin, проверяются admin-middleware). Один секрет обслуживает оба входа.
+	Role string `json:"role,omitempty"`
 }
+
+// RoleAdmin — значение Claims.Role для токена администратора.
+const RoleAdmin = "admin"
 
 // TokenPair — пара токенов для клиента.
 type TokenPair struct {
@@ -63,6 +69,28 @@ func (i *Issuer) Issue(c store.Client) (TokenPair, error) {
 	access, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(i.secret)
 	if err != nil {
 		return TokenPair{}, fmt.Errorf("auth: sign token: %w", err)
+	}
+	return TokenPair{AccessToken: access, RefreshToken: randomHex(32)}, nil
+}
+
+// IssueAdmin выпускает access-токен администратора (Role=admin). Subject — логин админа.
+// Личность администратора в БД не хранится: токен самодостаточен, проверяется по подписи.
+func (i *Issuer) IssueAdmin(username string) (TokenPair, error) {
+	now := time.Now()
+	claims := Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   username,
+			Issuer:    i.issuer,
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(i.accessTTL)),
+			ID:        randomHex(16),
+		},
+		Name: username,
+		Role: RoleAdmin,
+	}
+	access, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(i.secret)
+	if err != nil {
+		return TokenPair{}, fmt.Errorf("auth: sign admin token: %w", err)
 	}
 	return TokenPair{AccessToken: access, RefreshToken: randomHex(32)}, nil
 }

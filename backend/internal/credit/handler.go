@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -43,6 +44,10 @@ func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
 	g.GET("/applications/:uid/documents", h.listDocuments, mw)
 	g.POST("/applications/:uid/documents", h.uploadDocument, mw)
 	g.GET("/notifications", h.notifications, mw)
+
+	// Личное хранилище «Мои документы» (переиспользование между заявками + сроки).
+	g.GET("/my-documents", h.listMyDocuments, mw)
+	g.POST("/my-documents", h.upsertMyDocument, mw)
 }
 
 type createReq struct {
@@ -214,7 +219,13 @@ func (h *Handler) listDocuments(c echo.Context) error {
 		h.logger.Error("credit: список документов", "err", err)
 		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить документы"})
 	}
-	return c.JSON(http.StatusOK, buildDocumentsDTO(app, stored))
+	// Личное хранилище клиента — для переиспользования валидных документов.
+	vault, err := h.store.ListClientDocuments(c.Request().Context(), client.UID)
+	if err != nil {
+		h.logger.Error("credit: хранилище документов", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить документы"})
+	}
+	return c.JSON(http.StatusOK, buildDocumentsDTO(app, stored, vault, time.Now()))
 }
 
 type uploadDocReq struct {
@@ -408,6 +419,95 @@ func (h *Handler) notifications(c echo.Context) error {
 		})
 	}
 	return c.JSON(http.StatusOK, map[string]any{"items": items, "unread": unread})
+}
+
+// --- Мои документы (личное хранилище) ------------------------------------
+
+const dateLayout = "2006-01-02"
+
+// listMyDocuments отдаёт каталог переиспользуемых типов + статус по сроку для клиента.
+func (h *Handler) listMyDocuments(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	stored, err := h.store.ListClientDocuments(c.Request().Context(), client.UID)
+	if err != nil {
+		h.logger.Error("credit: список моих документов", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить документы"})
+	}
+	byType := make(map[string]store.ClientDocument, len(stored))
+	for _, d := range stored {
+		byType[d.DocType] = d
+	}
+	now := time.Now()
+	items := make([]map[string]any, 0, len(VaultDocTypes))
+	for _, meta := range VaultDocTypes {
+		item := map[string]any{
+			"key":           meta.Key,
+			"title":         meta.Title,
+			"source":        meta.Source,
+			"validity_days": meta.ValidityDays,
+			"reusable":      meta.Reusable,
+			"status":        VaultMissing,
+		}
+		if d, ok := byType[meta.Key]; ok {
+			item["status"] = vaultStatus(d.ValidUntil, now)
+			if d.FileName != nil {
+				item["file_name"] = *d.FileName
+			}
+			if d.IssuedAt != nil {
+				item["issued_at"] = d.IssuedAt.Format(dateLayout)
+			}
+			if d.ValidUntil != nil {
+				item["valid_until"] = d.ValidUntil.Format(dateLayout)
+			}
+		}
+		items = append(items, item)
+	}
+	return c.JSON(http.StatusOK, items)
+}
+
+type upsertMyDocReq struct {
+	DocType  string `json:"doc_type"`
+	FileName string `json:"file_name"`
+	IssuedAt string `json:"issued_at"` // YYYY-MM-DD; пусто = сегодня
+}
+
+// upsertMyDocument сохраняет/обновляет документ в хранилище; valid_until считается
+// по сроку годности типа от даты выдачи. Возвращает актуальный статус.
+func (h *Handler) upsertMyDocument(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	var req upsertMyDocReq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "некорректный запрос"})
+	}
+	meta, ok := vaultDocType(req.DocType)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "неизвестный тип документа"})
+	}
+	issued := time.Now()
+	if req.IssuedAt != "" {
+		if parsed, err := time.Parse(dateLayout, req.IssuedAt); err == nil {
+			issued = parsed
+		}
+	}
+	validUntil := computeValidUntil(meta, issued)
+	d, err := h.store.UpsertClientDocument(c.Request().Context(), client.UID, meta.Key, req.FileName, &issued, validUntil)
+	if err != nil {
+		h.logger.Error("credit: сохранение моего документа", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось сохранить документ"})
+	}
+	resp := map[string]any{
+		"key":       meta.Key,
+		"status":    vaultStatus(d.ValidUntil, time.Now()),
+		"issued_at": issued.Format(dateLayout),
+	}
+	if d.FileName != nil {
+		resp["file_name"] = *d.FileName
+	}
+	if d.ValidUntil != nil {
+		resp["valid_until"] = d.ValidUntil.Format(dateLayout)
+	}
+	h.logger.Info("credit: документ хранилища сохранён", "type", meta.Key, "client", client.UID)
+	return c.JSON(http.StatusOK, resp)
 }
 
 func toDTO(a store.Application) map[string]any {

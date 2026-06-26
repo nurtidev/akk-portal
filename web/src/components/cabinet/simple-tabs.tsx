@@ -6,47 +6,161 @@
 // Уведомления генерируются из статусов заявок.
 // =====================================================
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { appStageIndex, APP_STAGES, rejectLabel } from "@/lib/api";
-import type { Application } from "@/lib/api";
+import {
+  appStageIndex,
+  APP_STAGES,
+  rejectLabel,
+  listMyDocuments,
+  upsertMyDocument,
+} from "@/lib/api";
+import type { Application, MyDocument } from "@/lib/api";
 
-// --- Документы (демо: всё из госбаз / подписано онлайн) -------------------
+// --- Мои документы (личное хранилище: переиспользование + сроки действия) --
+
+/** Цвет/ярлык статуса документа хранилища. */
+function vaultStatusMeta(
+  status: MyDocument["status"],
+  t: ReturnType<typeof useTranslations>,
+): { label: string; color: string } {
+  switch (status) {
+    case "valid":
+      return { label: t("vault.statusValid"), color: "#2b8a3e" };
+    case "expiring":
+      return { label: t("vault.statusExpiring"), color: "#C9A21C" };
+    case "expired":
+      return { label: t("vault.statusExpired"), color: "#d6336c" };
+    default:
+      return { label: t("vault.statusMissing"), color: "#868e96" };
+  }
+}
 
 export function DocsTab() {
   const t = useTranslations("cabinet");
-  const rows: { name: string; badge: string; color: string }[] = [
-    { name: t("docs.idCard"), badge: t("docs.fromGbd"), color: "#1c6fd6" },
-    { name: t("docs.income"), badge: t("docs.fromKgd"), color: "#0c8577" },
-    { name: t("docs.consentPd"), badge: t("docs.signed"), color: "#2b8a3e" },
-    { name: t("docs.consentPkb"), badge: t("docs.signed"), color: "#2b8a3e" },
-    { name: t("docs.application"), badge: t("docs.generated"), color: "#2b8a3e" },
-  ];
+  const [docs, setDocs] = useState<MyDocument[] | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    const r = await listMyDocuments();
+    setDocs(r.ok && Array.isArray(r.data) ? r.data : []);
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const attach = useCallback(
+    async (key: string, fileName: string) => {
+      setBusy(key);
+      await upsertMyDocument(key, fileName);
+      setBusy(null);
+      void load();
+    },
+    [load],
+  );
+
   return (
     <div>
       <h2 className="font-display text-xl font-bold text-[var(--text)]">
-        {t("nav.docs")}
+        {t("vault.title")}
       </h2>
-      <p className="mb-3.5 mt-1 text-sm text-[var(--text-3)]">
-        {t("docs.sub")}
-      </p>
-      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1">
-        {rows.map((r, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-2.5 border-b border-[var(--border-soft)] py-2.5 last:border-b-0"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.8" className="flex-shrink-0" aria-hidden="true">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <path d="M14 2v6h6" />
-            </svg>
-            <span className="flex-1 text-[12.5px] text-[var(--text)]">{r.name}</span>
-            <SrcChip label={r.badge} color={r.color} />
-          </div>
-        ))}
-      </div>
+      <p className="mb-3.5 mt-1 text-sm text-[var(--text-3)]">{t("vault.sub")}</p>
+
+      {docs === null ? (
+        <p className="text-sm text-[var(--text-3)]">{t("vault.loading")}</p>
+      ) : (
+        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1">
+          {docs.map((d) => (
+            <VaultRow
+              key={d.key}
+              doc={d}
+              busy={busy === d.key}
+              onAttach={attach}
+              t={t}
+            />
+          ))}
+        </div>
+      )}
       <p className="mt-2.5 text-[11px] leading-relaxed text-[var(--text-3)]">
-        {t("docs.note")}
+        {t("vault.note")}
       </p>
+    </div>
+  );
+}
+
+function VaultRow({
+  doc,
+  busy,
+  onAttach,
+  t,
+}: {
+  doc: MyDocument;
+  busy: boolean;
+  onAttach: (key: string, fileName: string) => void;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const meta = vaultStatusMeta(doc.status, t);
+  const isGov = doc.source === "gov";
+
+  // Подпись срока: бессрочно / действует до даты.
+  const validity =
+    doc.validity_days === 0
+      ? t("vault.permanent")
+      : doc.valid_until
+        ? t("vault.until", { date: doc.valid_until })
+        : "";
+
+  return (
+    <div className="flex items-center gap-2.5 border-b border-[var(--border-soft)] py-2.5 last:border-b-0">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.8" className="flex-shrink-0" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <path d="M14 2v6h6" />
+      </svg>
+      <div className="min-w-0 flex-1">
+        <div className="text-[12.5px] text-[var(--text)]">{doc.title}</div>
+        {validity && (
+          <div className="mt-0.5 text-[11px] text-[var(--text-3)]">{validity}</div>
+        )}
+      </div>
+
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap"
+        style={{ background: meta.color + "14", color: meta.color, border: "1px solid " + meta.color + "40" }}
+      >
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: meta.color }} />
+        {meta.label}
+      </span>
+
+      {isGov ? (
+        <SrcChip label={t("vault.gov")} color="#1c6fd6" />
+      ) : (
+        <>
+          <input
+            ref={fileRef}
+            type="file"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onAttach(doc.key, f.name);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => fileRef.current?.click()}
+            className="rounded-[var(--radius-sm)] border border-[var(--border)] px-2.5 py-1 text-[11px] font-semibold text-[var(--primary)] hover:border-[var(--primary)] disabled:opacity-60"
+          >
+            {busy
+              ? t("vault.loading")
+              : doc.status === "missing"
+                ? t("vault.attach")
+                : t("vault.refresh")}
+          </button>
+        </>
+      )}
     </div>
   );
 }

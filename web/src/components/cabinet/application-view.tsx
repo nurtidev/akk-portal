@@ -222,12 +222,13 @@ export function ApplicationView({ uid }: { uid: string }) {
       {/* Трекер 5 этапов */}
       <Card title={t("appx.movement")}>
         <SimpleStepper currentIndex={stage.index} done={isDone} dim={!!terminal} />
-        {/* Технический статус — мелким серым (опционально). */}
-        {workflowStatus && (
-          <div className="mt-3 text-[11px] text-[var(--text-3)]">
-            {t("appx.currentStep")}: <span className="font-mono">{workflowStatus}</span>
-          </div>
-        )}
+        {/* Текущий шаг в понятном виде (человеческий ярлык этапа, не тех-статус). */}
+        <div className="mt-3 text-[12px] text-[var(--text-3)]">
+          {t("appx.currentStep")}:{" "}
+          <span className="font-semibold text-[var(--text-2)]">
+            {terminal ? stage.label : isDone ? t("appx.stageDone") : stage.label}
+          </span>
+        </div>
       </Card>
 
       {/* Каталог документов — мягкая деградация: показываем только при наличии данных */}
