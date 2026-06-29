@@ -53,9 +53,9 @@
       "submit": "Find programs"
     },
     "programs": {
-      "eyebrow": "Все программы АКК",
-      "title": "Под разные цели АПК",
-      "lede": "От посевной кампании до племенного животноводства, откорма и долгосрочных инвестиций. Подбор автоматически определяет, какие программы вам подходят, и рассчитывает примерный платёж.",
+      "eyebrow": "AKK loan programs",
+      "title": "Find a loan for your goal",
+      "lede": "Sowing, livestock, machinery, processing or working capital — AKK has a program for every goal. Browse the programs: each shows the rate, amount, term and an estimated payment. Don’t want to choose yourself — take the quick match.",
       "featured": "Самая популярная",
       "indirectBadge": "Только через КТ/МФО/БВУ",
       "rate": "Ставка",
