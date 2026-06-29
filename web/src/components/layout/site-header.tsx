@@ -190,12 +190,15 @@ export function SiteHeader() {
             >
               {nav("calculator")}
             </Link>
+            {/* «Партнёрам» скрыт до готовности АгроСкора (B2B-витрина строится
+                на его данных). Страница /partners жива, см. docs/ROADMAP.md.
             <Link
               href={`/${locale}/partners`}
               className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
             >
               {nav("partners")}
             </Link>
+            */}
             {/* Пресс-центр — верхний уровень (был в выпадашке «О корпорации», волна 3) */}
             <Link
               href={`/${locale}/press`}
@@ -351,6 +354,7 @@ export function SiteHeader() {
             {nav("calculator")}
           </Link>
 
+          {/* «Партнёрам» скрыт до готовности АгроСкора (см. docs/ROADMAP.md).
           <Link
             href={`/${locale}/partners`}
             className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
@@ -358,6 +362,7 @@ export function SiteHeader() {
           >
             {nav("partners")}
           </Link>
+          */}
 
           {/* Пресс-центр — верхний уровень (зеркало десктопной навигации) */}
           <Link
