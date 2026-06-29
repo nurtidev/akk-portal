@@ -5,3 +5,7 @@ playwright-report/
 .env.local
 .DS_Store
 docs/screenshots/
+
+# Типографские исходники брошюр (EPS/JPEG/PDF, ~1.6 ГБ) — в git не идут.
+# Веб-версии живут в web/public/brochures/ (webp-превью + PDF для скачивания).
+/brochures/

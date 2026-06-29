@@ -7,6 +7,7 @@ import { ContentPage, AccordionItem } from '@/components/content/content-page';
 import { ProductTabs, type ProductTab } from '@/components/products/product-tabs';
 import { ProductCalculator } from '@/components/products/product-calculator';
 import { PROGRAMS, PROGRAM_DETAILS, type Program } from '@/data/programs';
+import { getBrochure } from '@/data/brochures';
 import { getChecklist } from '@/data/loan-documents';
 import { getProgramFaq } from '@/data/program-faq';
 import { getProgramRequirements } from '@/data/program-requirements';
@@ -71,6 +72,7 @@ export default async function ProductDetailPage({
 
   const d = PROGRAM_DETAILS[id]; // может отсутствовать (напр. «Кең дала»)
   const checklist = getChecklist(id);
+  const brochure = getBrochure(id, locale); // официальная листовка или null
   const isKk = locale === 'kk';
 
   // Параметры-полоска (ставка / сумма / срок)
@@ -228,6 +230,43 @@ export default async function ProductDetailPage({
       ]}
     >
       <ProductTabs tabs={tabs} />
+
+      {/* Брошюра программы (официальная листовка АКК): превью + скачивание PDF */}
+      {brochure && (
+        <section className="mt-10 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)]">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-display text-xl font-bold text-[var(--text)]">{tp('brochure.title')}</h2>
+              <p className="mt-1 text-sm text-[var(--text-2)]">{tp('brochure.lede')}</p>
+            </div>
+            <a
+              href={brochure.pdf}
+              download
+              className="inline-flex flex-shrink-0 items-center gap-2 rounded-[var(--radius)] bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--primary-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+              </svg>
+              {tp('brochure.download')}
+            </a>
+          </div>
+          <a
+            href={brochure.pdf}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={tp('brochure.openHint')}
+            className="group block overflow-hidden rounded-[var(--radius)] border border-[var(--border-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={brochure.preview}
+              alt={tp('brochure.alt', { program: program.title })}
+              loading="lazy"
+              className="h-auto w-full transition-transform duration-300 group-hover:scale-[1.01]"
+            />
+          </a>
+        </section>
+      )}
 
       {/* Калькулятор платежа (публичный pre-screen) */}
       <section
