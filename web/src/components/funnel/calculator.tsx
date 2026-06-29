@@ -24,7 +24,17 @@ function fmtNum(v: number): string {
   return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-export function Calculator({ program }: { program: Program }) {
+export function Calculator({
+  program,
+  collapsibleSchedule = false,
+  fill = false,
+}: {
+  program: Program;
+  /** Спрятать график погашения под раскрывашку (свёрнут по умолчанию, виден итог-переплата). */
+  collapsibleSchedule?: boolean;
+  /** Растянуть калькулятор на всю высоту контейнера, прижав график к низу (выравнивание высоты блоков). */
+  fill?: boolean;
+}) {
   const t = useTranslations('funnel.calc');
   const { state, calcEntry, seedCalc, setCalcAmount, commitCalcAmount, setCalcTerm } = useFunnel();
 
@@ -58,8 +68,12 @@ export function Calculator({ program }: { program: Program }) {
 
   const step = Math.max(Math.round(p.maxAmount / 100), 10000);
 
+  // fill → растягиваем калькулятор по высоте, график «прижимаем» к низу (mt-auto),
+  // чтобы лишняя высота ушла в отступ между блоком «Срок» и графиком.
+  const scheduleMargin = fill ? 'mt-auto' : 'mt-5';
+
   return (
-    <div>
+    <div className={fill ? 'flex h-full flex-1 flex-col' : undefined}>
       {/* Сумма */}
       <div className="mt-5">
         <div className="mb-1.5 flex items-center justify-between">
@@ -122,12 +136,20 @@ export function Calculator({ program }: { program: Program }) {
         </div>
       )}
 
-      {/* График погашения */}
-      <div className="mt-5">
-        {sch.type === 'biannual' ? (
-          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-warm)] p-4">
-            <div className="mb-3 text-sm font-semibold text-[var(--text)]">{t('biTitle')}</div>
-            {sch.payments.map((pp, i) => (
+      {/* График погашения. collapsibleSchedule → под раскрывашкой (в свёрнутом
+          виде виден только итог-переплата), иначе блок раскрыт как раньше. */}
+      {(() => {
+        const title =
+          sch.type === 'biannual'
+            ? t('biTitle')
+            : t('annualTitle', {
+                years: sch.years,
+                word: declension(sch.years, t('yearOne'), t('yearFew'), t('yearMany')),
+              });
+
+        const rows =
+          sch.type === 'biannual' ? (
+            sch.payments.map((pp, i) => (
               <div key={i} className="flex items-start justify-between border-b border-[var(--border-soft)] py-2 last:border-0">
                 <div>
                   <div className="text-sm font-medium text-[var(--text)]">{pp.label}</div>
@@ -142,23 +164,9 @@ export function Calculator({ program }: { program: Program }) {
                   </div>
                 </div>
               </div>
-            ))}
-            <div className="flex items-center justify-between pt-2">
-              <div className="text-sm text-[var(--text-2)]">{t('overpay')}</div>
-              <div className="text-sm font-bold text-[var(--text)]">
-                {fmtAmount(Math.round(sch.overpay))}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-warm)] p-4">
-            <div className="mb-3 text-sm font-semibold text-[var(--text)]">
-              {t('annualTitle', {
-                years: sch.years,
-                word: declension(sch.years, t('yearOne'), t('yearFew'), t('yearMany')),
-              })}
-            </div>
-            {sch.yearly.map((yr) => (
+            ))
+          ) : (
+            sch.yearly.map((yr) => (
               <div
                 key={yr.year}
                 className="flex items-center justify-between border-b border-[var(--border-soft)] py-2 last:border-0"
@@ -175,16 +183,59 @@ export function Calculator({ program }: { program: Program }) {
                   </div>
                 </div>
               </div>
-            ))}
-            <div className="flex items-center justify-between pt-2">
-              <div className="text-sm text-[var(--text-2)]">{t('overpay')}</div>
-              <div className="text-sm font-bold text-[var(--text)]">
-                {fmtAmount(Math.round(sch.overpay))}
-              </div>
+            ))
+          );
+
+        const overpayRow = (
+          <div className="flex items-center justify-between pt-2">
+            <div className="text-sm text-[var(--text-2)]">{t('overpay')}</div>
+            <div className="text-sm font-bold text-[var(--text)]">
+              {fmtAmount(Math.round(sch.overpay))}
             </div>
           </div>
-        )}
-      </div>
+        );
+
+        if (collapsibleSchedule) {
+          return (
+            <details className={`group ${scheduleMargin} rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-warm)]`}>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4">
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-[var(--text)]">{title}</span>
+                  <span className="block text-xs text-[var(--text-3)]">
+                    {t('overpay')}: {fmtAmount(Math.round(sch.overpay))}
+                  </span>
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                  className="flex-shrink-0 text-[var(--text-3)] transition-transform group-open:rotate-180"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </summary>
+              <div className="border-t border-[var(--border-soft)] px-4 pb-3 pt-1">
+                {rows}
+                {overpayRow}
+              </div>
+            </details>
+          );
+        }
+
+        return (
+          <div className={scheduleMargin}>
+            <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-warm)] p-4">
+              <div className="mb-3 text-sm font-semibold text-[var(--text)]">{title}</div>
+              {rows}
+              {overpayRow}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

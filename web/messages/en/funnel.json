@@ -43,6 +43,15 @@
       "trustLabel": "Our clients",
       "trustClosing": "The next success story is yours"
     },
+    "quickPick": {
+      "title": "Quick match",
+      "hint": "No sign-up · about 30 seconds",
+      "purposeLabel": "Goal",
+      "purposePlaceholder": "Select a goal",
+      "amountLabel": "Amount",
+      "amountPlaceholder": "Any amount",
+      "submit": "Find programs"
+    },
     "programs": {
       "eyebrow": "Все программы АКК",
       "title": "Под разные цели АПК",
@@ -64,7 +73,11 @@
       "notFinancedTitle": "Не подлежат финансированию",
       "applyCta": "Подать заявку",
       "collateralTitle": "Обеспечение",
-      "collateralText": "Залог и/или гарантии («Даму», банки) — состав подбирается с менеджером по Залоговой политике АКК. Гарантия фонда может заменить часть залога."
+      "collateralText": "Залог и/или гарантии («Даму», банки) — состав подбирается с менеджером по Залоговой политике АКК. Гарантия фонда может заменить часть залога.",
+      "prevAria": "Previous programs",
+      "nextAria": "Next programs",
+      "detailsCta": "Program details",
+      "calcTitle": "Payment calculator"
     },
     "quiz": {
       "stepLabel": "Шаг {current} из {total}",

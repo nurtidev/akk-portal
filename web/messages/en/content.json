@@ -33,6 +33,13 @@
       "consultCta": "Получить консультацию",
       "findKt": "Где оформить: КТ и филиалы",
       "indirectNote": "Эта программа выдаётся через кредитные товарищества, МФО и банки-партнёры. Прямая онлайн-заявка недоступна — обратитесь к партнёру или закажите консультацию.",
+      "brochure": {
+        "title": "Брошюра программы",
+        "lede": "Краткая презентация условий — удобно распечатать или переслать.",
+        "download": "Скачать PDF",
+        "openHint": "Открыть PDF",
+        "alt": "Брошюра программы «{program}»"
+      },
       "detail": {
         "metaTitle": "{program} — условия, документы и требования | АКК",
         "metaDescription": "{program}: ставка, сумма, срок, требования к проекту и перечень документов. Подбор и подача заявки онлайн."
@@ -1235,6 +1242,19 @@
         "contactPlaceholder": "example@mail.kz или +7 (___) ___-__-__",
         "messagePlaceholder": "Введите ваш вопрос или обращение..."
       }
+    },
+    "calculator": {
+      "meta": {
+        "title": "Payment calculator — AKK",
+        "description": "Estimate the payment for Agrarian Credit Corporation loan programs. A public pre-screen, no sign-up required."
+      },
+      "title": "Payment calculator",
+      "subtitle": "Estimate your payment across AKK loan programs — no sign-up.",
+      "programLabel": "Program",
+      "disclaimer": "This is an indicative estimate (public pre-screen). The exact rate, amount and schedule are set by AKK's credit committee based on your application.",
+      "ctaApply": "Details & apply",
+      "quizHint": "Not sure which program fits?",
+      "quizCta": "Find a program"
     }
   }
 }

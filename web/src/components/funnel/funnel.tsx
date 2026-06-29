@@ -11,7 +11,7 @@
 import { useEffect, useRef } from 'react';
 import { Hero } from './hero';
 import { GoalCards } from './goal-cards';
-import { ProgramGrid } from './program-grid';
+import { ProgramShowcase } from './program-showcase';
 import { HowSteps } from './how-steps';
 import { ChairmanTeaser } from './chairman-teaser';
 import { SustainabilityPromo } from './sustainability-promo';
@@ -87,7 +87,7 @@ export function Funnel() {
         <GoalCards />
         <HowSteps />
         <SustainabilityPromo />
-        <ProgramGrid />
+        <ProgramShowcase />
         <ChairmanTeaser />
         <ConstitutionBanner />
         <SuccessStories />

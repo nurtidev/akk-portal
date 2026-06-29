@@ -20,6 +20,7 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  EMPTY_ANSWERS,
   funnelReducer,
   initialFunnelState,
   type CalcEntry,
@@ -81,6 +82,7 @@ interface FunnelContextValue {
   // Навигация / квиз
   startQuiz: () => void;
   startQuizWith: (purpose: string) => void;
+  startQuickPick: (purpose: string, amount?: string) => void;
   goToStep: (step: number) => void;
   /** Тихая установка шага (автопереход после выбора) — без события прыжка. */
   setStep: (step: number) => void;
@@ -148,6 +150,36 @@ export function FunnelProvider({ children, submitApplication }: FunnelProviderPr
     }
     track('quiz_answer', { question: 'purpose', answer: purpose, step: 1 });
     dispatch({ type: 'SET_STEP', step: 1 });
+  }, []);
+
+  /** Карточка «Быстрый подбор» в герое (yesoff-стиль): пользователь сразу выбирает
+      цель и (опционально) сумму, попадая на первый НЕотвеченный шаг квиза. Та же
+      воронка/стор — не дублируем логику, лишь предзаполняем ответы. */
+  const startQuickPick = useCallback((purpose: string, amount?: string) => {
+    const answers = { ...EMPTY_ANSWERS, purpose } as FunnelState['answers'];
+    if (PURPOSE_TO_SECTOR[purpose]) answers.sector = PURPOSE_TO_SECTOR[purpose];
+    if (amount) answers.amount = amount;
+
+    track('quiz_started', { via: 'quick_pick', purpose, amount: amount ?? null });
+    dispatch({ type: 'START_QUIZ' });
+    dispatch({ type: 'SET_ANSWER', key: 'purpose', value: purpose });
+    if (answers.sector) dispatch({ type: 'SET_ANSWER', key: 'sector', value: answers.sector });
+    track('quiz_answer', { question: 'purpose', answer: purpose, step: 1 });
+    if (amount) {
+      dispatch({ type: 'SET_ANSWER', key: 'amount', value: amount });
+      track('quiz_answer', { question: 'amount', answer: amount, step: 1 });
+    }
+
+    // Первый неотвеченный вопрос при текущем наборе ответов — туда и ставим шаг.
+    const qs = getQuestions(answers);
+    let step = qs.length - 1;
+    for (let i = 0; i < qs.length; i++) {
+      if (answers[qs[i].key] == null) {
+        step = i;
+        break;
+      }
+    }
+    dispatch({ type: 'SET_STEP', step });
   }, []);
 
   const maxReachableStep = useCallback((): number => {
@@ -382,6 +414,7 @@ export function FunnelProvider({ children, submitApplication }: FunnelProviderPr
       state,
       startQuiz,
       startQuizWith,
+      startQuickPick,
       goToStep,
       setStep,
       answer,
@@ -410,6 +443,7 @@ export function FunnelProvider({ children, submitApplication }: FunnelProviderPr
       state,
       startQuiz,
       startQuizWith,
+      startQuickPick,
       goToStep,
       setStep,
       answer,

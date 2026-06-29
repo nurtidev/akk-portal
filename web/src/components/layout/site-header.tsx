@@ -183,6 +183,13 @@ export function SiteHeader() {
             >
               {nav("products")}
             </Link>
+            {/* Калькулятор — публичный pre-screen, отдельной страницей (фидбэк дизайнера) */}
+            <Link
+              href={`/${locale}/calculator`}
+              className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
+            >
+              {nav("calculator")}
+            </Link>
             <Link
               href={`/${locale}/partners`}
               className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
@@ -333,6 +340,15 @@ export function SiteHeader() {
             onClick={() => setMobileOpen(false)}
           >
             {nav("products")}
+          </Link>
+
+          {/* Калькулятор — публичный pre-screen, отдельной страницей (зеркало десктопа) */}
+          <Link
+            href={`/${locale}/calculator`}
+            className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            {nav("calculator")}
           </Link>
 
           <Link

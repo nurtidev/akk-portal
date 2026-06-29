@@ -161,8 +161,9 @@ function ResultCard({
           </div>
         </div>
 
-        {/* B4 калькулятор встроен в карточку */}
-        <Calculator program={p} />
+        {/* B4 калькулятор встроен в карточку. График — под раскрывашкой,
+            чтобы список результатов был компактнее и удобнее для сравнения. */}
+        <Calculator program={p} collapsibleSchedule />
 
         {p.scheduleNote && (
           <div className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-[var(--text-3)]">
