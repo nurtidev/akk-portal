@@ -279,10 +279,34 @@ const FEEDLOT_SPECIFIC: DocCategory = {
 // Маппинг: programId → список категорий документов
 export const LOAN_DOCUMENTS: Record<string, ProgramChecklist> = {
   ken_dala_2: [
-    COMMON_PERSONAL,
-    VPRIR_SPECIFIC,
+    // COMMON_PERSONAL убран (не требуется для данной программы)
+    // COMMON_CONSENTS убран (согласия и формы не требуются для данной программы)
     {
-      ...COMMON_FARM,
+      // VPRIR_SPECIFIC без пункта damu_guarantee
+      key: 'vprir_specific',
+      title: 'Для ВПРиУР (посевная)',
+      titleKk: 'КЕжЖЖЖ үшін (егіс науқаны)',
+      items: [
+        {
+          key: 'sowing_plan',
+          title: 'Структура посевных площадей / план сева',
+          titleKk: 'Егіс алқаптарының құрылымы / егіс жоспары',
+          required: true,
+        },
+        {
+          key: 'agro_expense_norm',
+          title: 'Нормативный расчёт затрат на 1 га',
+          titleKk: '1 гектарға шығын нормативтік есебі',
+          required: true,
+        },
+        // damu_guarantee убран (не требуется для данной программы)
+      ],
+    },
+    {
+      // COMMON_FARM без insurance_policy (страхование залогового имущества убрано)
+      key: 'farm',
+      title: 'Документы по хозяйству и залогу',
+      titleKk: 'Шаруашылық және кепіл құжаттары',
       items: [
         {
           key: 'land_right',
@@ -298,16 +322,39 @@ export const LOAN_DOCUMENTS: Record<string, ProgramChecklist> = {
           titleKk: 'Кепілге берілген мүлікке бағалау қорытындысы',
           required: true,
         },
-        {
-          key: 'insurance_policy',
-          title: 'Страхование залогового имущества',
-          titleKk: 'Кепіл мүлкін сақтандыру',
-          required: true,
-        },
+        // insurance_policy убран (не требуется для данной программы)
       ],
     },
-    COMMON_FINANCIAL,
-    COMMON_CONSENTS,
+    {
+      // COMMON_FINANCIAL: убраны tax_clearance и credit_history;
+      // fin_statements заменён на отчётный период;
+      // добавлены accounting_statements и loan_amount_kzt
+      key: 'financial',
+      title: 'Финансовые документы',
+      titleKk: 'Қаржылық құжаттар',
+      items: [
+        {
+          key: 'fin_statements',
+          title: 'Финансовая отчётность за отчётный период',
+          titleKk: 'Есептік кезеңдегі қаржылық есептілік', // TODO перевод
+          required: true,
+        },
+        {
+          key: 'accounting_statements',
+          title: 'Бухгалтерская отчётность по счетам',
+          titleKk: 'Шоттар бойынша бухгалтерлік есептілік', // TODO перевод
+          required: true,
+        },
+        {
+          key: 'loan_amount_kzt',
+          title: 'Сумма займа в тенге',
+          titleKk: 'Несие сомасы теңгемен', // TODO перевод
+          required: true,
+        },
+        // tax_clearance убран (не требуется для данной программы)
+        // credit_history убран (не требуется для данной программы)
+      ],
+    },
   ],
   agrobusiness: [
     COMMON_PERSONAL,

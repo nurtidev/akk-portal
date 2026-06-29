@@ -113,10 +113,19 @@ export default async function ProductDetailPage({
         </p>
       </div>
 
-      {(d?.note || program.rateNote) && (
+      {d?.notFinanced && d.notFinanced.length > 0 && (
+        <div>
+          <h3 className="mb-2 font-display text-base font-semibold text-[var(--text)]">{tProg('notFinancedTitle')}</h3>
+          <ul className="list-disc space-y-1.5 pl-5 text-sm text-[var(--text-2)]">
+            {d.notFinanced.map((s, i) => <li key={i}>{s}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {(d ? d.note : program.rateNote) && (
         <div className="rounded-[var(--radius)] border border-[var(--accent-soft)] bg-[var(--accent-soft)] px-4 py-3 text-sm leading-relaxed text-[var(--text-2)]">
           <strong className="text-[var(--text)]">{tProg('noteLabel')} </strong>
-          {d?.note ?? program.rateNote}
+          {d ? d.note : program.rateNote}
         </div>
       )}
     </div>

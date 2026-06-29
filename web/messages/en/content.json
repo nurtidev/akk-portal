@@ -89,7 +89,7 @@
         "missionLabel": "Mission",
         "visionLabel": "Vision",
         "mission": "To promote the sustainable development of Kazakhstan's agro-industrial complex by providing accessible financing.",
-        "vision": "To become the leading financial institution supporting the agri-sector in Central Asia, ensuring the country's food security.",
+        "vision": "Быть надёжным финансовым партнёром развития агропромышленного комплекса Казахстана и способствовать укреплению продовольственной безопасности страны.",
         "strategyTitle": "Strategic Priorities",
         "strategy": [
           "Expanding access to financing for small and medium agribusiness",
@@ -105,7 +105,7 @@
         "staffLabel": "Founded",
         "staff": "2001",
         "branchesLabel": "Regional branches",
-        "branches": "16"
+        "branches": "19"
       },
       "structure": {
         "title": "Governance Structure",
@@ -166,10 +166,6 @@
           {
             "name": "KazAgroFinance JSC",
             "description": "Subsidiary (100% since 2022): leasing of agricultural machinery and equipment for farmers."
-          },
-          {
-            "name": "Fund for Financial Support of Agriculture",
-            "description": "Merged into ACC in 2021 — rural microcrediting continues within the Corporation."
           }
         ]
       },
@@ -406,7 +402,7 @@
     "contacts": {
       "meta": {
         "title": "Contacts — ACC",
-        "description": "Contacts of JSC Agrarian Credit Corporation: headquarters in Astana, 16 regional branches, credit partners."
+        "description": "Contacts of JSC Agrarian Credit Corporation: headquarters in Astana, 19 regional branches, credit partners."
       },
       "title": "Contacts",
       "hqTitle": "Head Office",
@@ -420,7 +416,7 @@
       "hqHotlineLabel": "Hotline",
       "hqWorkHours": "Mon–Fri, 09:00–18:00 (GMT+5)",
       "branchesTitle": "Regional Branches",
-      "branchesNote": "ACC is represented in all 17 regions of Kazakhstan.",
+      "branchesNote": "ACC is represented in all regions of Kazakhstan.",
       "creditPartnersTitle": "Credit Partnerships",
       "creditPartnersDesc": "ACC finances farmers through a network of accredited credit partnerships, MFIs and partner banks. The full partner registry is on the official website agrocredit.kz.",
       "creditPartnersLink": "https://agrocredit.kz",
@@ -628,7 +624,7 @@
           "text": "ACC is a 100% state-owned institution with stable funding and a guaranteed benefits package."
         },
         {
-          "title": "16 Regions",
+          "title": "19 Regional Branches",
           "text": "Opportunities are not only in Astana — vacancies exist in all regional branches."
         }
       ],
@@ -1067,7 +1063,7 @@
       "contactCallCenter": "1408",
       "contactCallCenterNote": "Бесплатно, пн–пт 09:00–18:00",
       "contactBranchesLabel": "Региональные филиалы",
-      "contactBranchesNote": "АКК представлена во всех 17 регионах Казахстана",
+      "contactBranchesNote": "АКК представлена во всех регионах Казахстана",
       "contactEmail": "info@agrocredit.kz"
     },
     "investmentProjects": {

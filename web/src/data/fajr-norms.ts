@@ -1,8 +1,16 @@
 // =====================================================
 // ===== A3: FAJR_NORMS (упрощённые из FAJROptions) ====
-// Перенос 1-в-1 из index.html (≈ строки 2751–2811).
-// Источник — внутренний документ АКК (модель Fajr).
-// КОЭФФИЦИЕНТЫ НЕ МЕНЯТЬ — от них зависят суммы стресс-теста.
+// Базис перенесён из index.html (≈ строки 2751–2811, модель Fajr).
+//
+// ⚠️ DRAFT 2026-06-29 (фидбэк владельца «нормативы пересмотреть»):
+// прежняя модель учитывала доход только как выбраковку (saleShare) + молоко,
+// а себестоимость брала на уровне откорма (≈450 тыс ₸/гол) — из-за чего ЛЮБОЕ
+// стадо без стороннего дохода давало отрицательный чистый доход (ratio 999%).
+// Добавлены параметры приплода (breedingShare/calvingRate/youngSaleShare/
+// youngSalePrice) и снижена себестоимость до уровня пастбищного содержания.
+// ВСЕ значения дохода/затрат/приплода — ЧЕРНОВЫЕ, требуют сверки с бизнесом
+// (Марат / зоотехник). Нормативы пастбищ/помещений (pastureHaPerHead,
+// minBarnSqmPerHead) — из регламента П АКК 002-207-22, НЕ менять.
 // =====================================================
 
 /** Виды животных, по которым заданы нормативы. */
@@ -22,17 +30,27 @@ export interface FajrNorm {
   avgWeightSale: number;
   /** ₸/кг. */
   meatPricePerKg: number;
-  /** Годовая доля выбраковки/реализации. */
+  /** Годовая доля выбраковки/реализации взрослого поголовья. */
   saleShare: number;
+  // --- Приплод (DRAFT, сверить с бизнесом) ---
+  /** Доля маток в стаде. */
+  breedingShare: number;
+  /** Выход приплода на одну матку в год. */
+  calvingRate: number;
+  /** Доля приплода, идущая на реализацию (остальное — ремонт/рост стада). */
+  youngSaleShare: number;
+  /** Цена реализации одной головы молодняка, ₸. */
+  youngSalePrice: number;
+  // --- Затраты (DRAFT, пастбищное содержание) ---
   /** ₸ за голову в год (корма). */
   yearlyFeedCost: number;
   /** ₸ за голову (ветеринария). */
   yearlyVetCost: number;
   /** Прочие расходы на голову, ₸. */
   yearlyOther: number;
-  /** Га пастбищ на голову. */
+  /** Га пастбищ на голову (регламент — не менять). */
   pastureHaPerHead: number;
-  /** М² помещений на голову. */
+  /** М² помещений на голову (регламент — не менять). */
   minBarnSqmPerHead: number;
 }
 
@@ -46,11 +64,15 @@ export const FAJR_NORMS: Record<AnimalType, FajrNorm> = {
     avgWeightSale: 400,        // кг при реализации
     meatPricePerKg: 1500,      // ₸/кг
     saleShare: 0.15,           // годовая доля выбраковки/реализации
-    yearlyFeedCost: 350000,    // ₸ за голову в год (упрощённо)
-    yearlyVetCost: 3000,       // ₸ за голову
-    yearlyOther: 100000,       // прочие расходы на голову
-    pastureHaPerHead: 1.5,     // га пастбищ на голову
-    minBarnSqmPerHead: 6       // м² помещений на голову
+    breedingShare: 0.45,       // DRAFT: доля маток
+    calvingRate: 0.8,          // DRAFT: телят на матку в год
+    youngSaleShare: 0.6,       // DRAFT: доля приплода на продажу
+    youngSalePrice: 280000,    // DRAFT: ₸ за голову молодняка
+    yearlyFeedCost: 110000,    // DRAFT: корма (пастбищное содержание)
+    yearlyVetCost: 3000,       // DRAFT: ветеринария
+    yearlyOther: 25000,        // DRAFT: прочие расходы
+    pastureHaPerHead: 1.5,     // га пастбищ на голову (регламент)
+    minBarnSqmPerHead: 6       // м² помещений на голову (регламент)
   },
   MRS: {
     label: 'МРС (овцы, козы)',
@@ -61,9 +83,13 @@ export const FAJR_NORMS: Record<AnimalType, FajrNorm> = {
     avgWeightSale: 45,
     meatPricePerKg: 2200,
     saleShare: 0.25,
-    yearlyFeedCost: 45000,
-    yearlyVetCost: 800,
-    yearlyOther: 15000,
+    breedingShare: 0.7,        // DRAFT
+    calvingRate: 1.0,          // DRAFT
+    youngSaleShare: 0.7,       // DRAFT
+    youngSalePrice: 45000,     // DRAFT
+    yearlyFeedCost: 18000,     // DRAFT
+    yearlyVetCost: 800,        // DRAFT
+    yearlyOther: 6000,         // DRAFT
     pastureHaPerHead: 0.3,
     minBarnSqmPerHead: 1.5
   },
@@ -76,9 +102,13 @@ export const FAJR_NORMS: Record<AnimalType, FajrNorm> = {
     avgWeightSale: 380,
     meatPricePerKg: 2500,
     saleShare: 0.12,
-    yearlyFeedCost: 280000,
-    yearlyVetCost: 4000,
-    yearlyOther: 80000,
+    breedingShare: 0.5,        // DRAFT
+    calvingRate: 0.5,          // DRAFT
+    youngSaleShare: 0.6,       // DRAFT
+    youngSalePrice: 250000,    // DRAFT
+    yearlyFeedCost: 90000,     // DRAFT
+    yearlyVetCost: 4000,       // DRAFT
+    yearlyOther: 22000,        // DRAFT
     pastureHaPerHead: 3,
     minBarnSqmPerHead: 8
   },
@@ -91,9 +121,13 @@ export const FAJR_NORMS: Record<AnimalType, FajrNorm> = {
     avgWeightSale: 450,
     meatPricePerKg: 2200,
     saleShare: 0.10,
-    yearlyFeedCost: 220000,
-    yearlyVetCost: 4500,
-    yearlyOther: 90000,
+    breedingShare: 0.5,        // DRAFT
+    calvingRate: 0.4,          // DRAFT
+    youngSaleShare: 0.5,       // DRAFT
+    youngSalePrice: 300000,    // DRAFT
+    yearlyFeedCost: 80000,     // DRAFT
+    yearlyVetCost: 4500,       // DRAFT
+    yearlyOther: 25000,        // DRAFT
     pastureHaPerHead: 5,
     minBarnSqmPerHead: 10
   }

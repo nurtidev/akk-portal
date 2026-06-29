@@ -18,6 +18,7 @@ interface ProgramDetailL10n {
   requirements?: string[];
   repayment?: string;
   note?: string;
+  notFinanced?: string[];
 }
 
 interface ProgramL10n {
@@ -83,6 +84,9 @@ export function useProgramL10n(): ProgramL10nApi {
       requirements: localizeArray(o.requirements, base.requirements),
       repayment: o.repayment ?? base.repayment,
       note: o.note ?? base.note,
+      notFinanced: base.notFinanced
+        ? localizeArray(o.notFinanced, base.notFinanced)
+        : undefined,
     };
   };
 

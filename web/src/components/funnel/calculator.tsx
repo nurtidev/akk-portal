@@ -17,7 +17,7 @@ import { calculateSchedule, effectiveMaxTerm, pickInitialTerm } from '@/lib/sche
 import { fmtAmount, declension } from '@/lib/format';
 import { useFunnel } from './funnel-context';
 
-const TERM_OPTIONS = [12, 24, 36, 48, 60, 84, 120, 144];
+const TERM_OPTIONS = [12, 24, 36, 48, 60, 84, 120];
 
 /** Полное число с разделителями групп («20 000 000») — fmtNum из легаси. */
 function fmtNum(v: number): string {
@@ -158,27 +158,28 @@ export function Calculator({ program }: { program: Program }) {
                 word: declension(sch.years, t('yearOne'), t('yearFew'), t('yearMany')),
               })}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-xs text-[var(--text-3)]">{t('firstYearPayment')}</div>
-                <div className="mt-0.5 text-base font-bold text-[var(--text)]">
-                  {fmtAmount(Math.round(sch.firstYearPayment))}
+            {sch.yearly.map((yr) => (
+              <div
+                key={yr.year}
+                className="flex items-center justify-between border-b border-[var(--border-soft)] py-2 last:border-0"
+              >
+                <div className="text-sm font-medium text-[var(--text)]">
+                  {t('yearRow', { n: yr.year })}
                 </div>
-                <div className="text-xs text-[var(--text-3)]">
-                  {t('lastYear', { v: fmtAmount(Math.round(sch.lastYearPayment)) })}
+                <div className="text-right">
+                  <div className="text-sm font-bold text-[var(--text)]">
+                    {fmtAmount(Math.round(yr.payment))}
+                  </div>
+                  <div className="text-xs text-[var(--text-3)]">
+                    {t('ofWhichInterest', { v: fmtAmount(Math.round(yr.interest)) })}
+                  </div>
                 </div>
               </div>
-              <div>
-                <div className="text-xs text-[var(--text-3)]">{t('overpay')}</div>
-                <div className="mt-0.5 text-base font-bold text-[var(--text)]">
-                  {fmtAmount(Math.round(sch.overpay))}
-                </div>
-                <div className="text-xs text-[var(--text-3)]">
-                  {t('forYears', {
-                    years: sch.years,
-                    word: declension(sch.years, t('yearOne'), t('yearFew'), t('yearMany')),
-                  })}
-                </div>
+            ))}
+            <div className="flex items-center justify-between pt-2">
+              <div className="text-sm text-[var(--text-2)]">{t('overpay')}</div>
+              <div className="text-sm font-bold text-[var(--text)]">
+                {fmtAmount(Math.round(sch.overpay))}
               </div>
             </div>
           </div>

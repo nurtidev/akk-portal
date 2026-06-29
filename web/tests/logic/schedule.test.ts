@@ -63,8 +63,8 @@ describe('A5 effectiveMaxTerm', () => {
     expect(effectiveMaxTerm(byId.agrobusiness, ans)).toBe(48);
   });
 
-  it('Агробизнес с целью investments → 144 мес', () => {
-    expect(effectiveMaxTerm(byId.agrobusiness, { purpose: 'investments' })).toBe(144);
+  it('Агробизнес с целью investments → 120 мес (10 лет, снижено с 144 в 2026-06)', () => {
+    expect(effectiveMaxTerm(byId.agrobusiness, { purpose: 'investments' })).toBe(120);
   });
 
   it('Агробизнес 2.0 с целью working → 12 мес (по регламенту)', () => {
@@ -73,7 +73,7 @@ describe('A5 effectiveMaxTerm', () => {
 
   it('без termByPurpose / без подходящей цели → общий maxTerm', () => {
     expect(effectiveMaxTerm(byId.ken_dala_2, { purpose: 'vprir' })).toBe(18);
-    expect(effectiveMaxTerm(byId.agrobusiness, {})).toBe(144);
+    expect(effectiveMaxTerm(byId.agrobusiness, {})).toBe(120);
     // Іскер с целью livestock не имеет лимита → общий maxTerm 84.
     expect(effectiveMaxTerm(byId.isker, { purpose: 'livestock' })).toBe(84);
     // Іскер с целью micro → 60.
@@ -112,6 +112,9 @@ describe('A5 golden — schedule/effectiveMaxTerm/pickInitialTerm = легаси
     const lByid = Object.fromEntries(legacy.PROGRAMS.map((p: { id: string }) => [p.id, p]));
     const purposes = ['vprir', 'livestock', 'feedlot', 'investments', 'working', 'micro', undefined];
     for (const p of PROGRAMS) {
+      // Агробизнес: срок инвестиций сознательно снижен 144→120 (фидбэк владельца
+      // 2026-06-29) — расхождение с легаси здесь ожидаемо, golden не применяется.
+      if (p.id === 'agrobusiness') continue;
       for (const purpose of purposes) {
         const ans = purpose ? { purpose } : {};
         expect(effectiveMaxTerm(p, ans), `${p.id}/${purpose}`).toBe(

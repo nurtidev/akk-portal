@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { createRequire } from 'node:module';
 import { FAJR_NORMS, type AnimalType } from '@/data/fajr-norms';
 
-const require = createRequire(import.meta.url);
-const legacy = require('./fixtures/legacy.cjs');
+// A3 — нормативы пересмотрены 2026-06-29 (DRAFT): добавлены параметры приплода,
+// снижена себестоимость до пастбищной. Golden-сверка с легаси отменена; нормативы
+// пастбищ/помещений (регламент П АКК 002-207-22) сохранены и проверяются дословно.
 
 const TYPES: AnimalType[] = ['KRS', 'MRS', 'HORSE', 'CAMEL'];
 
@@ -12,29 +12,14 @@ describe('A3 FAJR_NORMS', () => {
     expect(Object.keys(FAJR_NORMS).sort()).toEqual([...TYPES].sort());
   });
 
-  it('коэффициенты КРС дословны', () => {
-    expect(FAJR_NORMS.KRS).toEqual({
-      label: 'КРС (мясное/молочное)',
-      cowShare: 0.5,
-      milkPerDay: 8,
-      lactationDays: 305,
-      milkPricePerL: 90,
-      avgWeightSale: 400,
-      meatPricePerKg: 1500,
-      saleShare: 0.15,
-      yearlyFeedCost: 350000,
-      yearlyVetCost: 3000,
-      yearlyOther: 100000,
-      pastureHaPerHead: 1.5,
-      minBarnSqmPerHead: 6
-    });
-  });
-
-  it('пастбищный норматив растёт по видам (КРС 1.5 < лошади 3 < верблюды 5)', () => {
+  it('нормативы пастбищ/помещений (регламент) сохранены дословно', () => {
     expect(FAJR_NORMS.KRS.pastureHaPerHead).toBe(1.5);
     expect(FAJR_NORMS.MRS.pastureHaPerHead).toBe(0.3);
     expect(FAJR_NORMS.HORSE.pastureHaPerHead).toBe(3);
     expect(FAJR_NORMS.CAMEL.pastureHaPerHead).toBe(5);
+    expect(FAJR_NORMS.KRS.minBarnSqmPerHead).toBe(6);
+    expect(FAJR_NORMS.HORSE.minBarnSqmPerHead).toBe(8);
+    expect(FAJR_NORMS.CAMEL.minBarnSqmPerHead).toBe(10);
   });
 
   it('только КРС даёт молоко (cowShare/milkPerDay > 0)', () => {
@@ -45,9 +30,23 @@ describe('A3 FAJR_NORMS', () => {
     }
   });
 
-  it('golden — каждое поле совпадает с легаси-фикстурой', () => {
+  it('у каждого вида заданы корректные параметры приплода и затрат', () => {
     for (const t of TYPES) {
-      expect(FAJR_NORMS[t]).toEqual(legacy.FAJR_NORMS[t]);
+      const n = FAJR_NORMS[t];
+      expect(n.breedingShare, t).toBeGreaterThan(0);
+      expect(n.breedingShare, t).toBeLessThanOrEqual(1);
+      expect(n.calvingRate, t).toBeGreaterThan(0);
+      expect(n.youngSaleShare, t).toBeGreaterThan(0);
+      expect(n.youngSaleShare, t).toBeLessThanOrEqual(1);
+      expect(n.youngSalePrice, t).toBeGreaterThan(0);
+      expect(n.yearlyFeedCost, t).toBeGreaterThan(0);
+      expect(n.yearlyVetCost, t).toBeGreaterThan(0);
+      expect(n.yearlyOther, t).toBeGreaterThan(0);
     }
+  });
+
+  it('DRAFT-фикс: себестоимость КРС снижена с прежних 450 тыс ₸/гол', () => {
+    const totalCost = FAJR_NORMS.KRS.yearlyFeedCost + FAJR_NORMS.KRS.yearlyVetCost + FAJR_NORMS.KRS.yearlyOther;
+    expect(totalCost).toBeLessThan(453000);
   });
 });

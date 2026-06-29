@@ -35,8 +35,9 @@ describe('A1 PROGRAMS', () => {
 
     expect(byId.agrobusiness.rate).toBe(21.5);
     expect(byId.agrobusiness.rateRange).toBe('НБРК+7,5%');
-    expect(byId.agrobusiness.maxTerm).toBe(144);
-    expect(byId.agrobusiness.termByPurpose).toEqual({ investments: 144, working: 48 });
+    // Срок инвестиций снижен 144→120 мес (10 лет) по фидбэку владельца 2026-06-29.
+    expect(byId.agrobusiness.maxTerm).toBe(120);
+    expect(byId.agrobusiness.termByPurpose).toEqual({ investments: 120, working: 48 });
 
     expect(byId.igilik_bereke.rate).toBe(6);
     expect(byId.igilik_bereke.maxTerm).toBe(84);

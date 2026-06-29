@@ -60,13 +60,18 @@ export interface StressResult {
 
 /**
  * Расчёт Fajr-lite: «хватит ли ресурсов проекта».
- *  Доход = молоко (только КРС) + мясо (выбраковка) + доп.доход.
+ *  Доход (кэш/год) = приплод на продажу + выбраковка взрослых + молоко (только КРС) + доп.доход.
  *  Расход = (корма + ветеринария + прочие) × поголовье.
  *  Чистый доход = Доход − Расход.
- *  Совокупный годовой платёж = платёж 1-го года + текущие × 12.
+ *  Совокупный годовой платёж = СРЕДНЕГОДОВОЙ платёж по графику + текущие × 12.
  *  ratio = платёж / чистый доход × 100% (или 999, если чистый доход ≤ 0).
  *  Сначала проверяются пастбища (га × норматив) и помещения (м² × минимум),
- *  затем нагрузка на доход (<30 / 30–50 / >50%).
+ *  затем нагрузка на доход (<60 / 60–100 / ≥100%).
+ *
+ * ⚠️ DRAFT 2026-06-29: модель дохода переработана (добавлен приплод, снижена
+ * себестоимость до пастбищной, платёж берётся среднегодовой, а не пиковый 1-го
+ * года) — прежняя версия давала отрицательный чистый доход почти на любом стаде.
+ * Коэффициенты в FAJR_NORMS и пороги вердикта — ЧЕРНОВЫЕ, сверить с бизнесом.
  */
 export function calculateStress(program: Program, calc: StressCalc, stress: StressInput): StressResult {
   const p = program;
@@ -85,21 +90,27 @@ export function calculateStress(program: Program, calc: StressCalc, stress: Stre
 
   const totalHerd = existing + planned;
 
+  // Доход от приплода (главный возврат скотоводства): маток × выход приплода ×
+  // доля на продажу × цена молодняка. (DRAFT-коэффициенты, см. FAJR_NORMS.)
+  const breedingStock = Math.round(totalHerd * norms.breedingShare);
+  const youngForSale = Math.round(breedingStock * norms.calvingRate * norms.youngSaleShare);
+  const youngRevenue = youngForSale * norms.youngSalePrice;
+
   // Доход от молока (только КРС: ~50% маточного поголовья дают молоко)
   const cowCount = Math.round(totalHerd * norms.cowShare);
   const milkRevenue = cowCount * norms.milkPerDay * norms.lactationDays * norms.milkPricePerL;
 
-  // Доход от мяса (годовая выбраковка/реализация)
+  // Доход от мяса (годовая выбраковка/реализация взрослого поголовья)
   const meatRevenue = Math.round(totalHerd * norms.saleShare) * norms.avgWeightSale * norms.meatPricePerKg;
 
-  const expectedIncome = milkRevenue + meatRevenue + annualRevenue;
+  const expectedIncome = youngRevenue + milkRevenue + meatRevenue + annualRevenue;
   const yearlyCosts = totalHerd * (norms.yearlyFeedCost + norms.yearlyVetCost + norms.yearlyOther);
   const netIncome = expectedIncome - yearlyCosts;
 
   // Платёж по новому кредиту + существующие обязательства (упрощение из ПКБ).
-  // В легаси читается sch.firstYearPayment напрямую; стресс-тест запускается
-  // только для annual-программ (Игілік/Береке), где это поле определено.
-  const yearlyPayment = (sch as { firstYearPayment: number }).firstYearPayment;
+  // Берём среднегодовой платёж по графику (а не пиковый 1-й год) — стресс-тест
+  // запускается только для annual-программ (Игілік/Береке), где это поле определено.
+  const yearlyPayment = (sch as { avgPayment: number }).avgPayment;
   const existingDebtsYearly = existingDebtsMonthly * 12;
   const totalYearlyPayment = yearlyPayment + existingDebtsYearly;
 
@@ -119,7 +130,7 @@ export function calculateStress(program: Program, calc: StressCalc, stress: Stre
       title: 'Недостаточно пастбищ',
       text: 'Для стада ' + totalHerd + ' голов (' + norms.label + ') нужно минимум ' +
         pastureNeeded.toFixed(0) + ' га пастбищ (норматив ' + norms.pastureHaPerHead +
-        ' га/голову). У вас ' + pastures + ' га. Менеджер уточнит варианты — аренда у соседних хозяйств, договоры о совместной деятельности.'
+        ' га/голову). У вас ' + pastures + ' га. Возможные варианты — аренда пастбищ у соседних хозяйств или договоры о совместной деятельности.'
     };
   } else if (!barnOk) {
     verdict = {
@@ -128,9 +139,9 @@ export function calculateStress(program: Program, calc: StressCalc, stress: Stre
       title: 'Недостаточно помещений',
       text: 'Для стада ' + totalHerd + ' голов нужно минимум ' + barnNeeded.toFixed(0) +
         ' м² помещений (норматив ' + norms.minBarnSqmPerHead + ' м²/голову). У вас ' + barn +
-        ' м². Часть займа может пойти на СМР — обсудите с менеджером.'
+        ' м². Часть займа можно направить на строительно-монтажные работы (СМР).'
     };
-  } else if (ratio < 30) {
+  } else if (ratio < 60) {
     verdict = {
       level: 'ok',
       icon: '✓',
@@ -138,19 +149,19 @@ export function calculateStress(program: Program, calc: StressCalc, stress: Stre
       text: 'Совокупный годовой платёж' + (existingDebtsYearly > 0 ? ' (включая текущие обязательства)' : '') +
         ' составляет около ' + ratio.toFixed(0) + '% от ожидаемого чистого дохода — это безопасный уровень. Скорее всего проект пройдёт финансовую экспертизу.'
     };
-  } else if (ratio < 50) {
+  } else if (ratio < 100) {
     verdict = {
       level: 'warn',
       icon: '!',
       title: 'Платёж напряжённый',
-      text: 'Совокупный годовой платёж — около ' + ratio.toFixed(0) + '% дохода. Это рабочий уровень, но менеджер попросит подтвердить резервы и обсудит график с льготным периодом. Может потребоваться более длинный срок.'
+      text: 'Совокупный годовой платёж — около ' + ratio.toFixed(0) + '% чистого дохода. Это рабочий, но напряжённый уровень: пригодятся резервы, более длинный срок или льготный период по графику.'
     };
   } else {
     verdict = {
       level: 'bad',
       icon: '✕',
       title: 'Платёж может быть тяжёлым',
-      text: 'Совокупный годовой платёж — около ' + ratio.toFixed(0) + '% дохода. Это высокая нагрузка. Рекомендуем рассмотреть программу с меньшей суммой или более длинным сроком, либо обсудить с менеджером возможность льготного периода.'
+      text: 'Совокупный годовой платёж — около ' + ratio.toFixed(0) + '% чистого дохода. Это высокая нагрузка. Рекомендуем рассмотреть меньшую сумму, более длинный срок или льготный период по графику.'
     };
   }
 

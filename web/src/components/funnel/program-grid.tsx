@@ -187,6 +187,15 @@ function ProgramModalBody({ p: pRaw, onApply }: { p: Program; onApply: (id: stri
       <ModalSection title={t('repaymentTitle')}>
         <p className="text-sm leading-relaxed text-[var(--text-2)]">{applyGlossary(d.repayment)}</p>
       </ModalSection>
+      {d.notFinanced && d.notFinanced.length > 0 && (
+        <ModalSection title={t('notFinancedTitle')}>
+          <ul className="list-disc space-y-1.5 pl-5 text-sm text-[var(--text-2)]">
+            {d.notFinanced.map((s, i) => (
+              <li key={i}>{applyGlossary(s)}</li>
+            ))}
+          </ul>
+        </ModalSection>
+      )}
       {d.note && (
         <div className="mt-4 rounded-[var(--radius)] border border-[var(--accent-soft)] bg-[var(--accent-soft)] px-4 py-3 text-sm leading-relaxed text-[var(--text-2)]">
           <strong className="text-[var(--text)]">{t('noteLabel')} </strong>
