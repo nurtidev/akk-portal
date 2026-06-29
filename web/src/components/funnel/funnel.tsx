@@ -84,13 +84,15 @@ export function Funnel() {
           → далее. Метрики теперь внутри hero, отдельной полосы WhyAkk нет. */}
       <div hidden={!isLanding}>
         <Hero />
+        {/* «Под разные цели АПК» — сразу после hero (главное действие выше). */}
+        <ProgramShowcase />
         <GoalCards />
         <HowSteps />
-        <SustainabilityPromo />
-        <ProgramShowcase />
         <ChairmanTeaser />
         <ConstitutionBanner />
         <SuccessStories />
+        {/* «Устойчивое развитие» — после «Пресс-центра» (SuccessStories). */}
+        <SustainabilityPromo />
       </div>
 
       {/* Секции воронки */}
