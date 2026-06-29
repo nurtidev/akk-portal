@@ -250,20 +250,35 @@ export default async function ProductDetailPage({
               {tp('brochure.download')}
             </a>
           </div>
+          {/* Превью обрезано по верху листовки (логотип/заголовок) и ограничено
+              по высоте — полный лист A4 растягивал страницу. Полная версия — по
+              клику (PDF). Снизу — плавное затухание + подсказка «Открыть PDF». */}
           <a
             href={brochure.pdf}
             target="_blank"
             rel="noopener noreferrer"
             title={tp('brochure.openHint')}
-            className="group block overflow-hidden rounded-[var(--radius)] border border-[var(--border-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+            className="group relative block overflow-hidden rounded-[var(--radius)] border border-[var(--border-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={brochure.preview}
               alt={tp('brochure.alt', { program: program.title })}
               loading="lazy"
-              className="h-auto w-full transition-transform duration-300 group-hover:scale-[1.01]"
+              className="max-h-[300px] w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.01]"
             />
+            {/* Затухание к фону карточки — намёк, что лист продолжается */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[var(--surface)] to-transparent"
+            />
+            <span className="absolute bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-[var(--surface)] px-3.5 py-1.5 text-xs font-semibold text-[var(--primary)] shadow-[var(--shadow)] ring-1 ring-[var(--border)]">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              {tp('brochure.openHint')}
+            </span>
           </a>
         </section>
       )}
