@@ -41,7 +41,14 @@ export function SuccessStories() {
   };
 
   return (
-    <section className="bg-[var(--bg-tint)] py-16 md:py-20" aria-label={t('title')}>
+    <section
+      className="py-16 md:py-20"
+      aria-label={t('title')}
+      style={{
+        background:
+          'linear-gradient(to bottom, var(--bg) 0, var(--bg-tint) 120px, var(--bg-tint) calc(100% - 120px), var(--bg) 100%)',
+      }}
+    >
       <div className="container mx-auto px-4">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>

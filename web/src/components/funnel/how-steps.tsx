@@ -18,7 +18,14 @@ export function HowSteps() {
   const steps = t.raw('steps') as Array<{ t: string; d: string }>;
 
   return (
-    <section className="bg-[var(--surface)] py-16 md:py-24" aria-label={t('title')}>
+    <section
+      className="py-16 md:py-24"
+      aria-label={t('title')}
+      style={{
+        background:
+          'linear-gradient(to bottom, var(--bg) 0, var(--surface) 120px, var(--surface) calc(100% - 120px), var(--bg) 100%)',
+      }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center">
           <h2 className="font-display text-2xl font-bold text-[var(--text)] md:text-3xl">

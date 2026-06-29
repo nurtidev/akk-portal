@@ -86,8 +86,8 @@ export function Funnel() {
         <Hero />
         {/* «Под разные цели АПК» — сразу после hero (главное действие выше). */}
         <ProgramShowcase />
-        <GoalCards />
         <HowSteps />
+        <GoalCards />
         <ChairmanTeaser />
         <ConstitutionBanner />
         <SuccessStories />

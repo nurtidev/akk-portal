@@ -15,7 +15,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { PROGRAMS, type Program } from '@/data/programs';
 import { fmtAmount } from '@/lib/format';
 import { useFunnel } from './funnel-context';
-import { ProgramIcon } from './program-media';
+import { ProgramIcon, ProgramPhoto } from './program-media';
 import { RateDisplay } from './rate-display';
 import { applyGlossary } from './glossary';
 import { useProgramL10n } from './use-program-l10n';
@@ -50,6 +50,7 @@ function StarIcon() {
 function ProgramTile({ p: pRaw, onOpen }: { p: Program; onOpen: (id: string) => void }) {
   const t = useTranslations('funnel.programs');
   const p = useProgramL10n().localize(pRaw);
+  const [hoverMedia, setHoverMedia] = useState(false); // курсор над фото плитки
   return (
     <div
       role="button"
@@ -66,22 +67,18 @@ function ProgramTile({ p: pRaw, onOpen }: { p: Program; onOpen: (id: string) => 
       }`}
     >
       {/* Медиа: фото + иконка-фолбэк под ним */}
-      <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)] text-white/80">
+      <div
+        className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)] text-white/80"
+        onMouseEnter={() => setHoverMedia(true)}
+        onMouseLeave={() => setHoverMedia(false)}
+      >
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-16 w-16">
             <ProgramIcon id={p.id} />
           </div>
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/img/programs/${p.id}.jpg`}
-          alt=""
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = 'none';
-          }}
-        />
+        {/* Фото + видео-«оживление» по наведению */}
+        <ProgramPhoto id={p.id} playing={hoverMedia} lazy />
         {p.featured && (
           // Белая пилюля + зелёный текст (жёлтый фон+тёмный текст = «знак опасности»,
           // на фото читался плохо). Звезда остаётся золотой — мягкий акцент.

@@ -20,7 +20,7 @@ import { fmtAmount } from '@/lib/format';
 import { useFunnel } from './funnel-context';
 import { Calculator } from './calculator';
 import { RateDisplay } from './rate-display';
-import { ProgramIcon } from './program-media';
+import { ProgramIcon, ProgramPhoto } from './program-media';
 import { useProgramL10n } from './use-program-l10n';
 
 const VISIBLE = PROGRAMS.filter((p) => !p.hidden);
@@ -82,6 +82,7 @@ export function ProgramShowcase() {
   const locale = pathname.split('/')[1] || 'ru';
 
   const [index, setIndex] = useState(0);
+  const [hoverMedia, setHoverMedia] = useState(false); // курсор над фото активной программы
   const activeRaw = ORDERED[index];
   const active = lp.localize(activeRaw);
 
@@ -117,7 +118,14 @@ export function ProgramShowcase() {
   };
 
   return (
-    <section id="programs" className="bg-[var(--bg-tint)] py-16 md:py-20">
+    <section
+      id="programs"
+      className="py-16 md:py-20"
+      style={{
+        background:
+          'linear-gradient(to bottom, var(--bg) 0, var(--bg-tint) 120px, var(--bg-tint) calc(100% - 120px), var(--bg) 100%)',
+      }}
+    >
       <div className="container mx-auto px-4">
         {/* Шапка секции */}
         <div className="mx-auto mb-8 max-w-2xl text-center">
@@ -164,21 +172,18 @@ export function ProgramShowcase() {
         <div className="grid gap-6 lg:grid-cols-2" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {/* ЛЕВО: карточка программы + краткое описание */}
           <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
-            <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)]">
+            <div
+              className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)]"
+              onMouseEnter={() => setHoverMedia(true)}
+              onMouseLeave={() => setHoverMedia(false)}
+            >
               <div className="absolute inset-0 flex items-center justify-center text-white/80">
                 <div className="h-16 w-16">
                   <ProgramIcon id={activeRaw.id} />
                 </div>
               </div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/img/programs/${activeRaw.id}.jpg`}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = 'none';
-                }}
-              />
+              {/* Фото + видео-«оживление» по наведению (key → сброс при смене программы) */}
+              <ProgramPhoto key={activeRaw.id} id={activeRaw.id} playing={hoverMedia} />
               <span className="absolute bottom-3 left-3 z-10 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
                 {active.category}
               </span>

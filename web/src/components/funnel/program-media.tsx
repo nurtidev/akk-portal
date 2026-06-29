@@ -1,10 +1,12 @@
+'use client';
+
 // =====================================================
 // ===== B1: медиа программы (фото + иконка-фолбэк) =====
 // Иконки и карта PROGRAM_MEDIA — перенос из index.html (≈ 2513–2555).
 // Фото img/programs/{id}.jpg; при ошибке загрузки показываем иконку категории.
 // =====================================================
 
-import type { ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 
 type IconKey = 'wheat' | 'sprout' | 'cow' | 'poultry' | 'coins';
 
@@ -73,5 +75,75 @@ export function ProgramIcon({ id }: { id: string }) {
     >
       {ICON_PATHS[key]}
     </svg>
+  );
+}
+
+// =====================================================
+// ===== Фото программы с «оживлением» по наведению =====
+// Базовый слой — статичное фото /img/programs/{id}.jpg (как было). Поверх него
+// необязательное видео /img/programs/{id}.mp4: плеер запускается при наведении
+// (`playing`) и проявляется кросс-фейдом, только когда реально начал играть
+// (onPlaying) — чтобы не мелькал чёрный кадр. Если файла видео нет (onError) —
+// слой видео исчезает, остаётся фото: секции без mp4 выглядят ровно как раньше.
+// prefers-reduced-motion → видео не запускаем (доступность).
+// Сброс состояния при смене программы делается через `key={id}` на месте вызова.
+// =====================================================
+export function ProgramPhoto({
+  id,
+  playing,
+  lazy = false,
+}: {
+  id: string;
+  /** true, пока курсор над карточкой программы — тогда крутим видео. */
+  playing: boolean;
+  /** loading="lazy" для фото (нужно в сетке/карусели вне первого экрана). */
+  lazy?: boolean;
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [hasVideo, setHasVideo] = useState(true);
+  const [ready, setReady] = useState(false); // видео реально играет → можно показать
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || !hasVideo) return;
+    if (playing) {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+      v.currentTime = 0;
+    }
+  }, [playing, hasVideo]);
+
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`/img/programs/${id}.jpg`}
+        alt=""
+        {...(lazy ? { loading: 'lazy' as const } : {})}
+        className="absolute inset-0 h-full w-full object-cover"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.display = 'none';
+        }}
+      />
+      {hasVideo && (
+        <video
+          ref={videoRef}
+          muted
+          loop
+          playsInline
+          preload="none"
+          aria-hidden="true"
+          onPlaying={() => setReady(true)}
+          onError={() => setHasVideo(false)}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+            playing && ready ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <source src={`/img/programs/${id}.mp4`} type="video/mp4" />
+        </video>
+      )}
+    </>
   );
 }
