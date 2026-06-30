@@ -1,5 +1,6 @@
 # --- build ---------------------------------------------------------------
-FROM golang:1.23-alpine AS build
+# Go 1.24+ нужен из-за github.com/anthropics/anthropic-sdk-go (go.mod: go 1.24).
+FROM golang:1.24-alpine AS build
 WORKDIR /src
 
 COPY go.mod go.sum ./
