@@ -13,9 +13,16 @@ import {
   APP_STAGES,
   rejectLabel,
   listMyDocuments,
-  upsertMyDocument,
+  uploadMyDocumentFile,
+  fetchMyDocumentObjectUrl,
 } from "@/lib/api";
 import type { Application, MyDocument } from "@/lib/api";
+import {
+  DocDetailSheet,
+  docSourceLine,
+  type DocAction,
+  type DocDetailData,
+} from "./doc-detail-sheet";
 
 // --- Мои документы (личное хранилище: переиспользование + сроки действия) --
 
@@ -51,9 +58,9 @@ export function DocsTab() {
   }, [load]);
 
   const attach = useCallback(
-    async (key: string, fileName: string) => {
+    async (key: string, file: File) => {
       setBusy(key);
-      await upsertMyDocument(key, fileName);
+      await uploadMyDocumentFile(key, file);
       setBusy(null);
       void load();
     },
@@ -97,10 +104,11 @@ function VaultRow({
 }: {
   doc: MyDocument;
   busy: boolean;
-  onAttach: (key: string, fileName: string) => void;
+  onAttach: (key: string, file: File) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
   const meta = vaultStatusMeta(doc.status, t);
   const isGov = doc.source === "gov";
 
@@ -112,18 +120,53 @@ function VaultRow({
         ? t("vault.until", { date: doc.valid_until })
         : "";
 
+  // Подзаголовок строки: откуда документ (провенанс) + срок.
+  const subtitle = [docSourceLine(t, doc.source, doc.provenance), validity]
+    .filter(Boolean)
+    .join(" · ");
+
+  const detail: DocDetailData = {
+    title: doc.title,
+    source: doc.source,
+    provenance: doc.provenance,
+    statusLabel: meta.label,
+    statusColor: meta.color,
+    fileName: doc.file_name,
+    issuedAt: doc.issued_at,
+    validUntil: doc.valid_until,
+    validityDays: doc.validity_days,
+    hasFile: doc.has_file,
+    contentType: doc.content_type,
+    loadPreview: () => fetchMyDocumentObjectUrl(doc.key),
+  };
+  // Действие доступно только для загружаемых типов (gov подтягивается сам).
+  const action: DocAction | undefined = isGov
+    ? undefined
+    : {
+        label: doc.status === "missing" ? t("vault.attach") : t("vault.refresh"),
+        busy,
+        onClick: () => fileRef.current?.click(),
+      };
+
   return (
     <div className="flex items-center gap-2.5 border-b border-[var(--border-soft)] py-2.5 last:border-b-0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.8" className="flex-shrink-0" aria-hidden="true">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <path d="M14 2v6h6" />
-      </svg>
-      <div className="min-w-0 flex-1">
-        <div className="text-[12.5px] text-[var(--text)]">{doc.title}</div>
-        {validity && (
-          <div className="mt-0.5 text-[11px] text-[var(--text-3)]">{validity}</div>
-        )}
-      </div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+        aria-label={t("docDetail.detailsAria")}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="1.8" className="flex-shrink-0" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+        </svg>
+        <div className="min-w-0 flex-1">
+          <div className="text-[12.5px] text-[var(--text)]">{doc.title}</div>
+          {subtitle && (
+            <div className="mt-0.5 truncate text-[11px] text-[var(--text-3)]">{subtitle}</div>
+          )}
+        </div>
+      </button>
 
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap"
@@ -140,11 +183,13 @@ function VaultRow({
           <input
             ref={fileRef}
             type="file"
+            accept="application/pdf,image/jpeg,image/png"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) onAttach(doc.key, f.name);
+              if (f) onAttach(doc.key, f);
               e.target.value = "";
+              setOpen(false);
             }}
           />
           <button
@@ -160,6 +205,14 @@ function VaultRow({
                 : t("vault.refresh")}
           </button>
         </>
+      )}
+
+      {open && (
+        <DocDetailSheet
+          data={detail}
+          action={action}
+          onClose={() => setOpen(false)}
+        />
       )}
     </div>
   );

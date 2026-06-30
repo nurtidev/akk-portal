@@ -7,8 +7,9 @@
 // поэтому маппинг ответа не нужен.
 // =====================================================
 
-import { CREDIT_PREFIX } from "./config";
+import { API_BASE, CREDIT_PREFIX, apiAvailable } from "./config";
 import { http, type ApiResult } from "./http";
+import { accessToken } from "./tokens";
 
 /** Заявка (DTO бэкенда — toDTO). */
 export interface Application {
@@ -30,6 +31,8 @@ export interface AppDocument {
   title: string;
   /** gov | upload | sign */
   source: "gov" | "upload" | "sign";
+  /** Поимённый источник для gov (КГД/ПКБ/ГБД ФЛ/…); пусто для upload/sign. */
+  provenance?: string;
   /** required | verified | uploaded */
   status: string;
   file_name: string | null;
@@ -46,6 +49,8 @@ export interface MyDocument {
   key: string;
   title: string;
   source: "gov" | "upload" | "sign";
+  /** Поимённый источник для gov (КГД/ПКБ/ГБД ФЛ/…); пусто для upload/sign. */
+  provenance?: string;
   /** Срок годности в днях (0 = бессрочно). */
   validity_days: number;
   reusable: boolean;
@@ -56,6 +61,12 @@ export interface MyDocument {
   issued_at?: string;
   /** YYYY-MM-DD (нет для бессрочных) */
   valid_until?: string;
+  /** true → в БД лежит реальный файл (можно показать превью/скачать). */
+  has_file?: boolean;
+  /** MIME загруженного файла (application/pdf, image/*). */
+  content_type?: string;
+  /** Размер файла в байтах. */
+  file_size?: number;
 }
 
 /** Этап лестницы с документами. */
@@ -181,6 +192,47 @@ export function upsertMyDocument(
     auth: true,
     body: { doc_type: docType, file_name: fileName, issued_at: issuedAt },
   });
+}
+
+/** Загрузить реальный файл документа в хранилище (multipart). valid_until считает бэкенд. */
+export function uploadMyDocumentFile(
+  docType: string,
+  file: File,
+  issuedAt?: string,
+): Promise<ApiResult<MyDocument>> {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (issuedAt) fd.append("issued_at", issuedAt);
+  return http<MyDocument>(
+    CREDIT_PREFIX + "/my-documents/" + encodeURIComponent(docType) + "/file",
+    { method: "POST", auth: true, body: fd },
+  );
+}
+
+/**
+ * Скачать файл документа хранилища как object URL (с Bearer) — для превью/скачивания.
+ * Вызывающий обязан освободить URL через URL.revokeObjectURL после использования.
+ * null — если бэкенд недоступен, файла нет или произошла ошибка.
+ */
+export async function fetchMyDocumentObjectUrl(
+  docType: string,
+): Promise<string | null> {
+  if (!apiAvailable) return null;
+  const tok = accessToken();
+  try {
+    const res = await fetch(
+      API_BASE +
+        CREDIT_PREFIX +
+        "/my-documents/" +
+        encodeURIComponent(docType) +
+        "/file",
+      { headers: tok ? { Authorization: "Bearer " + tok } : {} },
+    );
+    if (!res.ok) return null;
+    return URL.createObjectURL(await res.blob());
+  } catch {
+    return null;
+  }
 }
 
 /** Отметить требование как загруженное/подписанное (метаданные, без файла). */

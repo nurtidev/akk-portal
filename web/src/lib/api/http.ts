@@ -43,8 +43,12 @@ export async function http<T = unknown>(
 ): Promise<ApiResult<T>> {
   if (!apiAvailable) return unavailableResult<T>();
 
+  // FormData → multipart: не ставим Content-Type вручную (браузер добавит boundary).
+  const isForm =
+    typeof FormData !== "undefined" && opts.body instanceof FormData;
+
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isForm ? {} : { "Content-Type": "application/json" }),
     ...(opts.headers || {}),
   };
   if (opts.auth) {
@@ -56,7 +60,9 @@ export async function http<T = unknown>(
     method: opts.method || "POST",
     headers,
   };
-  if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
+  if (opts.body !== undefined) {
+    init.body = isForm ? (opts.body as FormData) : JSON.stringify(opts.body);
+  }
 
   try {
     const res = await fetch(API_BASE + path, init);

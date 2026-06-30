@@ -114,6 +114,11 @@ CREATE TABLE IF NOT EXISTS client_documents (
     UNIQUE (client_uid, doc_type)
 );
 CREATE INDEX IF NOT EXISTS idx_client_documents_client ON client_documents(client_uid);
+-- Реальный файл документа хранится прямо в БД (bytea) — у прототипа нет внешнего
+-- S3/MinIO, а ФС на Railway эфемерна. ADD ... IF NOT EXISTS для БД до появления загрузки.
+ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS file_data    BYTEA;
+ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS content_type TEXT;
+ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS file_size    BIGINT;
 `
 
 func (s *Store) migrate(ctx context.Context) error {
@@ -501,20 +506,25 @@ func (s *Store) ListAppDocuments(ctx context.Context, appUID, clientUID uuid.UUI
 
 // ClientDocument — документ в личном хранилище клиента (переиспользуемый).
 type ClientDocument struct {
-	ID         uuid.UUID
-	ClientUID  uuid.UUID
-	DocType    string
-	FileName   *string
-	IssuedAt   *time.Time
-	ValidUntil *time.Time // nil = бессрочно
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID          uuid.UUID
+	ClientUID   uuid.UUID
+	DocType     string
+	FileName    *string
+	ContentType *string
+	FileSize    *int64
+	HasFile     bool // в БД лежат байты файла (file_data IS NOT NULL)
+	IssuedAt    *time.Time
+	ValidUntil  *time.Time // nil = бессрочно
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 // ListClientDocuments возвращает все документы хранилища клиента.
+// Байты файла (file_data) НЕ выбираются — только факт наличия (has_file) и метаданные.
 func (s *Store) ListClientDocuments(ctx context.Context, clientUID uuid.UUID) ([]ClientDocument, error) {
 	rows, err := s.pool.Query(ctx, `
-		SELECT id, client_uid, doc_type, file_name, issued_at, valid_until, created_at, updated_at
+		SELECT id, client_uid, doc_type, file_name, content_type, file_size,
+		       (file_data IS NOT NULL) AS has_file, issued_at, valid_until, created_at, updated_at
 		  FROM client_documents WHERE client_uid=$1 ORDER BY doc_type`, clientUID)
 	if err != nil {
 		return nil, fmt.Errorf("store: list client documents: %w", err)
@@ -524,8 +534,8 @@ func (s *Store) ListClientDocuments(ctx context.Context, clientUID uuid.UUID) ([
 	var out []ClientDocument
 	for rows.Next() {
 		var d ClientDocument
-		if err := rows.Scan(&d.ID, &d.ClientUID, &d.DocType, &d.FileName,
-			&d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.ClientUID, &d.DocType, &d.FileName, &d.ContentType,
+			&d.FileSize, &d.HasFile, &d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("store: scan client document: %w", err)
 		}
 		out = append(out, d)
@@ -553,6 +563,63 @@ func (s *Store) UpsertClientDocument(ctx context.Context, clientUID uuid.UUID, d
 		return ClientDocument{}, fmt.Errorf("store: upsert client document: %w", err)
 	}
 	return d, nil
+}
+
+// UpsertClientDocumentFile сохраняет реальный файл документа (байты + content-type)
+// в БД, идемпотентно по doc_type. Перезаписывает прежний файл при повторной загрузке.
+func (s *Store) UpsertClientDocumentFile(ctx context.Context, clientUID uuid.UUID, docType, fileName, contentType string, data []byte, issuedAt, validUntil *time.Time) (ClientDocument, error) {
+	var fn, ct *string
+	if fileName != "" {
+		fn = &fileName
+	}
+	if contentType != "" {
+		ct = &contentType
+	}
+	size := int64(len(data))
+	var d ClientDocument
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO client_documents (id, client_uid, doc_type, file_name, content_type, file_size, file_data, issued_at, valid_until, updated_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now())
+		ON CONFLICT (client_uid, doc_type)
+		DO UPDATE SET file_name=EXCLUDED.file_name, content_type=EXCLUDED.content_type,
+		              file_size=EXCLUDED.file_size, file_data=EXCLUDED.file_data,
+		              issued_at=EXCLUDED.issued_at, valid_until=EXCLUDED.valid_until, updated_at=now()
+		RETURNING id, client_uid, doc_type, file_name, content_type, file_size,
+		          (file_data IS NOT NULL), issued_at, valid_until, created_at, updated_at`,
+		uuid.New(), clientUID, docType, fn, ct, size, data, issuedAt, validUntil).
+		Scan(&d.ID, &d.ClientUID, &d.DocType, &d.FileName, &d.ContentType, &d.FileSize,
+			&d.HasFile, &d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt)
+	if err != nil {
+		return ClientDocument{}, fmt.Errorf("store: upsert client document file: %w", err)
+	}
+	return d, nil
+}
+
+// GetClientDocumentFile возвращает байты файла документа клиента (для превью/скачивания).
+// ErrNotFound, если документа нет или у него ещё не загружен файл.
+func (s *Store) GetClientDocumentFile(ctx context.Context, clientUID uuid.UUID, docType string) (fileName, contentType string, data []byte, err error) {
+	var fn, ct *string
+	err = s.pool.QueryRow(ctx, `
+		SELECT file_name, content_type, file_data
+		  FROM client_documents WHERE client_uid=$1 AND doc_type=$2`, clientUID, docType).
+		Scan(&fn, &ct, &data)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", "", nil, ErrNotFound
+	}
+	if err != nil {
+		return "", "", nil, fmt.Errorf("store: get client document file: %w", err)
+	}
+	if len(data) == 0 {
+		return "", "", nil, ErrNotFound
+	}
+	name, mime := "", "application/octet-stream"
+	if fn != nil {
+		name = *fn
+	}
+	if ct != nil && *ct != "" {
+		mime = *ct
+	}
+	return name, mime, data, nil
 }
 
 // UpsertAppDocument помечает требование как загруженное (идемпотентно по requirement_key).

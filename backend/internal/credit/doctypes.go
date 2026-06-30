@@ -10,6 +10,7 @@ type DocTypeMeta struct {
 	Key          string `json:"key"`
 	Title        string `json:"title"`
 	Source       string `json:"source"`        // gov | upload | sign
+	Provenance   string `json:"provenance"`    // поимённый источник для gov (КГД/ПКБ/ГБД ФЛ/…); пусто для upload/sign
 	ValidityDays int    `json:"validity_days"` // 0 = бессрочно
 	Reusable     bool   `json:"reusable"`
 }
@@ -19,13 +20,13 @@ type DocTypeMeta struct {
 // TODO: сверить точные сроки справок с регламентом П АКК 002-207-22
 // (особенно tax_clearance/credit_history/income_ref — короткоживущие справки).
 var VaultDocTypes = []DocTypeMeta{
-	{Key: "id_card", Title: "Удостоверение личности", Source: "gov", ValidityDays: 0, Reusable: true},
+	{Key: "id_card", Title: "Удостоверение личности", Source: "gov", Provenance: "ГБД ФЛ", ValidityDays: 0, Reusable: true},
 	{Key: "reg_docs", Title: "Документы о регистрации (ИП/ЮЛ)", Source: "upload", ValidityDays: 0, Reusable: true},
-	{Key: "land_right", Title: "Документ на право землепользования", Source: "gov", ValidityDays: 0, Reusable: true},
+	{Key: "land_right", Title: "Документ на право землепользования", Source: "gov", Provenance: "Регистр недвижимости", ValidityDays: 0, Reusable: true},
 	{Key: "fin_statements", Title: "Финансовая отчётность / налоговая декларация (за 2 года)", Source: "upload", ValidityDays: 365, Reusable: true},
 	{Key: "income_ref", Title: "Справка о доходах", Source: "upload", ValidityDays: 30, Reusable: true},
-	{Key: "tax_clearance", Title: "Справка об отсутствии налоговой задолженности (КГД)", Source: "gov", ValidityDays: 30, Reusable: true},
-	{Key: "credit_history", Title: "Кредитная история (ПКБ/ГКБ)", Source: "gov", ValidityDays: 30, Reusable: true},
+	{Key: "tax_clearance", Title: "Справка об отсутствии налоговой задолженности (КГД)", Source: "gov", Provenance: "КГД", ValidityDays: 30, Reusable: true},
+	{Key: "credit_history", Title: "Кредитная история (ПКБ/ГКБ)", Source: "gov", Provenance: "ПКБ", ValidityDays: 30, Reusable: true},
 	{Key: "consent_pd", Title: "Согласие на обработку персональных данных", Source: "sign", ValidityDays: 365, Reusable: true},
 }
 

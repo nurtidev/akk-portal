@@ -12,6 +12,7 @@ type DocReq struct {
 	Key            string   // стабильный идентификатор требования
 	Title          string   // человекочитаемое название
 	Source         string   // gov | upload | sign
+	Provenance     string   // поимённый источник для gov (КГД/ПКБ/ГБД ФЛ/…); пусто для upload/sign
 	StageStatusKey string   // статус лестницы, к которому относится документ
 	ProgramOnly    []string // пусто = для всех программ; иначе — только для перечисленных program_id
 }
@@ -22,25 +23,25 @@ type DocReq struct {
 // sign — заёмщик подписывает ЭЦП.
 var Requirements = []DocReq{
 	// new — Регистрация заявки
-	{"id_card", "Удостоверение личности", "gov", "new", nil},
+	{"id_card", "Удостоверение личности", "gov", "ГБД ФЛ", "new", nil},
 	// Финотчётность из госбаз НЕ подтягивается (только благонадёжность/ПКБ) — заёмщик прикладывает сам.
-	{"fin_statements", "Финансовая отчётность / налоговая декларация (за 2 года)", "upload", "expertise", nil},
+	{"fin_statements", "Финансовая отчётность / налоговая декларация (за 2 года)", "upload", "", "expertise", nil},
 	// expertise — На рассмотрении
-	{"business_plan", "Бизнес-план / проектная смета", "upload", "expertise", nil},
-	{"land_right", "Право на землю / договор аренды", "gov", "expertise", nil},
-	{"tax_clearance", "Справка об отсутствии налоговой задолженности (КГД)", "gov", "expertise", nil},
-	{"credit_history", "Кредитная история (ПКБ)", "gov", "expertise", nil},
+	{"business_plan", "Бизнес-план / проектная смета", "upload", "", "expertise", nil},
+	{"land_right", "Право на землю / договор аренды", "gov", "Регистр недвижимости", "expertise", nil},
+	{"tax_clearance", "Справка об отсутствии налоговой задолженности (КГД)", "gov", "КГД", "expertise", nil},
+	{"credit_history", "Кредитная история (ПКБ)", "gov", "ПКБ", "expertise", nil},
 	// collateral_valuation — Оценка залога
-	{"valuation_report", "Оценочное заключение по залогу", "upload", "collateral_valuation", nil},
-	{"pledge_contract", "Договор залога", "sign", "collateral_valuation", nil},
-	{"insurance_policy", "Страховой полис имущества", "upload", "collateral_valuation", nil},
-	{"livestock_insurance", "Страхование скота", "upload", "collateral_valuation", []string{"igilik_bereke", "feedlot_poultry"}},
+	{"valuation_report", "Оценочное заключение по залогу", "upload", "", "collateral_valuation", nil},
+	{"pledge_contract", "Договор залога", "sign", "", "collateral_valuation", nil},
+	{"insurance_policy", "Страховой полис имущества", "upload", "", "collateral_valuation", nil},
+	{"livestock_insurance", "Страхование скота", "upload", "", "collateral_valuation", []string{"igilik_bereke", "feedlot_poultry"}},
 	// contract_signing — Договор
-	{"loan_contract", "Договор займа (подписание)", "sign", "contract_signing", nil},
-	{"pledge_signed", "Договор залога (подписание)", "sign", "contract_signing", nil},
-	{"special_account", "Открытие спецсчёта для контроля расходов", "gov", "contract_signing", nil},
+	{"loan_contract", "Договор займа (подписание)", "sign", "", "contract_signing", nil},
+	{"pledge_signed", "Договор залога (подписание)", "sign", "", "contract_signing", nil},
+	{"special_account", "Открытие спецсчёта для контроля расходов", "gov", "Спецсчёт АКК", "contract_signing", nil},
 	// disbursed — Средства выданы
-	{"drawdown_request", "Заявка на выборку средств", "sign", "disbursed", nil},
+	{"drawdown_request", "Заявка на выборку средств", "sign", "", "disbursed", nil},
 }
 
 // RequirementTitle возвращает человекочитаемое название требования по ключу
@@ -138,6 +139,7 @@ func buildDocumentsDTO(app store.Application, stored []store.AppDocument, vault 
 			"requirement_key": r.Key,
 			"title":           r.Title,
 			"source":          r.Source,
+			"provenance":      r.Provenance,
 			"status":          status,
 			"file_name":       fileName,
 		}

@@ -4,6 +4,7 @@ package credit
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -48,6 +49,8 @@ func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
 	// Личное хранилище «Мои документы» (переиспользование между заявками + сроки).
 	g.GET("/my-documents", h.listMyDocuments, mw)
 	g.POST("/my-documents", h.upsertMyDocument, mw)
+	g.POST("/my-documents/:key/file", h.uploadMyDocumentFile, mw)
+	g.GET("/my-documents/:key/file", h.getMyDocumentFile, mw)
 }
 
 type createReq struct {
@@ -444,6 +447,7 @@ func (h *Handler) listMyDocuments(c echo.Context) error {
 			"key":           meta.Key,
 			"title":         meta.Title,
 			"source":        meta.Source,
+			"provenance":    meta.Provenance,
 			"validity_days": meta.ValidityDays,
 			"reusable":      meta.Reusable,
 			"status":        VaultMissing,
@@ -458,6 +462,13 @@ func (h *Handler) listMyDocuments(c echo.Context) error {
 			}
 			if d.ValidUntil != nil {
 				item["valid_until"] = d.ValidUntil.Format(dateLayout)
+			}
+			item["has_file"] = d.HasFile
+			if d.ContentType != nil {
+				item["content_type"] = *d.ContentType
+			}
+			if d.FileSize != nil {
+				item["file_size"] = *d.FileSize
 			}
 		}
 		items = append(items, item)
@@ -508,6 +519,113 @@ func (h *Handler) upsertMyDocument(c echo.Context) error {
 	}
 	h.logger.Info("credit: документ хранилища сохранён", "type", meta.Key, "client", client.UID)
 	return c.JSON(http.StatusOK, resp)
+}
+
+// maxDocBytes — предел размера загружаемого файла документа (10 МБ).
+const maxDocBytes = 10 << 20
+
+// allowedDocTypes — разрешённые MIME-типы файлов документов (pre-screen, не строгая валидация).
+var allowedDocTypes = map[string]bool{
+	"application/pdf": true,
+	"image/jpeg":      true,
+	"image/png":       true,
+	"image/heic":      true,
+}
+
+// uploadMyDocumentFile принимает реальный файл (multipart: поле "file", опц. "issued_at")
+// и сохраняет его байты в хранилище клиента. valid_until считается по сроку годности типа.
+func (h *Handler) uploadMyDocumentFile(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	meta, ok := vaultDocType(c.Param("key"))
+	if !ok {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "неизвестный тип документа"})
+	}
+	if meta.Source == "gov" {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "этот документ подтягивается из госисточников — загрузка не требуется"})
+	}
+
+	fh, err := c.FormFile("file")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "файл не передан"})
+	}
+	if fh.Size > maxDocBytes {
+		return c.JSON(http.StatusRequestEntityTooLarge, map[string]any{"message": "файл больше 10 МБ"})
+	}
+	src, err := fh.Open()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "не удалось прочитать файл"})
+	}
+	defer src.Close()
+	data, err := io.ReadAll(io.LimitReader(src, maxDocBytes+1))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "не удалось прочитать файл"})
+	}
+	if len(data) > maxDocBytes {
+		return c.JSON(http.StatusRequestEntityTooLarge, map[string]any{"message": "файл больше 10 МБ"})
+	}
+	if len(data) == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "пустой файл"})
+	}
+
+	// Content-type: доверяем заголовку формы, но проверяем по сигнатуре содержимого.
+	contentType := fh.Header.Get("Content-Type")
+	if detected := http.DetectContentType(data); detected != "application/octet-stream" {
+		contentType = detected
+	}
+	if !allowedDocTypes[contentType] {
+		return c.JSON(http.StatusUnsupportedMediaType, map[string]any{"message": "поддерживаются PDF, JPG, PNG"})
+	}
+
+	issued := time.Now()
+	if v := c.FormValue("issued_at"); v != "" {
+		if parsed, perr := time.Parse(dateLayout, v); perr == nil {
+			issued = parsed
+		}
+	}
+	validUntil := computeValidUntil(meta, issued)
+
+	d, err := h.store.UpsertClientDocumentFile(c.Request().Context(), client.UID, meta.Key, fh.Filename, contentType, data, &issued, validUntil)
+	if err != nil {
+		h.logger.Error("credit: загрузка файла документа", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось сохранить файл"})
+	}
+
+	resp := map[string]any{
+		"key":          meta.Key,
+		"status":       vaultStatus(d.ValidUntil, time.Now()),
+		"issued_at":    issued.Format(dateLayout),
+		"has_file":     true,
+		"content_type": contentType,
+		"file_size":    len(data),
+	}
+	if d.FileName != nil {
+		resp["file_name"] = *d.FileName
+	}
+	if d.ValidUntil != nil {
+		resp["valid_until"] = d.ValidUntil.Format(dateLayout)
+	}
+	h.logger.Info("credit: файл документа загружен", "type", meta.Key, "client", client.UID, "size", len(data))
+	return c.JSON(http.StatusOK, resp)
+}
+
+// getMyDocumentFile отдаёт байты файла документа клиента (inline — для превью/скачивания).
+func (h *Handler) getMyDocumentFile(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	if _, ok := vaultDocType(c.Param("key")); !ok {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "неизвестный тип документа"})
+	}
+	name, contentType, data, err := h.store.GetClientDocumentFile(c.Request().Context(), client.UID, c.Param("key"))
+	if errors.Is(err, store.ErrNotFound) {
+		return c.JSON(http.StatusNotFound, map[string]any{"message": "файл не найден"})
+	}
+	if err != nil {
+		h.logger.Error("credit: отдача файла документа", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить файл"})
+	}
+	if name != "" {
+		c.Response().Header().Set("Content-Disposition", "inline; filename=\""+name+"\"")
+	}
+	return c.Blob(http.StatusOK, contentType, data)
 }
 
 func toDTO(a store.Application) map[string]any {
