@@ -38,6 +38,10 @@ export interface DocDetailData {
   loadPreview?: () => Promise<string | null>;
   /** Запуск ИИ-распознавания полей (только для загружаемых документов с файлом). */
   extract?: () => Promise<ExtractResult | null>;
+  /** Метод подписи, если sign-документ уже подписан (ecp | sms). */
+  signMethod?: string;
+  /** Подписать sign-документ выбранным способом. true = успех. */
+  onSign?: (method: "ecp" | "sms") => Promise<boolean>;
 }
 
 /** Кнопка действия внутри карточки (прикрепить/заменить/подписать). */
@@ -99,6 +103,22 @@ export function DocDetailSheet({
     setExtracting(false);
   }
 
+  // Подписание sign-документа (ЭЦП / SMS).
+  const [signing, setSigning] = useState<"ecp" | "sms" | null>(null);
+  const [signErr, setSignErr] = useState(false);
+
+  async function runSign(method: "ecp" | "sms") {
+    if (!data.onSign) return;
+    setSigning(method);
+    setSignErr(false);
+    const ok = await data.onSign(method);
+    if (!ok) setSignErr(true);
+    setSigning(null);
+  }
+
+  const signLabel = (m?: string) =>
+    m === "sms" ? t("docDetail.signSms") : t("docDetail.signEcp");
+
   useEffect(() => {
     if (!data.hasFile || !data.loadPreview) return;
     let url: string | null = null;
@@ -138,7 +158,9 @@ export function DocDetailSheet({
   if (data.source === "gov") {
     preview = t("docDetail.previewGov", { source: data.provenance || kindLabel });
   } else if (data.source === "sign") {
-    preview = t("docDetail.previewSign");
+    preview = data.signMethod
+      ? t("docDetail.previewSigned", { method: signLabel(data.signMethod) })
+      : t("docDetail.previewSign");
   } else if (data.fileName) {
     preview = t("docDetail.previewUpload", { name: data.fileName });
   } else {
@@ -273,6 +295,16 @@ export function DocDetailSheet({
             )}
           </dl>
 
+          {/* Подписание: для sign-документов, ещё не подписанных */}
+          {data.source === "sign" && data.onSign && !data.signMethod && (
+            <SignPanel
+              t={t}
+              signing={signing}
+              error={signErr}
+              onSign={runSign}
+            />
+          )}
+
           {/* ИИ-распознавание полей: только для загружаемых документов с файлом */}
           {data.extract && data.hasFile && (
             <AiExtractPanel
@@ -297,6 +329,51 @@ export function DocDetailSheet({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// --- Подписание sign-документов --------------------------------------------
+
+function SignPanel({
+  t,
+  signing,
+  error,
+  onSign,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  signing: "ecp" | "sms" | null;
+  error: boolean;
+  onSign: (method: "ecp" | "sms") => void;
+}) {
+  return (
+    <div className="mt-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-warm)] p-3.5">
+      <div className="mb-2.5 text-[12.5px] font-semibold text-[var(--text)]">
+        {t("docDetail.signTitle")}
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <button
+          type="button"
+          disabled={!!signing}
+          onClick={() => onSign("ecp")}
+          className="flex-1 rounded-[var(--radius-sm)] bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--primary-2)] disabled:opacity-60"
+        >
+          {signing === "ecp" ? "…" : t("docDetail.signEcpBtn")}
+        </button>
+        <button
+          type="button"
+          disabled={!!signing}
+          onClick={() => onSign("sms")}
+          className="flex-1 rounded-[var(--radius-sm)] border border-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-[var(--primary)] hover:bg-[var(--primary-soft)] disabled:opacity-60"
+        >
+          {signing === "sms" ? "…" : t("docDetail.signSmsBtn")}
+        </button>
+      </div>
+      {error && (
+        <p className="mt-2 text-[11.5px] text-[var(--danger)]">
+          {t("docDetail.signErr")}
+        </p>
+      )}
     </div>
   );
 }

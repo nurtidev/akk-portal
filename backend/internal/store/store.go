@@ -124,6 +124,8 @@ CREATE INDEX IF NOT EXISTS idx_client_documents_client ON client_documents(clien
 ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS file_data    BYTEA;
 ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS content_type TEXT;
 ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS file_size    BIGINT;
+-- Метод подписи для sign-документов (согласие на ПД и т.п.): ecp | sms.
+ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS sign_method  TEXT;
 `
 
 func (s *Store) migrate(ctx context.Context) error {
@@ -542,7 +544,8 @@ type ClientDocument struct {
 	FileName    *string
 	ContentType *string
 	FileSize    *int64
-	HasFile     bool // в БД лежат байты файла (file_data IS NOT NULL)
+	HasFile     bool    // в БД лежат байты файла (file_data IS NOT NULL)
+	SignMethod  *string // метод подписи для sign-документов: ecp | sms
 	IssuedAt    *time.Time
 	ValidUntil  *time.Time // nil = бессрочно
 	CreatedAt   time.Time
@@ -554,7 +557,7 @@ type ClientDocument struct {
 func (s *Store) ListClientDocuments(ctx context.Context, clientUID uuid.UUID) ([]ClientDocument, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, client_uid, doc_type, file_name, content_type, file_size,
-		       (file_data IS NOT NULL) AS has_file, issued_at, valid_until, created_at, updated_at
+		       (file_data IS NOT NULL) AS has_file, sign_method, issued_at, valid_until, created_at, updated_at
 		  FROM client_documents WHERE client_uid=$1 ORDER BY doc_type`, clientUID)
 	if err != nil {
 		return nil, fmt.Errorf("store: list client documents: %w", err)
@@ -565,7 +568,7 @@ func (s *Store) ListClientDocuments(ctx context.Context, clientUID uuid.UUID) ([
 	for rows.Next() {
 		var d ClientDocument
 		if err := rows.Scan(&d.ID, &d.ClientUID, &d.DocType, &d.FileName, &d.ContentType,
-			&d.FileSize, &d.HasFile, &d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt); err != nil {
+			&d.FileSize, &d.HasFile, &d.SignMethod, &d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("store: scan client document: %w", err)
 		}
 		out = append(out, d)
@@ -621,6 +624,27 @@ func (s *Store) UpsertClientDocumentFile(ctx context.Context, clientUID uuid.UUI
 			&d.HasFile, &d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt)
 	if err != nil {
 		return ClientDocument{}, fmt.Errorf("store: upsert client document file: %w", err)
+	}
+	return d, nil
+}
+
+// SignClientDocument помечает sign-документ подписанным выбранным методом (ecp|sms),
+// идемпотентно по doc_type. Файл при этом не нужен — фиксируем сам факт подписи.
+func (s *Store) SignClientDocument(ctx context.Context, clientUID uuid.UUID, docType, method string, issuedAt, validUntil *time.Time) (ClientDocument, error) {
+	var d ClientDocument
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO client_documents (id, client_uid, doc_type, sign_method, issued_at, valid_until, updated_at)
+		VALUES ($1,$2,$3,$4,$5,$6, now())
+		ON CONFLICT (client_uid, doc_type)
+		DO UPDATE SET sign_method=EXCLUDED.sign_method, issued_at=EXCLUDED.issued_at,
+		              valid_until=EXCLUDED.valid_until, updated_at=now()
+		RETURNING id, client_uid, doc_type, file_name, content_type, file_size,
+		          (file_data IS NOT NULL), sign_method, issued_at, valid_until, created_at, updated_at`,
+		uuid.New(), clientUID, docType, method, issuedAt, validUntil).
+		Scan(&d.ID, &d.ClientUID, &d.DocType, &d.FileName, &d.ContentType, &d.FileSize,
+			&d.HasFile, &d.SignMethod, &d.IssuedAt, &d.ValidUntil, &d.CreatedAt, &d.UpdatedAt)
+	if err != nil {
+		return ClientDocument{}, fmt.Errorf("store: sign client document: %w", err)
 	}
 	return d, nil
 }

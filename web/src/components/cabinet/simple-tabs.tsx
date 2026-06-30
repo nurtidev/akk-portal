@@ -14,6 +14,7 @@ import {
   uploadMyDocumentFile,
   fetchMyDocumentObjectUrl,
   extractMyDocumentFields,
+  signMyDocument,
   markNotificationsRead,
 } from "@/lib/api";
 import type { MyDocument, NotificationItem } from "@/lib/api";
@@ -67,6 +68,17 @@ export function DocsTab() {
     [load],
   );
 
+  const sign = useCallback(
+    async (key: string, method: "ecp" | "sms") => {
+      setBusy(key);
+      const r = await signMyDocument(key, method);
+      setBusy(null);
+      void load();
+      return r.ok;
+    },
+    [load],
+  );
+
   return (
     <div>
       <h2 className="font-display text-xl font-bold text-[var(--text)]">
@@ -84,6 +96,7 @@ export function DocsTab() {
               doc={d}
               busy={busy === d.key}
               onAttach={attach}
+              onSign={sign}
               t={t}
             />
           ))}
@@ -100,17 +113,20 @@ function VaultRow({
   doc,
   busy,
   onAttach,
+  onSign,
   t,
 }: {
   doc: MyDocument;
   busy: boolean;
   onAttach: (key: string, file: File) => void;
+  onSign: (key: string, method: "ecp" | "sms") => Promise<boolean>;
   t: ReturnType<typeof useTranslations>;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const meta = vaultStatusMeta(doc.status, t);
   const isGov = doc.source === "gov";
+  const isSign = doc.source === "sign";
 
   // Подпись срока: бессрочно / действует до даты.
   const validity =
@@ -140,15 +156,24 @@ function VaultRow({
     loadPreview: () => fetchMyDocumentObjectUrl(doc.key),
     extract: () =>
       extractMyDocumentFields(doc.key).then((r) => (r.ok ? r.data : null)),
+    signMethod: doc.sign_method,
+    onSign: isSign
+      ? async (method) => {
+          const ok = await onSign(doc.key, method);
+          if (ok) setOpen(false);
+          return ok;
+        }
+      : undefined,
   };
-  // Действие доступно только для загружаемых типов (gov подтягивается сам).
-  const action: DocAction | undefined = isGov
-    ? undefined
-    : {
-        label: doc.status === "missing" ? t("vault.attach") : t("vault.refresh"),
-        busy,
-        onClick: () => fileRef.current?.click(),
-      };
+  // Кнопка загрузки — только для upload-документов (gov подтягивается сам, sign — подписывается).
+  const action: DocAction | undefined =
+    isGov || isSign
+      ? undefined
+      : {
+          label: doc.status === "missing" ? t("vault.attach") : t("vault.refresh"),
+          busy,
+          onClick: () => fileRef.current?.click(),
+        };
 
   return (
     <div className="flex items-center gap-2.5 border-b border-[var(--border-soft)] py-2.5 last:border-b-0">
@@ -180,6 +205,15 @@ function VaultRow({
 
       {isGov ? (
         <SrcChip label={t("vault.gov")} color="#1c6fd6" />
+      ) : isSign ? (
+        // Sign-документ: открыть карточку, где выбор ЭЦП / SMS (или статус подписи).
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="rounded-[var(--radius-sm)] border border-[var(--border)] px-2.5 py-1 text-[11px] font-semibold text-[var(--primary)] hover:border-[var(--primary)]"
+        >
+          {doc.status === "missing" ? t("vault.sign") : t("vault.signed")}
+        </button>
       ) : (
         <>
           <input

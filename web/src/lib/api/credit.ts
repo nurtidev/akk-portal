@@ -67,6 +67,8 @@ export interface MyDocument {
   content_type?: string;
   /** Размер файла в байтах. */
   file_size?: number;
+  /** Метод подписи для sign-документов: ecp | sms (если подписан). */
+  sign_method?: string;
 }
 
 /** Уведомление кабинета (генерируется из статусов заявок на бэкенде). */
@@ -275,6 +277,17 @@ export function uploadMyDocumentFile(
   return http<MyDocument>(
     CREDIT_PREFIX + "/my-documents/" + encodeURIComponent(docType) + "/file",
     { method: "POST", auth: true, body: fd },
+  );
+}
+
+/** Подписать sign-документ (согласие на ПД и т.п.) методом ЭЦП или SMS. */
+export function signMyDocument(
+  docType: string,
+  method: "ecp" | "sms",
+): Promise<ApiResult<MyDocument>> {
+  return http<MyDocument>(
+    CREDIT_PREFIX + "/my-documents/" + encodeURIComponent(docType) + "/sign",
+    { method: "POST", auth: true, body: { method } },
   );
 }
 

@@ -55,6 +55,7 @@ func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
 	g.POST("/my-documents", h.upsertMyDocument, mw)
 	g.POST("/my-documents/:key/file", h.uploadMyDocumentFile, mw)
 	g.GET("/my-documents/:key/file", h.getMyDocumentFile, mw)
+	g.POST("/my-documents/:key/sign", h.signMyDocument, mw)
 	g.POST("/my-documents/:key/extract", h.extractMyDocumentFields, mw)
 }
 
@@ -506,6 +507,9 @@ func (h *Handler) listMyDocuments(c echo.Context) error {
 			if d.FileSize != nil {
 				item["file_size"] = *d.FileSize
 			}
+			if d.SignMethod != nil {
+				item["sign_method"] = *d.SignMethod
+			}
 		}
 		items = append(items, item)
 	}
@@ -641,6 +645,50 @@ func (h *Handler) uploadMyDocumentFile(c echo.Context) error {
 		resp["valid_until"] = d.ValidUntil.Format(dateLayout)
 	}
 	h.logger.Info("credit: файл документа загружен", "type", meta.Key, "client", client.UID, "size", len(data))
+	return c.JSON(http.StatusOK, resp)
+}
+
+type signMyDocReq struct {
+	Method string `json:"method"` // ecp | sms
+}
+
+// signMyDocument помечает sign-документ («Согласие на ПД» и т.п.) подписанным выбранным
+// способом — ЭЦП или SMS. В демо подпись мокается (фиксируем факт и метод), без реального
+// провайдера ЭЦП/OTP. Файл не нужен.
+func (h *Handler) signMyDocument(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	meta, ok := vaultDocType(c.Param("key"))
+	if !ok {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "неизвестный тип документа"})
+	}
+	if meta.Source != "sign" {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "этот документ не требует подписи"})
+	}
+	var req signMyDocReq
+	_ = c.Bind(&req)
+	method := strings.ToLower(strings.TrimSpace(req.Method))
+	if method != "ecp" && method != "sms" {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "укажите способ подписи: ecp или sms"})
+	}
+
+	issued := time.Now()
+	validUntil := computeValidUntil(meta, issued)
+	d, err := h.store.SignClientDocument(c.Request().Context(), client.UID, meta.Key, method, &issued, validUntil)
+	if err != nil {
+		h.logger.Error("credit: подписание документа", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось подписать документ"})
+	}
+
+	resp := map[string]any{
+		"key":         meta.Key,
+		"status":      vaultStatus(d.ValidUntil, time.Now()),
+		"issued_at":   issued.Format(dateLayout),
+		"sign_method": method,
+	}
+	if d.ValidUntil != nil {
+		resp["valid_until"] = d.ValidUntil.Format(dateLayout)
+	}
+	h.logger.Info("credit: документ подписан", "type", meta.Key, "method", method, "client", client.UID)
 	return c.JSON(http.StatusOK, resp)
 }
 
