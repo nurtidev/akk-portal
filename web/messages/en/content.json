@@ -10,6 +10,8 @@
       "eyebrow": "Финансирование АПК",
       "lede": "Выберите программу — внутри собраны условия, требования к проекту, перечень документов и частые вопросы. Не уверены в выборе — пройдите быстрый подбор.",
       "quizCta": "Пройти подбор за 30 секунд",
+      "notSureTitle": "Not sure which program fits?",
+      "notSureCta": "Find a program",
       "catalogNote": "«Кең дала» выдаётся через кредитные товарищества, МФО и банки-партнёры — прямая онлайн-заявка по ней недоступна.",
       "detailCta": "Подробнее",
       "calcCta": "Рассчитать платёж",
@@ -1242,19 +1244,6 @@
         "contactPlaceholder": "example@mail.kz или +7 (___) ___-__-__",
         "messagePlaceholder": "Введите ваш вопрос или обращение..."
       }
-    },
-    "calculator": {
-      "meta": {
-        "title": "Payment calculator — AKK",
-        "description": "Estimate the payment for Agrarian Credit Corporation loan programs. A public pre-screen, no sign-up required."
-      },
-      "title": "Payment calculator",
-      "subtitle": "Estimate your payment across AKK loan programs — no sign-up.",
-      "programLabel": "Program",
-      "disclaimer": "This is an indicative estimate (public pre-screen). The exact rate, amount and schedule are set by AKK's credit committee based on your application.",
-      "ctaApply": "Details & apply",
-      "quizHint": "Not sure which program fits?",
-      "quizCta": "Find a program"
     }
   }
 }

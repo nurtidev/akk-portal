@@ -330,6 +330,17 @@ export default async function ProductDetailPage({
         )}
       </div>
 
+      {/* Не знаете, какая программа подходит? → отправляем в подбор (квиз) на главной */}
+      <div className="mt-6 flex flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-warm)] p-6 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-medium text-[var(--text-2)]">{tp('notSureTitle')}</p>
+        <Link
+          href={`/${locale}?quiz=1`}
+          className="inline-flex h-11 flex-shrink-0 items-center justify-center rounded-[var(--radius)] border border-[var(--primary)] px-5 text-sm font-semibold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+        >
+          {tp('notSureCta')}
+        </Link>
+      </div>
+
       <div className="mt-6">
         <Link
           href={`/${locale}/products`}

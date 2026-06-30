@@ -16,7 +16,13 @@ const shot = (name: string, project: string) =>
 test.describe('Раздел «Продукты»', () => {
   test('Шапка: пункт «Продукты» ведёт на каталог', async ({ page }) => {
     await page.goto('/ru');
-    const link = page.getByRole('link', { name: 'Продукты', exact: true }).first();
+    // На узких экранах (mobile) навигация скрыта в бургер-меню — раскрываем его.
+    const menuBtn = page.getByRole('button', { name: 'Меню' });
+    if (await menuBtn.isVisible()) await menuBtn.click();
+    const link = page
+      .getByRole('link', { name: 'Продукты', exact: true })
+      .filter({ visible: true })
+      .first();
     await expect(link).toBeVisible();
     await link.click();
     await expect(page).toHaveURL(/\/ru\/products$/);

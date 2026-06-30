@@ -183,13 +183,8 @@ export function SiteHeader() {
             >
               {nav("products")}
             </Link>
-            {/* Калькулятор — публичный pre-screen, отдельной страницей (фидбэк дизайнера) */}
-            <Link
-              href={`/${locale}/calculator`}
-              className="whitespace-nowrap text-sm font-medium text-[var(--text-2)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded"
-            >
-              {nav("calculator")}
-            </Link>
+            {/* Калькулятор убран из шапки — доступен внутри карточек продуктов
+                (секция #calc) и в воронке подбора. Подбор программы — там же. */}
             {/* «Партнёрам» скрыт до готовности АгроСкора (B2B-витрина строится
                 на его данных). Страница /partners жива, см. docs/ROADMAP.md.
             <Link
@@ -345,14 +340,7 @@ export function SiteHeader() {
             {nav("products")}
           </Link>
 
-          {/* Калькулятор — публичный pre-screen, отдельной страницей (зеркало десктопа) */}
-          <Link
-            href={`/${locale}/calculator`}
-            className="block rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium text-[var(--text-2)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            {nav("calculator")}
-          </Link>
+          {/* Калькулятор убран из меню — доступен внутри карточек продуктов (#calc). */}
 
           {/* «Партнёрам» скрыт до готовности АгроСкора (см. docs/ROADMAP.md).
           <Link

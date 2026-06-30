@@ -83,14 +83,15 @@ test.describe('Лендинг — hero и сетка программ', () => {
     await expect(page.getByRole('heading', { name: 'Заявка принята' })).toBeVisible({ timeout: 10000 });
   });
 
-  test('hero: заголовок «Финансирование» и стат «6 программ»', async ({ page }) => {
+  test('hero: миссия в заголовке и финансовые статы', async ({ page }) => {
     await openHome(page);
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Финансирование');
-    // Стат «6 / Программ под цели АПК».
-    await expect(page.getByText('Программ под цели АПК')).toBeVisible();
+    // H1 — миссия «Финансируем тех, кто кормит страну».
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Финансируем');
+    // Финансовые статы корпорации в hero (портфель / клиенты / рейтинг Fitch).
+    await expect(page.getByText('Кредитный портфель').first()).toBeVisible();
   });
 
-  test('в превью-сетке видны все 6 прямых программ, «Кең дала» (indirect) скрыта', async ({
+  test('в карусели программ доступны все 6 прямых программ, «Кең дала» (indirect) скрыта', async ({
     page,
   }) => {
     await openHome(page);
@@ -103,13 +104,16 @@ test.describe('Лендинг — hero и сетка программ', () => {
       'Откормплощадки и птицефабрики',
       'Агробизнес 2.0',
     ];
+    // Превью — карусель: видна одна программа. Переключаем вкладками-точками
+    // (role="tab", aria-label = название) и проверяем активный заголовок.
     for (const title of expectedTitles) {
+      await grid.getByRole('tab', { name: new RegExp(`^${title}$`) }).click();
       await expect(
         grid.getByRole('heading', { level: 3, name: new RegExp(`^${title}$`) }),
       ).toBeVisible();
     }
-    // Скрытая программа «Кең дала» (без «2») — только в полном списке, не в превью.
-    await expect(grid.getByRole('heading', { level: 3, name: /^Кең дала$/ })).toHaveCount(0);
+    // Скрытая программа «Кең дала» (без «2») — ни вкладки, ни заголовка.
+    await expect(grid.getByRole('tab', { name: /^Кең дала$/ })).toHaveCount(0);
   });
 });
 
@@ -231,7 +235,10 @@ test.describe('Калькулятор — графики и сроки', () => {
 
     await expect(resultsHeading(page)).toBeVisible();
     const card = topCard(page);
-    await expect(card.getByText('График погашения — два платежа')).toBeVisible();
+    // График спрятан под раскрывашкой <details> — раскрываем кликом по заголовку.
+    const scheduleSummary = card.getByText('График погашения — два платежа');
+    await expect(scheduleSummary).toBeVisible();
+    await scheduleSummary.click();
     await expect(card.getByText('05 декабря', { exact: true })).toBeVisible();
     await expect(card.getByText('05 марта', { exact: true })).toBeVisible();
   });
