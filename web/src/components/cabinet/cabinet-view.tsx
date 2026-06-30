@@ -9,8 +9,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { listApplications, rejectLabel, appStageIndex } from "@/lib/api";
-import type { Application } from "@/lib/api";
+import { listApplications, listNotifications } from "@/lib/api";
+import type { Application, NotificationItem } from "@/lib/api";
 import { useAuth } from "@/components/auth/auth-provider";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { CabinetSidebar } from "./cabinet-sidebar";
@@ -36,6 +36,9 @@ export function CabinetView() {
   );
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notif, setNotif] = useState<{ items: NotificationItem[]; unread: number }>(
+    { items: [], unread: 0 },
+  );
 
   // Синхронизация активной вкладки с URL (?tab=).
   useEffect(() => {
@@ -45,8 +48,11 @@ export function CabinetView() {
 
   const loadApps = useCallback(async () => {
     setLoading(true);
-    const r = await listApplications();
+    const [r, n] = await Promise.all([listApplications(), listNotifications()]);
     setApps(r.ok && Array.isArray(r.data) ? r.data : []);
+    if (n.ok && n.data) {
+      setNotif({ items: n.data.items ?? [], unread: n.data.unread ?? 0 });
+    }
     setLoading(false);
   }, []);
 
@@ -61,13 +67,6 @@ export function CabinetView() {
     router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
-  // Непрочитанные уведомления = число событий по заявкам (демо-эвристика).
-  const unread = apps.reduce((n, a) => {
-    let c = 1; // «принята»
-    if (rejectLabel(a.status) || appStageIndex(a.status) > 0) c += 1;
-    return n + c;
-  }, 0);
 
   if (ready && !user) {
     return (
@@ -111,7 +110,7 @@ export function CabinetView() {
             logout();
             router.push(`/${locale}`);
           }}
-          unread={unread}
+          unread={notif.unread}
         />
         <div className="min-w-0">
           {tab === "profile" && <ProfileTab user={user} />}
@@ -132,7 +131,12 @@ export function CabinetView() {
             </div>
           )}
           {tab === "docs" && <DocsTab />}
-          {tab === "notif" && <NotifTab apps={apps} />}
+          {tab === "notif" && (
+            <NotifTab
+              items={notif.items}
+              onRead={() => setNotif((n) => ({ ...n, unread: 0 }))}
+            />
+          )}
           {tab === "support" && <SupportTab />}
           {tab === "agroscore" && <AgroScoreTab persona={persona} />}
         </div>

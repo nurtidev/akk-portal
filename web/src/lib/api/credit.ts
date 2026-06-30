@@ -69,6 +69,43 @@ export interface MyDocument {
   file_size?: number;
 }
 
+/** Уведомление кабинета (генерируется из статусов заявок на бэкенде). */
+export interface NotificationItem {
+  kind: "ok" | "info" | "danger";
+  code: string;
+  title: string;
+  text: string;
+  /** Непрочитано (событие новее отметки просмотра). */
+  unread: boolean;
+  /** ISO-время события. */
+  created_at: string;
+  application_number?: string;
+  stage_index?: number;
+}
+
+/** Ответ GET /notifications. */
+export interface NotificationsDTO {
+  items: NotificationItem[];
+  /** Количество непрочитанных. */
+  unread: number;
+}
+
+/** Лента уведомлений + счётчик непрочитанных. */
+export function listNotifications(): Promise<ApiResult<NotificationsDTO>> {
+  return http<NotificationsDTO>(CREDIT_PREFIX + "/notifications", {
+    method: "GET",
+    auth: true,
+  });
+}
+
+/** Отметить уведомления просмотренными (счётчик непрочитанных → 0). */
+export function markNotificationsRead(): Promise<ApiResult<{ ok: boolean }>> {
+  return http<{ ok: boolean }>(CREDIT_PREFIX + "/notifications/read", {
+    method: "POST",
+    auth: true,
+  });
+}
+
 /** Денежная сумма, распознанная ИИ (метка + значение строкой). */
 export interface ExtractedAmount {
   label: string;

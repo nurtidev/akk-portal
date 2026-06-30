@@ -153,6 +153,7 @@
       "stRefresh": "Нужно обновить"
     },
     "notif": {
+      "new": "Новое",
       "rejected": "Заявка № {num} отклонена",
       "appNum": "Заявка № {num}",
       "currentStage": "Текущий этап: {stage}",

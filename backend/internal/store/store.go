@@ -54,6 +54,9 @@ CREATE TABLE IF NOT EXISTS clients (
     is_active   BOOLEAN NOT NULL DEFAULT TRUE,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Отметка «уведомления просмотрены до» (лёгкая модель read/unread без таблицы
+-- уведомлений: непрочитано = событие новее этой метки). NULL = ещё не открывал.
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS notifications_seen_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS sms_codes (
     uid          UUID PRIMARY KEY,
@@ -87,6 +90,8 @@ CREATE INDEX IF NOT EXISTS idx_applications_client ON applications(client_uid);
 -- Колонка комментария кредитного администратора (доработка/отказ). ADD ... IF NOT EXISTS
 -- для БД, созданных до появления админ-панели.
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS admin_comment TEXT NOT NULL DEFAULT '';
+-- Момент последней смены статуса (для лёгкой модели read/unread уведомлений).
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 CREATE TABLE IF NOT EXISTS application_documents (
     id              UUID PRIMARY KEY,
@@ -164,6 +169,30 @@ func (s *Store) GetClientByUID(ctx context.Context, uid uuid.UUID) (Client, erro
 	return s.scanClient(s.pool.QueryRow(ctx,
 		`SELECT uid, iin, last_name, first_name, middle_name, phone
 		   FROM clients WHERE uid=$1 AND is_active`, uid))
+}
+
+// NotificationsSeenAt возвращает отметку «уведомления просмотрены до» (nil = ещё не открывал).
+func (s *Store) NotificationsSeenAt(ctx context.Context, clientUID uuid.UUID) (*time.Time, error) {
+	var seen *time.Time
+	err := s.pool.QueryRow(ctx,
+		`SELECT notifications_seen_at FROM clients WHERE uid=$1`, clientUID).Scan(&seen)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("store: notifications seen at: %w", err)
+	}
+	return seen, nil
+}
+
+// MarkNotificationsSeen ставит отметку просмотра уведомлений в now().
+func (s *Store) MarkNotificationsSeen(ctx context.Context, clientUID uuid.UUID) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE clients SET notifications_seen_at=now() WHERE uid=$1`, clientUID)
+	if err != nil {
+		return fmt.Errorf("store: mark notifications seen: %w", err)
+	}
+	return nil
 }
 
 func (s *Store) scanClient(row pgx.Row) (Client, error) {
@@ -277,6 +306,7 @@ type Application struct {
 	// admin-запросами (см. admin.go); клиентские SELECT его не выбирают и оставляют "".
 	AdminComment string
 	CreatedAt    time.Time
+	UpdatedAt    time.Time // момент последней смены статуса (для «непрочитанных»)
 }
 
 // CreateApplication вставляет заявку, генерируя номер AKK-<год>-NNNNNN.
@@ -412,12 +442,12 @@ func (s *Store) GetApplication(ctx context.Context, uid, clientUID uuid.UUID) (A
 func (s *Store) SetApplicationStatus(ctx context.Context, uid, clientUID uuid.UUID, status string) (Application, error) {
 	var a Application
 	err := s.pool.QueryRow(ctx, `
-		UPDATE applications SET status=$3
+		UPDATE applications SET status=$3, updated_at=now()
 		 WHERE uid=$1 AND client_uid=$2
-		RETURNING uid, number, client_uid, program_id, loan_purpose, requested_amount, onboarding, status, created_at`,
+		RETURNING uid, number, client_uid, program_id, loan_purpose, requested_amount, onboarding, status, created_at, updated_at`,
 		uid, clientUID, status).
 		Scan(&a.UID, &a.Number, &a.ClientUID, &a.ProgramID, &a.LoanPurpose,
-			&a.Amount, &a.Onboarding, &a.Status, &a.CreatedAt)
+			&a.Amount, &a.Onboarding, &a.Status, &a.CreatedAt, &a.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Application{}, ErrNotFound
 	}
@@ -445,7 +475,7 @@ func (s *Store) ClearApplications(ctx context.Context) (int64, error) {
 // ListApplications возвращает заявки клиента (новые сверху).
 func (s *Store) ListApplications(ctx context.Context, clientUID uuid.UUID) ([]Application, error) {
 	rows, err := s.pool.Query(ctx, `
-		SELECT uid, number, client_uid, program_id, loan_purpose, requested_amount, onboarding, status, created_at
+		SELECT uid, number, client_uid, program_id, loan_purpose, requested_amount, onboarding, status, created_at, updated_at
 		  FROM applications WHERE client_uid=$1 ORDER BY created_at DESC`, clientUID)
 	if err != nil {
 		return nil, fmt.Errorf("store: list applications: %w", err)
@@ -456,7 +486,7 @@ func (s *Store) ListApplications(ctx context.Context, clientUID uuid.UUID) ([]Ap
 	for rows.Next() {
 		var a Application
 		if err := rows.Scan(&a.UID, &a.Number, &a.ClientUID, &a.ProgramID, &a.LoanPurpose,
-			&a.Amount, &a.Onboarding, &a.Status, &a.CreatedAt); err != nil {
+			&a.Amount, &a.Onboarding, &a.Status, &a.CreatedAt, &a.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("store: scan application: %w", err)
 		}
 		out = append(out, a)

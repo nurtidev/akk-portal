@@ -9,15 +9,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
-  appStageIndex,
   APP_STAGES,
-  rejectLabel,
   listMyDocuments,
   uploadMyDocumentFile,
   fetchMyDocumentObjectUrl,
   extractMyDocumentFields,
+  markNotificationsRead,
 } from "@/lib/api";
-import type { Application, MyDocument } from "@/lib/api";
+import type { MyDocument, NotificationItem } from "@/lib/api";
 import {
   DocDetailSheet,
   docSourceLine,
@@ -223,75 +222,94 @@ function VaultRow({
 
 // --- Уведомления ----------------------------------------------------------
 
-interface NotifEvent {
-  kind: "ok" | "info" | "danger";
-  title: string;
-  text: string;
-}
+const notifColor: Record<NotificationItem["kind"], string> = {
+  ok: "#2b8a3e",
+  info: "#1c6fd6",
+  danger: "#d6336c",
+};
 
-/** Сборка ленты уведомлений из статусов заявок (как notifEvents в легаси). */
-function buildNotifEvents(
-  apps: Application[],
+/** Локализованные заголовок/текст уведомления по коду (i18n сохранён). */
+function notifText(
+  n: NotificationItem,
   t: ReturnType<typeof useTranslations>,
-): NotifEvent[] {
-  const ev: NotifEvent[] = [];
-  for (const a of apps) {
-    const rej = rejectLabel(a.status);
-    if (rej) {
-      ev.push({ kind: "danger", title: t("notif.rejected", { num: a.number }), text: rej });
-    } else {
-      const idx = appStageIndex(a.status);
-      if (idx > 0) {
-        ev.push({
-          kind: "info",
-          title: t("notif.appNum", { num: a.number }),
-          text: t("notif.currentStage", { stage: APP_STAGES[idx] }),
-        });
-      }
-    }
-    ev.push({
-      kind: "ok",
-      title: t("notif.accepted", { num: a.number }),
-      text: t("notif.govPulled"),
-    });
+): { title: string; text: string } {
+  const num = n.application_number ?? "";
+  switch (n.code) {
+    case "application_rejected":
+      return { title: t("notif.rejected", { num }), text: n.text };
+    case "application_stage":
+      return {
+        title: t("notif.appNum", { num }),
+        text: t("notif.currentStage", { stage: APP_STAGES[n.stage_index ?? 0] ?? "" }),
+      };
+    case "application_accepted":
+      return { title: t("notif.accepted", { num }), text: t("notif.govPulled") };
+    case "profile_ok":
+      return { title: t("notif.profileOk"), text: t("notif.profileOkText") };
+    default:
+      return { title: n.title, text: n.text };
   }
-  if (!ev.length) {
-    ev.push({ kind: "ok", title: t("notif.profileOk"), text: t("notif.profileOkText") });
-  }
-  return ev;
 }
 
-export function NotifTab({ apps }: { apps: Application[] }) {
+export function NotifTab({
+  items,
+  onRead,
+}: {
+  items: NotificationItem[];
+  onRead: () => void;
+}) {
   const t = useTranslations("cabinet");
-  const ev = buildNotifEvents(apps, t);
-  const color: Record<NotifEvent["kind"], string> = {
-    ok: "#2b8a3e",
-    info: "#1c6fd6",
-    danger: "#d6336c",
-  };
+
+  // Открытие вкладки = просмотр: помечаем прочитанными (счётчик в сайдбаре → 0).
+  useEffect(() => {
+    let alive = true;
+    void markNotificationsRead().then(() => {
+      if (alive) onRead();
+    });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div>
       <h2 className="font-display text-xl font-bold text-[var(--text)]">
         {t("nav.notif")}
       </h2>
       <div className="mt-3 overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]">
-        {ev.map((n, i) => (
-          <div
-            key={i}
-            className={`flex gap-3 px-3.5 py-3 ${i ? "border-t border-[var(--border-soft)]" : ""}`}
-          >
-            <span
-              className="mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full"
-              style={{ background: color[n.kind] }}
-            />
-            <div className="min-w-0">
-              <div className="text-[13.5px] font-semibold text-[var(--text)]">
-                {n.title}
+        {items.map((n, i) => {
+          const { title, text } = notifText(n, t);
+          const c = notifColor[n.kind];
+          return (
+            <div
+              key={i}
+              className={`flex gap-3 px-3.5 py-3 ${i ? "border-t border-[var(--border-soft)]" : ""}`}
+              style={n.unread ? { background: c + "0e" } : undefined}
+            >
+              <span
+                className="mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                style={{ background: n.unread ? c : "var(--border-strong)" }}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="text-[13.5px] font-semibold text-[var(--text)]">
+                    {title}
+                  </div>
+                  {n.unread && (
+                    <span
+                      className="flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9.5px] font-bold uppercase"
+                      style={{ background: c + "1f", color: c }}
+                    >
+                      {t("notif.new")}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-0.5 text-[12.5px] text-[var(--text-3)]">{text}</div>
               </div>
-              <div className="mt-0.5 text-[12.5px] text-[var(--text-3)]">{n.text}</div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

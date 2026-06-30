@@ -48,6 +48,7 @@ func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
 	g.GET("/applications/:uid/documents", h.listDocuments, mw)
 	g.POST("/applications/:uid/documents", h.uploadDocument, mw)
 	g.GET("/notifications", h.notifications, mw)
+	g.POST("/notifications/read", h.markNotificationsRead, mw)
 
 	// Личное хранилище «Мои документы» (переиспользование между заявками + сроки).
 	g.GET("/my-documents", h.listMyDocuments, mw)
@@ -388,44 +389,75 @@ func (h *Handler) notifications(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить уведомления"})
 	}
 
+	// Отметка «просмотрено до»: непрочитано = событие новее метки (nil = всё новое).
+	seen, serr := h.store.NotificationsSeenAt(c.Request().Context(), client.UID)
+	if serr != nil {
+		h.logger.Warn("credit: отметка просмотра уведомлений", "err", serr)
+		seen = nil
+	}
+
 	items := make([]map[string]any, 0)
 	unread := 0
+	add := func(it map[string]any, at time.Time) {
+		u := seen == nil || at.After(*seen)
+		it["created_at"] = at.Format(time.RFC3339)
+		it["unread"] = u
+		if u {
+			unread++
+		}
+		items = append(items, it)
+	}
+
 	for _, a := range apps {
-		c := 1 // событие «принята»
+		// Событие смены статуса (отказ/этап) датируется updated_at, «принята» — created_at.
 		if lbl, isRej := rejectLabels[a.Status]; isRej {
-			items = append(items, map[string]any{
+			add(map[string]any{
 				"kind": "danger", "code": "application_rejected",
 				"application_number": a.Number,
 				"title":              "Заявка № " + a.Number + " отклонена",
 				"text":               lbl,
-			})
-			c++
+			}, a.UpdatedAt)
 		} else if idx := store.StatusIndex(a.Status); idx > 0 && idx < len(appStages) {
-			items = append(items, map[string]any{
+			add(map[string]any{
 				"kind": "info", "code": "application_stage",
 				"application_number": a.Number,
 				"stage_index":        idx,
 				"title":              "Заявка № " + a.Number,
 				"text":               "Текущий этап: " + appStages[idx],
-			})
-			c++
+			}, a.UpdatedAt)
 		}
-		items = append(items, map[string]any{
+		add(map[string]any{
 			"kind": "ok", "code": "application_accepted",
 			"application_number": a.Number,
 			"title":              "Заявка № " + a.Number + " принята",
 			"text":               "Данные подтянуты из госбаз (ГБД ФЛ, КГД, ПКБ)",
-		})
-		unread += c
+		}, a.CreatedAt)
 	}
 	if len(items) == 0 {
+		// Нет заявок — информационное уведомление, непрочитано только до первого открытия.
+		u := seen == nil
+		if u {
+			unread++
+		}
 		items = append(items, map[string]any{
 			"kind": "ok", "code": "profile_ok",
-			"title": "Профиль подтверждён",
-			"text":  "Вход выполнен. Подайте заявку — статус будет виден здесь.",
+			"title":      "Профиль подтверждён",
+			"text":       "Вход выполнен. Подайте заявку — статус будет виден здесь.",
+			"created_at": time.Now().Format(time.RFC3339),
+			"unread":     u,
 		})
 	}
 	return c.JSON(http.StatusOK, map[string]any{"items": items, "unread": unread})
+}
+
+// markNotificationsRead ставит отметку «уведомления просмотрены» (счётчик непрочитанных → 0).
+func (h *Handler) markNotificationsRead(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	if err := h.store.MarkNotificationsSeen(c.Request().Context(), client.UID); err != nil {
+		h.logger.Error("credit: отметить уведомления прочитанными", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось сохранить"})
+	}
+	return c.JSON(http.StatusOK, map[string]any{"ok": true})
 }
 
 // --- Мои документы (личное хранилище) ------------------------------------
