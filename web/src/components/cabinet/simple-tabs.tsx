@@ -15,6 +15,7 @@ import {
   listMyDocuments,
   uploadMyDocumentFile,
   fetchMyDocumentObjectUrl,
+  extractMyDocumentFields,
 } from "@/lib/api";
 import type { Application, MyDocument } from "@/lib/api";
 import {
@@ -138,6 +139,8 @@ function VaultRow({
     hasFile: doc.has_file,
     contentType: doc.content_type,
     loadPreview: () => fetchMyDocumentObjectUrl(doc.key),
+    extract: () =>
+      extractMyDocumentFields(doc.key).then((r) => (r.ok ? r.data : null)),
   };
   // Действие доступно только для загружаемых типов (gov подтягивается сам).
   const action: DocAction | undefined = isGov

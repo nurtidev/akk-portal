@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import type { ExtractResult } from "@/lib/api";
 
 export type DocSource = "gov" | "upload" | "sign";
 
@@ -35,6 +36,8 @@ export interface DocDetailData {
   contentType?: string;
   /** Лоадер object URL файла (с Bearer); вызывается при наличии hasFile. */
   loadPreview?: () => Promise<string | null>;
+  /** Запуск ИИ-распознавания полей (только для загружаемых документов с файлом). */
+  extract?: () => Promise<ExtractResult | null>;
 }
 
 /** Кнопка действия внутри карточки (прикрепить/заменить/подписать). */
@@ -80,6 +83,21 @@ export function DocDetailSheet({
   // Object URL реального файла (для upload-документов с загруженным файлом).
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loadingFile, setLoadingFile] = useState(false);
+
+  // ИИ-распознавание полей (ассистивно, по кнопке).
+  const [extracting, setExtracting] = useState(false);
+  const [extracted, setExtracted] = useState<ExtractResult | null>(null);
+  const [extractErr, setExtractErr] = useState(false);
+
+  async function runExtract() {
+    if (!data.extract) return;
+    setExtracting(true);
+    setExtractErr(false);
+    const r = await data.extract();
+    if (r) setExtracted(r);
+    else setExtractErr(true);
+    setExtracting(false);
+  }
 
   useEffect(() => {
     if (!data.hasFile || !data.loadPreview) return;
@@ -255,6 +273,17 @@ export function DocDetailSheet({
             )}
           </dl>
 
+          {/* ИИ-распознавание полей: только для загружаемых документов с файлом */}
+          {data.extract && data.hasFile && (
+            <AiExtractPanel
+              t={t}
+              extracting={extracting}
+              result={extracted}
+              error={extractErr}
+              onRun={runExtract}
+            />
+          )}
+
           {/* Действие */}
           {action && (
             <button
@@ -268,6 +297,115 @@ export function DocDetailSheet({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// --- ИИ-распознавание полей ------------------------------------------------
+
+function AiExtractPanel({
+  t,
+  extracting,
+  result,
+  error,
+  onRun,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  extracting: boolean;
+  result: ExtractResult | null;
+  error: boolean;
+  onRun: () => void;
+}) {
+  // До запуска — кнопка-приглашение.
+  if (!result) {
+    return (
+      <div
+        className="mt-4 rounded-[var(--radius)] border border-dashed border-[var(--accent)] p-3"
+        style={{ background: "#C9A21C12" }}
+      >
+        <button
+          type="button"
+          onClick={onRun}
+          disabled={extracting}
+          className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-sm)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[#3a2e05] hover:opacity-90 disabled:opacity-60"
+        >
+          ✦ {extracting ? t("docDetail.aiExtracting") : t("docDetail.aiExtract")}
+        </button>
+        {error && (
+          <p className="mt-2 text-center text-[11.5px] text-[var(--danger)]">
+            {t("docDetail.aiError")}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  const f = result.fields;
+  const mismatchByField = new Map(result.mismatches.map((m) => [m.field, m]));
+  const rows: { key: string; label: string; value: string }[] = [
+    { key: "document_type", label: t("docDetail.fldDocType"), value: f.document_type },
+    { key: "full_name", label: t("docDetail.fldName"), value: f.full_name },
+    { key: "iin", label: t("docDetail.fldIin"), value: f.iin },
+    { key: "issue_date", label: t("docDetail.fldDate"), value: f.issue_date },
+    { key: "period", label: t("docDetail.fldPeriod"), value: f.period },
+    { key: "issuer", label: t("docDetail.fldIssuer"), value: f.issuer },
+  ].filter((r) => r.value);
+  const pct = Math.round((f.confidence || 0) * 100);
+
+  return (
+    <div
+      className="mt-4 rounded-[var(--radius)] p-3.5"
+      style={{ background: "#C9A21C12", border: "1px solid #C9A21C66" }}
+    >
+      <div className="mb-2 flex items-center gap-2">
+        <span className="text-sm font-bold text-[var(--text)]">
+          ✦ {t("docDetail.aiTitle")}
+        </span>
+        <span
+          className="ml-auto rounded-full px-2 py-0.5 text-[10.5px] font-bold text-[#7a5e0a]"
+          style={{ background: "#C9A21C33" }}
+        >
+          {t("docDetail.aiConfidence", { pct })}
+        </span>
+      </div>
+
+      {rows.length === 0 && result.fields.amounts.length === 0 ? (
+        <p className="text-[12px] text-[var(--text-3)]">{t("docDetail.aiEmpty")}</p>
+      ) : (
+        <dl className="space-y-1.5">
+          {rows.map((r) => {
+            const mm = mismatchByField.get(r.key);
+            return (
+              <div key={r.key} className="flex items-start justify-between gap-3 text-[12.5px]">
+                <dt className="text-[var(--text-3)]">{r.label}</dt>
+                <dd className="text-right">
+                  <span
+                    className="font-semibold"
+                    style={{ color: mm ? "var(--danger)" : "var(--text)" }}
+                  >
+                    {r.value}
+                  </span>
+                  {mm && (
+                    <span className="mt-0.5 block text-[10.5px] font-medium text-[var(--danger)]">
+                      {t("docDetail.aiMismatch", { profile: mm.profile })}
+                    </span>
+                  )}
+                </dd>
+              </div>
+            );
+          })}
+          {f.amounts.map((a, i) => (
+            <div key={"amt" + i} className="flex items-start justify-between gap-3 text-[12.5px]">
+              <dt className="text-[var(--text-3)]">{a.label}</dt>
+              <dd className="text-right font-semibold text-[var(--text)]">{a.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      <p className="mt-2.5 text-[10.5px] leading-relaxed text-[var(--text-3)]">
+        {t("docDetail.aiNote")}
+      </p>
     </div>
   );
 }

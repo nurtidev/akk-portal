@@ -69,6 +69,38 @@ export interface MyDocument {
   file_size?: number;
 }
 
+/** Денежная сумма, распознанная ИИ (метка + значение строкой). */
+export interface ExtractedAmount {
+  label: string;
+  value: string;
+}
+
+/** Ключевые поля документа, распознанные ИИ (ассистивно — требуют подтверждения). */
+export interface ExtractedFields {
+  document_type: string;
+  full_name: string;
+  iin: string;
+  issue_date: string;
+  period: string;
+  issuer: string;
+  amounts: ExtractedAmount[];
+  /** Уверенность распознавания 0..1. */
+  confidence: number;
+}
+
+/** Расхождение распознанного поля с профилем клиента. */
+export interface ExtractMismatch {
+  field: string;
+  extracted: string;
+  profile: string;
+}
+
+/** Ответ POST /my-documents/:key/extract. */
+export interface ExtractResult {
+  fields: ExtractedFields;
+  mismatches: ExtractMismatch[];
+}
+
 /** Этап лестницы с документами. */
 export interface DocStage {
   status_key: string;
@@ -206,6 +238,19 @@ export function uploadMyDocumentFile(
   return http<MyDocument>(
     CREDIT_PREFIX + "/my-documents/" + encodeURIComponent(docType) + "/file",
     { method: "POST", auth: true, body: fd },
+  );
+}
+
+/**
+ * Распознать ключевые поля загруженного документа через ИИ (ассистивно).
+ * 503 (status) — фича не настроена на бэкенде (нет ANTHROPIC_API_KEY).
+ */
+export function extractMyDocumentFields(
+  docType: string,
+): Promise<ApiResult<ExtractResult>> {
+  return http<ExtractResult>(
+    CREDIT_PREFIX + "/my-documents/" + encodeURIComponent(docType) + "/extract",
+    { method: "POST", auth: true },
   );
 }
 

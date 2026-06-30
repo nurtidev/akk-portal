@@ -7,11 +7,13 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
+	"akk-railway-backend/internal/ai"
 	"akk-railway-backend/internal/auth"
 	"akk-railway-backend/internal/programs"
 	"akk-railway-backend/internal/store"
@@ -19,16 +21,17 @@ import (
 
 // Handler обслуживает /api/v1/credit/*.
 type Handler struct {
-	store  *store.Store
-	logger *slog.Logger
+	store     *store.Store
+	logger    *slog.Logger
+	extractor *ai.Extractor // nil → ИИ-распознавание полей выключено (нет ключа)
 }
 
-// NewHandler создаёт credit-хендлер.
-func NewHandler(s *store.Store, logger *slog.Logger) *Handler {
+// NewHandler создаёт credit-хендлер. extractor может быть nil (фича выключена).
+func NewHandler(s *store.Store, logger *slog.Logger, extractor *ai.Extractor) *Handler {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Handler{store: s, logger: logger}
+	return &Handler{store: s, logger: logger, extractor: extractor}
 }
 
 // Register вешает маршруты. mw — auth-middleware (Bearer).
@@ -51,6 +54,7 @@ func (h *Handler) Register(g *echo.Group, mw echo.MiddlewareFunc) {
 	g.POST("/my-documents", h.upsertMyDocument, mw)
 	g.POST("/my-documents/:key/file", h.uploadMyDocumentFile, mw)
 	g.GET("/my-documents/:key/file", h.getMyDocumentFile, mw)
+	g.POST("/my-documents/:key/extract", h.extractMyDocumentFields, mw)
 }
 
 type createReq struct {
@@ -626,6 +630,86 @@ func (h *Handler) getMyDocumentFile(c echo.Context) error {
 		c.Response().Header().Set("Content-Disposition", "inline; filename=\""+name+"\"")
 	}
 	return c.Blob(http.StatusOK, contentType, data)
+}
+
+// extractMyDocumentFields распознаёт ключевые поля загруженного документа через Claude
+// (ассистивно) и сверяет ИИН/ФИО с профилем клиента. Без ключа → 503 «не настроено».
+func (h *Handler) extractMyDocumentFields(c echo.Context) error {
+	client := auth.ClientFromContext(c)
+	if h.extractor == nil {
+		return c.JSON(http.StatusServiceUnavailable, map[string]any{"message": "ИИ-распознавание не настроено"})
+	}
+	if _, ok := vaultDocType(c.Param("key")); !ok {
+		return c.JSON(http.StatusBadRequest, map[string]any{"message": "неизвестный тип документа"})
+	}
+	_, contentType, data, err := h.store.GetClientDocumentFile(c.Request().Context(), client.UID, c.Param("key"))
+	if errors.Is(err, store.ErrNotFound) {
+		return c.JSON(http.StatusNotFound, map[string]any{"message": "файл не найден — сначала загрузите документ"})
+	}
+	if err != nil {
+		h.logger.Error("credit: файл для распознавания", "err", err)
+		return c.JSON(http.StatusInternalServerError, map[string]any{"message": "не удалось получить файл"})
+	}
+
+	fields, err := h.extractor.Extract(c.Request().Context(), contentType, data)
+	if err != nil {
+		h.logger.Error("credit: распознавание полей", "err", err)
+		return c.JSON(http.StatusBadGateway, map[string]any{"message": "не удалось распознать документ, попробуйте позже"})
+	}
+
+	// Сверка с профилем: расхождение — красный флаг для заёмщика (ассистивно, не блок).
+	mismatches := make([]map[string]any, 0, 2)
+	if iin := onlyDigits(fields.IIN); iin != "" && client.IIN != "" && iin != client.IIN {
+		mismatches = append(mismatches, map[string]any{
+			"field": "iin", "extracted": fields.IIN, "profile": client.IIN,
+		})
+	}
+	if profileName := client.FullName(); fields.FullName != "" && profileName != "" && !namesLooselyMatch(fields.FullName, profileName) {
+		mismatches = append(mismatches, map[string]any{
+			"field": "full_name", "extracted": fields.FullName, "profile": profileName,
+		})
+	}
+
+	h.logger.Info("credit: поля распознаны", "type", c.Param("key"), "client", client.UID, "mismatches", len(mismatches))
+	return c.JSON(http.StatusOK, map[string]any{
+		"fields":     fields,
+		"mismatches": mismatches,
+	})
+}
+
+// onlyDigits оставляет в строке только цифры (для нормализации ИИН).
+func onlyDigits(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if r >= '0' && r <= '9' {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+// namesLooselyMatch — мягкое сравнение ФИО (регистр/порядок слов не важны):
+// совпадают, если каждое слово более короткого имени встречается в более длинном.
+func namesLooselyMatch(a, b string) bool {
+	fa := strings.Fields(strings.ToLower(a))
+	fb := strings.Fields(strings.ToLower(b))
+	if len(fa) == 0 || len(fb) == 0 {
+		return false
+	}
+	short, long := fa, fb
+	if len(short) > len(long) {
+		short, long = long, short
+	}
+	inLong := make(map[string]bool, len(long))
+	for _, w := range long {
+		inLong[w] = true
+	}
+	for _, w := range short {
+		if !inLong[w] {
+			return false
+		}
+	}
+	return true
 }
 
 func toDTO(a store.Application) map[string]any {

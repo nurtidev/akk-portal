@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"akk-railway-backend/internal/admin"
+	"akk-railway-backend/internal/ai"
 	"akk-railway-backend/internal/apidocs"
 	"akk-railway-backend/internal/auth"
 	"akk-railway-backend/internal/config"
@@ -82,7 +83,15 @@ func main() {
 	}
 
 	authH := auth.NewHandler(db, otp, issuer, egovClient, legacy, cfg.DemoMode, logger)
-	creditH := credit.NewHandler(db, logger)
+	// ИИ-распознавание полей документов: включается при заданном ANTHROPIC_API_KEY,
+	// иначе extractor == nil и эндпоинт /my-documents/:key/extract отдаёт 503.
+	extractor := ai.NewExtractor()
+	if extractor != nil {
+		logger.Info("credit: ИИ-распознавание полей включено")
+	} else {
+		logger.Info("credit: ИИ-распознавание полей выключено (нет ANTHROPIC_API_KEY)")
+	}
+	creditH := credit.NewHandler(db, logger, extractor)
 	adminH := admin.NewHandler(db, issuer, cfg.AdminUsername, cfg.AdminPassword, logger)
 
 	e := echo.New()

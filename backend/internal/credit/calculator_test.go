@@ -11,7 +11,7 @@ import (
 )
 
 // h без стора — calculate/listPrograms стор не трогают.
-func newCalcHandler() *Handler { return NewHandler(nil, nil) }
+func newCalcHandler() *Handler { return NewHandler(nil, nil, nil) }
 
 func TestCalculate_AnnualClampAndSchedule(t *testing.T) {
 	e := echo.New()
