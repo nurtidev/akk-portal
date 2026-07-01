@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { clearToken, getName } from '@/lib/auth';
 
 interface AppHeaderProps {
@@ -11,7 +11,13 @@ interface AppHeaderProps {
 
 export default function AppHeader({ showBack = false }: AppHeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const name = getName();
+
+  const navItems = [
+    { href: '/applications', label: 'Заявки' },
+    { href: '/questions', label: 'Обращения' },
+  ];
 
   const handleLogout = () => {
     clearToken();
@@ -65,16 +71,22 @@ export default function AppHeader({ showBack = false }: AppHeaderProps) {
         {/* Навигация */}
         {!showBack && (
           <nav className="flex items-center gap-1 ml-2">
-            <Link
-              href="/applications"
-              className="px-3 py-1.5 rounded-[var(--radius)] text-sm font-medium transition-colors"
-              style={{
-                color: 'var(--primary)',
-                backgroundColor: 'var(--primary-tint)',
-              }}
-            >
-              Заявки
-            </Link>
+            {navItems.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + '/');
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="px-3 py-1.5 rounded-[var(--radius)] text-sm font-medium transition-colors"
+                  style={{
+                    color: active ? 'var(--primary)' : 'var(--text-2)',
+                    backgroundColor: active ? 'var(--primary-tint)' : 'transparent',
+                  }}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         )}
 

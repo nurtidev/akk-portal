@@ -20,6 +20,7 @@ import (
 	"akk-railway-backend/internal/config"
 	"akk-railway-backend/internal/credit"
 	"akk-railway-backend/internal/egov"
+	"akk-railway-backend/internal/faq"
 	"akk-railway-backend/internal/sms"
 	"akk-railway-backend/internal/store"
 )
@@ -92,6 +93,7 @@ func main() {
 		logger.Info("credit: ИИ-распознавание полей выключено (нет ANTHROPIC_API_KEY)")
 	}
 	creditH := credit.NewHandler(db, logger, extractor)
+	faqH := faq.NewHandler(db, logger)
 	adminH := admin.NewHandler(db, issuer, cfg.AdminUsername, cfg.AdminPassword, logger)
 
 	e := echo.New()
@@ -119,6 +121,7 @@ func main() {
 
 	authH.Register(e.Group("/api/v1/auth/Account"))
 	creditH.Register(e.Group("/api/v1/credit"), authH.Middleware)
+	faqH.Register(e.Group("/api/v1/faq"))
 	adminH.Register(e.Group("/api/v1/admin"))
 
 	go func() {

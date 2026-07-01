@@ -6,6 +6,7 @@ import {
   ContentSection,
   AccordionItem,
 } from "@/components/content/content-page";
+import { SupportAsk } from "@/components/content/support-ask";
 
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -36,6 +37,27 @@ export default async function FaqPage({
 
   const items = tF.raw("items") as Array<{ q: string; a: string }>;
 
+  const feedbackLabels = {
+    prompt: t("faqFeedback.prompt"),
+    yes: t("faqFeedback.yes"),
+    no: t("faqFeedback.no"),
+    thanks: t("faqFeedback.thanks"),
+    percentHelpful: t.raw("faqFeedback.percentHelpful") as string,
+  };
+  const askLabels = {
+    notFoundTitle: t("faqFeedback.notFoundTitle"),
+    notFoundLede: t("faqFeedback.notFoundLede"),
+    askCta: t("faqFeedback.askCta"),
+    questionLabel: t("faqFeedback.questionLabel"),
+    questionPlaceholder: t("faqFeedback.questionPlaceholder"),
+    contactLabel: t("faqFeedback.contactLabel"),
+    contactPlaceholder: t("faqFeedback.contactPlaceholder"),
+    send: t("faqFeedback.send"),
+    sent: t("faqFeedback.sent"),
+    error: t("faqFeedback.error"),
+    cancel: t("faqFeedback.cancel"),
+  };
+
   return (
     <ContentPage
       title={tF("title")}
@@ -49,9 +71,18 @@ export default async function FaqPage({
       <ContentSection>
         <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-5 divide-y divide-[var(--border-soft)] shadow-[var(--shadow-sm)]">
           {items.map((item, i) => (
-            <AccordionItem key={i} question={item.q} answer={item.a} />
+            <AccordionItem
+              key={i}
+              question={item.q}
+              answer={item.a}
+              feedbackKey={`faq#${i}`}
+              feedbackLabels={feedbackLabels}
+            />
           ))}
         </div>
+
+        {/* Не нашли ответ? → обращение в поддержку (уходит в админку) */}
+        <SupportAsk scope="faq" locale={locale} labels={askLabels} />
 
         {/* CTA внизу */}
         <div className="mt-8 rounded-[var(--radius)] bg-[var(--primary-soft)] p-6 flex flex-col sm:flex-row sm:items-center gap-4">

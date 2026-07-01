@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { ContentPage, AccordionItem } from '@/components/content/content-page';
+import { SupportAsk } from '@/components/content/support-ask';
 import { ProductTabs, type ProductTab } from '@/components/products/product-tabs';
 import { ProductCalculator } from '@/components/products/product-calculator';
 import { PROGRAMS, PROGRAM_DETAILS, type Program } from '@/data/programs';
@@ -187,13 +188,41 @@ export default async function ProductDetailPage({
   );
 
   // --- 4. Вопросы (Q&A, специфичные для программы) ---
+  // Подписи блоков «Полезен ли ответ?» и «Не нашли ответ?» (namespace content).
+  const feedbackLabels = {
+    prompt: t('faqFeedback.prompt'),
+    yes: t('faqFeedback.yes'),
+    no: t('faqFeedback.no'),
+    thanks: t('faqFeedback.thanks'),
+    percentHelpful: t.raw('faqFeedback.percentHelpful') as string,
+  };
+  const askLabels = {
+    notFoundTitle: t('faqFeedback.notFoundTitle'),
+    notFoundLede: t('faqFeedback.notFoundLede'),
+    askCta: t('faqFeedback.askCta'),
+    questionLabel: t('faqFeedback.questionLabel'),
+    questionPlaceholder: t('faqFeedback.questionPlaceholder'),
+    contactLabel: t('faqFeedback.contactLabel'),
+    contactPlaceholder: t('faqFeedback.contactPlaceholder'),
+    send: t('faqFeedback.send'),
+    sent: t('faqFeedback.sent'),
+    error: t('faqFeedback.error'),
+    cancel: t('faqFeedback.cancel'),
+  };
+
   const programFaq = getProgramFaq(id);
   const faq = (
     <div className="space-y-5">
       {programFaq.length > 0 ? (
         <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-5 divide-y divide-[var(--border-soft)] shadow-[var(--shadow-sm)]">
           {programFaq.map((item, i) => (
-            <AccordionItem key={i} question={item.q} answer={item.a} />
+            <AccordionItem
+              key={i}
+              question={item.q}
+              answer={item.a}
+              feedbackKey={`program-${id}#${i}`}
+              feedbackLabels={feedbackLabels}
+            />
           ))}
         </div>
       ) : (
@@ -208,6 +237,9 @@ export default async function ProductDetailPage({
           <path d="M9 18l6-6-6-6" />
         </svg>
       </Link>
+
+      {/* Не нашли ответ? → обращение в поддержку (в админку) */}
+      <SupportAsk scope={`program-${id}`} locale={locale} labels={askLabels} />
     </div>
   );
 

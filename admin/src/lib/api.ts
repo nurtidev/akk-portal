@@ -175,3 +175,39 @@ export async function decide(
 export async function getStats(): Promise<Stats> {
   return apiFetch('/api/v1/admin/stats');
 }
+
+// ── Обращения в поддержку («Не нашли ответ?») ─────────────────────────────────
+
+export interface SupportQuestion {
+  uid: string;
+  item_key: string;
+  scope: string;
+  question: string;
+  contact: string;
+  locale: string;
+  status: 'new' | 'resolved';
+  created_at: string;
+}
+
+export interface QuestionsResponse {
+  questions: SupportQuestion[];
+  by_status: Record<string, number>;
+  total: number;
+}
+
+/** Список обращений из FAQ (опц. фильтр по статусу) + счётчики */
+export async function listQuestions(status?: string): Promise<QuestionsResponse> {
+  const params = status ? `?status=${encodeURIComponent(status)}` : '';
+  return apiFetch(`/api/v1/admin/questions${params}`);
+}
+
+/** Пометить обращение решённым (или вернуть в new через status='new') */
+export async function resolveQuestion(
+  uid: string,
+  status: 'new' | 'resolved' = 'resolved'
+): Promise<{ uid: string; status: string }> {
+  return apiFetch(
+    `/api/v1/admin/questions/${uid}/resolve?status=${status}`,
+    { method: 'POST' }
+  );
+}

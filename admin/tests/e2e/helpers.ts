@@ -60,6 +60,16 @@ export async function seedApplication(opts: {
   return { uid: d.uid, number: d.number };
 }
 
+/** Отправить обращение «Не нашли ответ?» через публичный эндпоинт (для теста админки). */
+export async function seedSupportQuestion(question: string, scope = 'faq'): Promise<void> {
+  const r = await fetch(`${API}/api/v1/faq/question`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, scope, contact: '+7 700 555 44 33', locale: 'ru' }),
+  });
+  if (!r.ok) throw new Error(`seed support question failed: ${r.status}`);
+}
+
 /** Программный вход в админку: кладём валидный токен в localStorage до загрузки страниц. */
 export async function loginAsAdmin(page: Page): Promise<void> {
   const tok = await adminToken();

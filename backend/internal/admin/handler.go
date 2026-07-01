@@ -45,6 +45,8 @@ func (h *Handler) Register(g *echo.Group) {
 	g.GET("/applications/:uid", h.get, h.Middleware)
 	g.POST("/applications/:uid/decision", h.decision, h.Middleware)
 	g.GET("/stats", h.stats, h.Middleware)
+	g.GET("/questions", h.listQuestions, h.Middleware)
+	g.POST("/questions/:uid/resolve", h.resolveQuestion, h.Middleware)
 }
 
 // --- Auth ----------------------------------------------------------------
@@ -213,6 +215,75 @@ func (h *Handler) stats(c echo.Context) error {
 		total += n
 	}
 	return c.JSON(http.StatusOK, map[string]any{"by_status": counts, "total": total})
+}
+
+// --- Обращения в поддержку («Не нашли ответ?») ---------------------------
+
+// listQuestions отдаёт обращения из блока FAQ (опц. фильтр ?status=new|resolved),
+// плюс счётчики по статусам для шапки.
+func (h *Handler) listQuestions(c echo.Context) error {
+	status := strings.TrimSpace(c.QueryParam("status"))
+	if status != "" && status != store.SupportStatusNew && status != store.SupportStatusResolved {
+		return c.JSON(http.StatusBadRequest, errBody("недопустимый статус фильтра"))
+	}
+	items, err := h.store.ListSupportQuestions(c.Request().Context(), status)
+	if err != nil {
+		h.logger.Error("admin: обращения не получены", "err", err)
+		return c.JSON(http.StatusInternalServerError, errBody("не удалось получить обращения"))
+	}
+	counts, err := h.store.CountSupportQuestionsByStatus(c.Request().Context())
+	if err != nil {
+		h.logger.Error("admin: счётчики обращений не получены", "err", err)
+		return c.JSON(http.StatusInternalServerError, errBody("не удалось получить обращения"))
+	}
+	out := make([]map[string]any, 0, len(items))
+	for _, q := range items {
+		out = append(out, questionDTO(q))
+	}
+	total := 0
+	for _, n := range counts {
+		total += n
+	}
+	return c.JSON(http.StatusOK, map[string]any{
+		"questions": out,
+		"by_status": counts,
+		"total":     total,
+	})
+}
+
+// resolveQuestion помечает обращение решённым (или возвращает в new через ?status=new).
+func (h *Handler) resolveQuestion(c echo.Context) error {
+	uid, err := uuid.Parse(c.Param("uid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, errBody("некорректный идентификатор обращения"))
+	}
+	status := strings.TrimSpace(c.QueryParam("status"))
+	if status == "" {
+		status = store.SupportStatusResolved
+	}
+	if status != store.SupportStatusNew && status != store.SupportStatusResolved {
+		return c.JSON(http.StatusBadRequest, errBody("недопустимый статус"))
+	}
+	if err := h.store.SetSupportQuestionStatus(c.Request().Context(), uid, status); err == store.ErrNotFound {
+		return c.JSON(http.StatusNotFound, errBody("обращение не найдено"))
+	} else if err != nil {
+		h.logger.Error("admin: статус обращения не обновлён", "err", err)
+		return c.JSON(http.StatusInternalServerError, errBody("не удалось обновить обращение"))
+	}
+	return c.JSON(http.StatusOK, map[string]any{"uid": uid.String(), "status": status})
+}
+
+func questionDTO(q store.SupportQuestion) map[string]any {
+	return map[string]any{
+		"uid":        q.UID.String(),
+		"item_key":   q.ItemKey,
+		"scope":      q.Scope,
+		"question":   q.Question,
+		"contact":    q.Contact,
+		"locale":     q.Locale,
+		"status":     q.Status,
+		"created_at": q.CreatedAt,
+	}
 }
 
 // --- DTO -----------------------------------------------------------------

@@ -11,3 +11,4 @@ export * from "./auth";
 export * from "./credit";
 export * from "./status";
 export * from "./submit-application";
+export * from "./faq";

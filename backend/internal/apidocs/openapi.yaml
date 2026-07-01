@@ -33,6 +33,8 @@ tags:
     description: Кредитные заявки, этапы, документы
   - name: admin
     description: Админ-панель кредитного администратора (role=admin)
+  - name: faq
+    description: FAQ — оценка полезности ответов и обращения в поддержку (публичные)
 
 paths:
   /health:
@@ -725,6 +727,139 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
 
+  /api/v1/admin/questions:
+    get:
+      tags: [admin]
+      summary: Список обращений «Не нашли ответ?» (+ счётчики)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [new, resolved] }
+      responses:
+        "200":
+          description: Обращения
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  by_status:
+                    type: object
+                    additionalProperties: { type: integer }
+                  questions:
+                    type: array
+                    items: { $ref: "#/components/schemas/SupportQuestion" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/v1/admin/questions/{uid}/resolve:
+    post:
+      tags: [admin]
+      summary: Пометить обращение решённым (или вернуть в new)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string, enum: [new, resolved], default: resolved }
+      responses:
+        "200":
+          description: Обновлено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uid: { type: string, format: uuid }
+                  status: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/faq/vote:
+    post:
+      tags: [faq]
+      summary: Голос «Полезен ли ответ?» (агрегат N% полезно)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [item_key, voter]
+              properties:
+                item_key: { type: string, description: "Стабильный ключ вопроса, напр. program-agrobusiness#0" }
+                voter: { type: string, description: "Анонимный id устройства (localStorage)" }
+                helpful: { type: boolean }
+      responses:
+        "200":
+          description: Свежий агрегат
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FaqStat" }
+        "400":
+          description: Не указан вопрос или идентификатор
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/faq/stats:
+    get:
+      tags: [faq]
+      summary: Агрегаты по набору вопросов
+      parameters:
+        - name: keys
+          in: query
+          description: Ключи вопросов через запятую
+          schema: { type: string }
+      responses:
+        "200":
+          description: Карта ключ → агрегат (только те, за что голосовали)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats:
+                    type: object
+                    additionalProperties: { $ref: "#/components/schemas/FaqStat" }
+
+  /api/v1/faq/question:
+    post:
+      tags: [faq]
+      summary: Обращение «Не нашли ответ? Задать вопрос» → в поддержку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                question: { type: string }
+                contact: { type: string, description: "Телефон/email для ответа (опц.)" }
+                scope: { type: string, description: "Откуда пришёл вопрос: faq | program-<id>" }
+                item_key: { type: string }
+                locale: { type: string }
+      responses:
+        "201":
+          description: Принято
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { ok: { type: boolean } }
+        "400":
+          description: Пустой вопрос
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -772,6 +907,26 @@ components:
       type: object
       properties:
         message: { type: string }
+
+    FaqStat:
+      type: object
+      properties:
+        item_key: { type: string, description: "Присутствует только в ответе на /vote" }
+        helpful: { type: integer, description: "Сколько отметили «полезно»" }
+        total: { type: integer, description: "Всего голосов" }
+        percent: { type: integer, description: "Доля полезных (0..100)" }
+
+    SupportQuestion:
+      type: object
+      properties:
+        uid: { type: string, format: uuid }
+        item_key: { type: string }
+        scope: { type: string }
+        question: { type: string }
+        contact: { type: string }
+        locale: { type: string }
+        status: { type: string, enum: [new, resolved] }
+        created_at: { type: string, format: date-time }
 
     SmsSentResponse:
       type: object

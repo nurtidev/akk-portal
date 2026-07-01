@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FaqFeedback, type FaqFeedbackLabels } from "./faq-feedback";
 
 export interface BreadcrumbItem {
   label: string;
@@ -180,9 +181,15 @@ export function ContentCard({
 export function AccordionItem({
   question,
   answer,
+  feedbackKey,
+  feedbackLabels,
 }: {
   question: string;
   answer: string;
+  /** Стабильный ключ вопроса для оценки полезности (напр. `program-agrobusiness#0`). */
+  feedbackKey?: string;
+  /** Подписи блока «Полезен ли ответ?». Нужны вместе с feedbackKey. */
+  feedbackLabels?: FaqFeedbackLabels;
 }) {
   // Клиентская интерактивность — управляется через details/summary (нативный HTML, без JS)
   return (
@@ -204,6 +211,9 @@ export function AccordionItem({
       </summary>
       <div className="pb-4 pt-1 text-[var(--text-2)] text-sm leading-relaxed">
         {answer}
+        {feedbackKey && feedbackLabels && (
+          <FaqFeedback itemKey={feedbackKey} labels={feedbackLabels} />
+        )}
       </div>
     </details>
   );

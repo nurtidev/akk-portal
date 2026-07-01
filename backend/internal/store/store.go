@@ -126,6 +126,34 @@ ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS content_type TEXT;
 ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS file_size    BIGINT;
 -- Метод подписи для sign-документов (согласие на ПД и т.п.): ecp | sms.
 ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS sign_method  TEXT;
+
+-- Голоса «Полезен ли ответ?» по вопросам FAQ (агрегат «N% нашли полезным»,
+-- как у Kaspi). voter — анонимный идентификатор устройства (генерится на фронте
+-- и хранится в localStorage); один голос на пару (вопрос, устройство), но его
+-- можно переголосовать (ON CONFLICT DO UPDATE).
+CREATE TABLE IF NOT EXISTS faq_votes (
+    id         UUID PRIMARY KEY,
+    item_key   TEXT NOT NULL,
+    voter      TEXT NOT NULL,
+    helpful    BOOLEAN NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (item_key, voter)
+);
+CREATE INDEX IF NOT EXISTS idx_faq_votes_item ON faq_votes(item_key);
+
+-- Обращения «Не нашли ответ? Задать вопрос» — уходят в поддержку (видны в админке).
+CREATE TABLE IF NOT EXISTS support_questions (
+    uid        UUID PRIMARY KEY,
+    item_key   TEXT NOT NULL DEFAULT '',
+    scope      TEXT NOT NULL DEFAULT '',
+    question   TEXT NOT NULL,
+    contact    TEXT NOT NULL DEFAULT '',
+    locale     TEXT NOT NULL DEFAULT '',
+    status     TEXT NOT NULL DEFAULT 'new',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_support_questions_status ON support_questions(status, created_at DESC);
 `
 
 func (s *Store) migrate(ctx context.Context) error {
