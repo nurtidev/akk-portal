@@ -137,45 +137,41 @@ test.describe('Квиз — 7 сквозных сценариев', () => {
     await expect(topCard(page)).toContainText('100% совпадение');
   });
 
-  test('импортный КРС 100–499 голов → топ «Игілік и Береке»', async ({ page }) => {
+  test('КРС 100–499 голов → топ «Игілік и Береке»', async ({ page }) => {
     await pickOption(page, 'Покупка скота');
     await expectQuestion(page, 'Сколько лет ведёте деятельность?');
     await pickOption(page, 'Более 3 лет');
     await pickOption(page, /100 – 500 млн/);
     await pickOption(page, /КРС/);
-    await pickOption(page, 'Импортное племенное поголовье');
     await pickOption(page, /100 – 499 голов/);
 
     await expect(resultsHeading(page)).toBeVisible();
     await expect(topCard(page).getByRole('heading', { level: 3 })).toContainText(/Игілік|Береке/);
   });
 
-  test('импортный КРС 500+ голов → топ «Игілік и Береке»', async ({ page }) => {
+  test('КРС 500+ голов → топ «Игілік и Береке»', async ({ page }) => {
     await pickOption(page, 'Покупка скота');
     await pickOption(page, 'Более 3 лет');
     await pickOption(page, /Более 500 млн/);
     await pickOption(page, /КРС/);
-    await pickOption(page, 'Импортное племенное поголовье');
     await pickOption(page, /500 голов и более/);
 
     await expect(resultsHeading(page)).toBeVisible();
     await expect(topCard(page).getByRole('heading', { level: 3 })).toContainText(/Игілік|Береке/);
   });
 
-  test('отечественный КРС → «Игілік» не подходит, fallback «Агробизнес»', async ({ page }) => {
+  test('КРС без деления импорт/отечественный → «Игілік» в выдаче', async ({ page }) => {
+    // По регламенту 002-207-22 Игілік/Береке финансируют и импортный, и
+    // отечественный племенной КРС — вопрос про происхождение убран из квиза.
     await pickOption(page, 'Покупка скота');
     await pickOption(page, 'Более 3 лет');
     await pickOption(page, /100 – 500 млн/);
     await pickOption(page, /КРС/);
-    // Вопрос про импорт появляется только после выбора КРС.
-    await expectQuestion(page, 'Импортное или отечественное поголовье?');
-    await pickOption(page, 'Отечественный скот или обновление стада');
     await pickOption(page, /100 – 499 голов/);
 
     await expect(resultsHeading(page)).toBeVisible();
     const titles = await page.getByRole('heading', { level: 3 }).allTextContents();
-    expect(titles).not.toContain('Игілік и Береке');
-    expect(titles.some((t) => /Агробизнес/.test(t))).toBe(true);
+    expect(titles).toContain('Игілік и Береке');
   });
 
   test('микрокредит (село, до 20 млн) → топ «Іскер»', async ({ page }) => {
@@ -243,24 +239,22 @@ test.describe('Калькулятор — графики и сроки', () => {
     await expect(card.getByText('05 марта', { exact: true })).toBeVisible();
   });
 
-  test('«Игілік и Береке» — ставка 6%, срок до 84 мес', async ({ page }) => {
+  test('«Игілік и Береке» — ставка 6%, срок до 108 мес', async ({ page }) => {
     await openHome(page);
     await startQuiz(page);
     await pickOption(page, 'Покупка скота');
     await pickOption(page, 'Более 3 лет');
     await pickOption(page, /100 – 500 млн/);
     await pickOption(page, /КРС/);
-    await pickOption(page, 'Импортное племенное поголовье');
     await pickOption(page, /100 – 499 голов/);
 
     await expect(resultsHeading(page)).toBeVisible();
     const card = resultCard(page, /Игілік|Береке/);
     // Стат-блок «ставка / сумма до / срок до». Без rateRange ставка рисуется как «от 6%».
     await expect(card.getByText('от 6%', { exact: true }).first()).toBeVisible();
-    // «84 мес» встречается и в стат-блоке, и в scheduleNote — берём первое вхождение.
-    await expect(card.getByText('84 мес').first()).toBeVisible();
-    // Срок зафиксирован у biannual — у Игілік annual, поэтому кнопки сроков есть;
-    // 84 — максимум, кнопки свыше 84 быть не должно.
+    // «108 мес» встречается и в стат-блоке, и в scheduleNote — берём первое вхождение.
+    await expect(card.getByText('108 мес').first()).toBeVisible();
+    // 108 — максимум, кнопки свыше 108 быть не должно.
     await expect(card.getByRole('button', { name: '120 мес' })).toHaveCount(0);
   });
 
@@ -277,7 +271,7 @@ test.describe('Калькулятор — графики и сроки', () => {
     await pickOption(page, /100 – 500 млн/);
 
     await expect(resultsHeading(page)).toBeVisible();
-    // Именно «Агробизнес», не «Агробизнес 2.0» (у 2.0 ПОС ограничен 12 мес).
+    // Именно «Агробизнес» (не «Агробизнес 2.0») — берём карточку по точному названию.
     const card = resultCard(page, /^Агробизнес$/);
     // «48 мес» — потолок срока в стат-блоке (встречается также в примечаниях → .first()).
     await expect(card.getByText('48 мес').first()).toBeVisible();
@@ -297,7 +291,6 @@ test.describe('Стресс-тест — Игілік', () => {
     await pickOption(page, 'Более 3 лет');
     await pickOption(page, /100 – 500 млн/);
     await pickOption(page, /КРС/);
-    await pickOption(page, 'Импортное племенное поголовье');
     await pickOption(page, /100 – 499 голов/);
     await expect(resultsHeading(page)).toBeVisible();
     // «Подать заявку →» у карточки Игілік ведёт на стресс-тест (hasStressTest).

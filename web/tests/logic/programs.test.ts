@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { PROGRAMS, PROGRAM_DETAILS } from '@/data/programs';
 
 describe('A1 PROGRAMS', () => {
-  it('содержит ровно 7 программ', () => {
-    expect(PROGRAMS).toHaveLength(7);
+  it('содержит ровно 10 программ', () => {
+    expect(PROGRAMS).toHaveLength(10);
   });
 
   it('id программ совпадают с легаси (порядок сохранён)', () => {
@@ -14,7 +14,10 @@ describe('A1 PROGRAMS', () => {
       'igilik_bereke',
       'isker',
       'feedlot_poultry',
-      'agrobusiness_2'
+      'agrobusiness_2',
+      'aquaculture',
+      'zhailau',
+      'greenhouse_garden'
     ]);
   });
 
@@ -40,7 +43,7 @@ describe('A1 PROGRAMS', () => {
     expect(byId.agrobusiness.termByPurpose).toEqual({ investments: 120, working: 48 });
 
     expect(byId.igilik_bereke.rate).toBe(6);
-    expect(byId.igilik_bereke.maxTerm).toBe(84);
+    expect(byId.igilik_bereke.maxTerm).toBe(108);
     expect(byId.igilik_bereke.hasStressTest).toBe(true);
 
     expect(byId.isker.maxAmount).toBe(34600000);
@@ -48,7 +51,7 @@ describe('A1 PROGRAMS', () => {
 
     expect(byId.agrobusiness_2.rate).toBe(12.6);
     expect(byId.agrobusiness_2.maxTerm).toBe(180);
-    expect(byId.agrobusiness_2.termByPurpose).toEqual({ investments: 180, working: 12 });
+    expect(byId.agrobusiness_2.termByPurpose).toEqual({ investments: 180, working: 48 });
   });
 
   it('rateRange задан только у Агробизнеса (не схлопывать rate/rateRange)', () => {
@@ -62,9 +65,9 @@ describe('A1 PROGRAMS', () => {
 });
 
 describe('A1 PROGRAM_DETAILS', () => {
-  it('есть детали для всех 6 видимых программ (кроме ken_dala)', () => {
+  it('есть детали для всех видимых программ (кроме ken_dala)', () => {
     expect(Object.keys(PROGRAM_DETAILS).sort()).toEqual(
-      ['agrobusiness', 'agrobusiness_2', 'feedlot_poultry', 'igilik_bereke', 'isker', 'ken_dala_2'].sort()
+      ['agrobusiness', 'agrobusiness_2', 'aquaculture', 'feedlot_poultry', 'greenhouse_garden', 'igilik_bereke', 'isker', 'ken_dala_2', 'zhailau'].sort()
     );
   });
 

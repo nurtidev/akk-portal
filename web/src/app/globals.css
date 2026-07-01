@@ -132,6 +132,44 @@
   }
 }
 
+/* ===== Impact-лента (горизонтальный авто-скролл достижений под hero) ===== */
+/* Трек продублирован ×2 в разметке; сдвиг на -50% даёт бесшовный цикл. */
+@keyframes impact-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.impact-track {
+  animation: impact-scroll var(--impact-duration, 48s) linear infinite;
+  width: max-content;
+}
+
+/* Пауза при наведении/фокусе внутри ленты — чтобы можно было прочитать. */
+.impact-marquee:hover .impact-track,
+.impact-marquee:focus-within .impact-track {
+  animation-play-state: paused;
+}
+
+/* Прячем скроллбар (лента листается вручную при reduced-motion). */
+.impact-marquee {
+  scrollbar-width: none;
+}
+.impact-marquee::-webkit-scrollbar {
+  display: none;
+}
+
+/* Без анимации (reduced-motion) — трек в исходной позиции, листается руками. */
+@media (prefers-reduced-motion: reduce) {
+  .impact-track {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 /* ===== Орнамент-тайл (паттерн из легаси) ===== */
 .ornament-tile {
   background-image: url('/ornament.svg');

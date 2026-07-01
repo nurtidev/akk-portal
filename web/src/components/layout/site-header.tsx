@@ -121,10 +121,14 @@ export function SiteHeader() {
 
   return (
     <header
-      className="site-header sticky top-0 z-50 w-full border-b border-[var(--border)] bg-[var(--surface)]/90 backdrop-blur-sm transition-colors"
+      className="site-header sticky top-0 z-50 w-full border-b border-[var(--border)] backdrop-blur-sm transition-colors"
       style={{
-        // Тёмная тема: более тёмный фон шапки (как в легаси .dark .site-header)
-        // Управляется через CSS-переменные
+        // Непрозрачный фон шапки: sticky-шапка проходит поверх тёмно-зелёных
+        // hero-блоков контентных страниц; полупрозрачный /90 к «голой» var()
+        // в Tailwind не прокрашивался — тёмный герой просвечивал и текст
+        // навигации/логотип сливались. color-mix даёт лёгкую «фрост»-полупрозрачность,
+        // но достаточно плотную, чтобы текст всегда читался.
+        backgroundColor: "color-mix(in srgb, var(--surface) 94%, transparent)",
       }}
     >
       <div className="container mx-auto px-4">

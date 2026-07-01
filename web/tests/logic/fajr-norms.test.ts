@@ -12,14 +12,15 @@ describe('A3 FAJR_NORMS', () => {
     expect(Object.keys(FAJR_NORMS).sort()).toEqual([...TYPES].sort());
   });
 
-  it('нормативы пастбищ/помещений (регламент) сохранены дословно', () => {
-    expect(FAJR_NORMS.KRS.pastureHaPerHead).toBe(1.5);
-    expect(FAJR_NORMS.MRS.pastureHaPerHead).toBe(0.3);
+  it('нормативы пастбищ/помещений — по П АКК 002-207-22 (2026)', () => {
+    expect(FAJR_NORMS.KRS.pastureHaPerHead).toBe(3);
+    expect(FAJR_NORMS.MRS.pastureHaPerHead).toBe(0.5);
     expect(FAJR_NORMS.HORSE.pastureHaPerHead).toBe(3);
-    expect(FAJR_NORMS.CAMEL.pastureHaPerHead).toBe(5);
-    expect(FAJR_NORMS.KRS.minBarnSqmPerHead).toBe(6);
-    expect(FAJR_NORMS.HORSE.minBarnSqmPerHead).toBe(8);
-    expect(FAJR_NORMS.CAMEL.minBarnSqmPerHead).toBe(10);
+    expect(FAJR_NORMS.CAMEL.pastureHaPerHead).toBe(3);
+    expect(FAJR_NORMS.KRS.minBarnSqmPerHead).toBe(3);
+    expect(FAJR_NORMS.MRS.minBarnSqmPerHead).toBe(1);
+    expect(FAJR_NORMS.HORSE.minBarnSqmPerHead).toBe(3);
+    expect(FAJR_NORMS.CAMEL.minBarnSqmPerHead).toBe(3);
   });
 
   it('только КРС даёт молоко (cowShare/milkPerDay > 0)', () => {

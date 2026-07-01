@@ -10,7 +10,9 @@
 // youngSalePrice) и снижена себестоимость до уровня пастбищного содержания.
 // ВСЕ значения дохода/затрат/приплода — ЧЕРНОВЫЕ, требуют сверки с бизнесом
 // (Марат / зоотехник). Нормативы пастбищ/помещений (pastureHaPerHead,
-// minBarnSqmPerHead) — из регламента П АКК 002-207-22, НЕ менять.
+// minBarnSqmPerHead) сверены с регламентом П АКК 002-207-22 (2026): КРС 3 га / 3 м²,
+// МРС 0,5 га / 1 м², лошади 3 га / 3 м², верблюды 3 га / 3 м² (прежние значения были
+// оценочными и не совпадали с регламентом).
 // =====================================================
 
 /** Виды животных, по которым заданы нормативы. */
@@ -71,8 +73,8 @@ export const FAJR_NORMS: Record<AnimalType, FajrNorm> = {
     yearlyFeedCost: 110000,    // DRAFT: корма (пастбищное содержание)
     yearlyVetCost: 3000,       // DRAFT: ветеринария
     yearlyOther: 25000,        // DRAFT: прочие расходы
-    pastureHaPerHead: 1.5,     // га пастбищ на голову (регламент)
-    minBarnSqmPerHead: 6       // м² помещений на голову (регламент)
+    pastureHaPerHead: 3,       // га пастбищ на голову (П АКК 002-207-22: ≥3 га в пастбищный период)
+    minBarnSqmPerHead: 3       // м² помещений на голову (навес 3 м²/гол; выгул — доп. 15 м²/гол)
   },
   MRS: {
     label: 'МРС (овцы, козы)',
@@ -90,8 +92,8 @@ export const FAJR_NORMS: Record<AnimalType, FajrNorm> = {
     yearlyFeedCost: 18000,     // DRAFT
     yearlyVetCost: 800,        // DRAFT
     yearlyOther: 6000,         // DRAFT
-    pastureHaPerHead: 0.3,
-    minBarnSqmPerHead: 1.5
+    pastureHaPerHead: 0.5,     // П АКК 002-207-22: ≥0,5 га на голову
+    minBarnSqmPerHead: 1       // 1 м²/гол (откорм — 2 м²/гол)
   },
   HORSE: {
     label: 'Лошади',
@@ -109,8 +111,8 @@ export const FAJR_NORMS: Record<AnimalType, FajrNorm> = {
     yearlyFeedCost: 90000,     // DRAFT
     yearlyVetCost: 4000,       // DRAFT
     yearlyOther: 22000,        // DRAFT
-    pastureHaPerHead: 3,
-    minBarnSqmPerHead: 8
+    pastureHaPerHead: 3,       // совпадает с регламентом
+    minBarnSqmPerHead: 3       // П АКК 002-207-22: 3 м²/гол
   },
   CAMEL: {
     label: 'Верблюды',
@@ -128,7 +130,7 @@ export const FAJR_NORMS: Record<AnimalType, FajrNorm> = {
     yearlyFeedCost: 80000,     // DRAFT
     yearlyVetCost: 4500,       // DRAFT
     yearlyOther: 25000,        // DRAFT
-    pastureHaPerHead: 5,
-    minBarnSqmPerHead: 10
+    pastureHaPerHead: 3,       // П АКК 002-207-22: 3 га/гол
+    minBarnSqmPerHead: 3       // 3 м²/гол
   }
 };

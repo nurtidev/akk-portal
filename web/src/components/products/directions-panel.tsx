@@ -22,6 +22,20 @@ import {
 } from '@/data/directions';
 import { calculateSchedule } from '@/lib/schedule';
 import type { Program } from '@/data/programs';
+import {
+  Beef, Sprout, Warehouse, Factory, Milk, Bird, Droplets, Apple, Leaf, Wheat, Fuel,
+  type LucideIcon,
+} from 'lucide-react';
+
+// Иконки направлений — Lucide (дизайн-код: без эмодзи). `icon` в @/data/directions
+// хранит имя Lucide-иконки; здесь маппим имя → компонент.
+const DIR_ICONS: Record<string, LucideIcon> = {
+  Beef, Sprout, Warehouse, Factory, Milk, Bird, Droplets, Apple, Leaf, Wheat, Fuel,
+};
+function DirIcon({ name, className }: { name: string; className?: string }) {
+  const Icon = DIR_ICONS[name] ?? Sprout;
+  return <Icon className={className} aria-hidden="true" />;
+}
 
 /** Полное число с разделителями групп («476 257 000»). */
 function fmtNum(v: number): string {
@@ -51,9 +65,9 @@ export function DirectionsPanel({ program }: { program: Program }) {
             <div className="mb-4 flex items-center gap-3">
               <span
                 aria-hidden="true"
-                className="grid h-10 w-10 place-items-center rounded-[var(--radius)] bg-[var(--primary-soft)] text-xl"
+                className="grid h-10 w-10 place-items-center rounded-[var(--radius)] bg-[var(--primary-soft)]"
               >
-                {g.icon}
+                <DirIcon name={g.icon} className="h-5 w-5 text-[var(--primary)]" />
               </span>
               <div>
                 <h3 className="font-display text-base font-bold text-[var(--text)]">{g.title}</h3>
@@ -71,8 +85,7 @@ export function DirectionsPanel({ program }: { program: Program }) {
                   onClick={() => setOpenId(d.id)}
                   className="group flex flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 text-left shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:border-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
                 >
-                  <span aria-hidden="true" className="text-2xl">{d.icon}</span>
-                  <span className="mt-2 font-display text-[15px] font-bold text-[var(--text)]">{d.title}</span>
+                  <span className="font-display text-[15px] font-bold text-[var(--text)]">{d.title}</span>
                   <span className="mt-1 text-xs text-[var(--text-3)]">
                     {d.minCapacity ?? d.capacityLabel}
                   </span>
@@ -141,7 +154,6 @@ function DirectionModal({
       <div className="my-4 w-full max-w-2xl overflow-hidden rounded-[var(--radius-lg)] bg-[var(--bg)] shadow-2xl">
         {/* Шапка */}
         <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-5 py-4">
-          <span aria-hidden="true" className="text-2xl">{direction.icon}</span>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-[var(--text-3)]">{t('breadcrumb')}</p>
             <h3 className="truncate font-display text-lg font-bold text-[var(--text)]">{direction.title}</h3>

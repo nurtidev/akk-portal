@@ -3,7 +3,6 @@ import { createRequire } from 'node:module';
 import {
   QUESTIONS,
   ANIMAL_TYPE_Q,
-  CATTLE_ORIGIN_Q,
   HEADS_Q,
   getQuestions,
   optionLabel,
@@ -27,14 +26,13 @@ describe('A2 QUESTIONS — структура', () => {
 
   it('условные вопросы заданы', () => {
     expect(ANIMAL_TYPE_Q.key).toBe('animalType');
-    expect(CATTLE_ORIGIN_Q.key).toBe('cattleOrigin');
     expect(HEADS_Q.key).toBe('heads');
     expect(ANIMAL_TYPE_Q.options.map((o) => o.value)).toEqual(['KRS', 'MRS', 'HORSE', 'CAMEL']);
     expect(HEADS_Q.options.map((o) => o.value)).toEqual(['under-100', '100-499', '500plus']);
   });
 });
 
-describe('A2 getQuestions — ветвление 5/6/7 шагов', () => {
+describe('A2 getQuestions — ветвление 4/5 шагов', () => {
   it('пусто/растениеводство (vprir): скрыт sector+location → 4 шага', () => {
     const qs = getQuestions({ purpose: 'vprir' });
     expect(qs.map((q) => q.key)).toEqual(['purpose', 'experience', 'amount']);
@@ -50,24 +48,23 @@ describe('A2 getQuestions — ветвление 5/6/7 шагов', () => {
     expect(qs.map((q) => q.key)).toEqual(['purpose', 'sector', 'experience', 'location', 'amount']);
   });
 
-  it('livestock без КРС → 6 шагов (вид + головы, без cattleOrigin)', () => {
+  it('livestock без КРС → 5 шагов (вид + головы)', () => {
     const qs = getQuestions({ purpose: 'livestock', animalType: 'MRS' });
     expect(qs.map((q) => q.key)).toEqual(['purpose', 'experience', 'amount', 'animalType', 'heads']);
   });
 
-  it('livestock + КРС → 7 шагов (вид + cattleOrigin + головы)', () => {
+  it('livestock + КРС → 5 шагов (вид + головы; вопрос импорт/отечественный убран)', () => {
     const qs = getQuestions({ purpose: 'livestock', animalType: 'KRS' });
     expect(qs.map((q) => q.key)).toEqual([
       'purpose',
       'experience',
       'amount',
       'animalType',
-      'cattleOrigin',
       'heads'
     ]);
   });
 
-  it('livestock без выбранного вида → вид + головы, ещё без cattleOrigin', () => {
+  it('livestock без выбранного вида → вид + головы', () => {
     const qs = getQuestions({ purpose: 'livestock' });
     expect(qs.map((q) => q.key)).toEqual(['purpose', 'experience', 'amount', 'animalType', 'heads']);
   });
@@ -116,11 +113,11 @@ describe('A2 golden — getQuestions/optionLabel/questionShort = легаси', 
   });
 
   it('optionLabel/questionShort совпадают по всем вариантам', () => {
-    const keys = ['purpose', 'sector', 'experience', 'location', 'amount', 'animalType', 'cattleOrigin', 'heads'];
+    const keys = ['purpose', 'sector', 'experience', 'location', 'amount', 'animalType', 'heads'];
     for (const k of keys) {
       expect(questionShort(k)).toBe(legacy.questionShort(k));
     }
-    for (const q of QUESTIONS.concat([ANIMAL_TYPE_Q, CATTLE_ORIGIN_Q, HEADS_Q])) {
+    for (const q of QUESTIONS.concat([ANIMAL_TYPE_Q, HEADS_Q])) {
       for (const o of q.options) {
         expect(optionLabel(q.key, o.value)).toBe(legacy.optionLabel(q.key, o.value));
       }

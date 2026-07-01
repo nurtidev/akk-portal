@@ -28,10 +28,10 @@ const SCENARIOS: { name: string; answers: Answers; topId: string; topScore: numb
     topScore: 100
   },
   {
-    name: 'Отечественный скот КРS → Игілік отсекается, fallback Агробизнес',
-    answers: { purpose: 'livestock', sector: 'animal', experience: '3plus', amount: '100-500m', animalType: 'KRS', cattleOrigin: 'domestic', heads: '100-499' },
-    topId: 'agrobusiness',
-    topScore: 80
+    name: 'Отечественный скот КРС → тоже Игілік (импорт/отечественный не различаются)',
+    answers: { purpose: 'livestock', sector: 'animal', experience: '3plus', amount: '100-500m', animalType: 'KRS', heads: '100-499' },
+    topId: 'igilik_bereke',
+    topScore: 100
   },
   {
     name: 'Микрокредит → услуги → стартап → село → до 20 млн',
@@ -63,11 +63,13 @@ describe('A4 scoring — 7 сквозных сценариев', () => {
     });
   }
 
-  it('Игілік отсекается при отечественном скоте и при не-КРС', () => {
-    const domestic: Answers = { purpose: 'livestock', sector: 'animal', experience: '3plus', amount: '100-500m', animalType: 'KRS', cattleOrigin: 'domestic', heads: '100-499' };
+  it('Игілік отсекается для не-КРС; отечественный КРС теперь проходит', () => {
+    const domestic: Answers = { purpose: 'livestock', sector: 'animal', experience: '3plus', amount: '100-500m', animalType: 'KRS', heads: '100-499' };
     const horse: Answers = { purpose: 'livestock', sector: 'animal', experience: '3plus', amount: '100-500m', animalType: 'HORSE', heads: '100-499' };
     const igilik = PROGRAMS.find((p) => p.id === 'igilik_bereke')!;
-    expect(scoreProgram(igilik, domestic)).toBeNull();
+    // Импорт/отечественный больше не различаются — отечественный КРС проходит.
+    expect(scoreProgram(igilik, domestic)).not.toBeNull();
+    // Не-КРС (лошади) по-прежнему отсекается.
     expect(scoreProgram(igilik, horse)).toBeNull();
     // Лошади → Агробизнес присутствует в выдаче.
     expect(scoredPrograms(horse).some((x) => x.program.id === 'agrobusiness')).toBe(true);

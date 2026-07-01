@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { ContentPage } from '@/components/content/content-page';
-import { FallbackImage } from '@/components/content/hero-image';
+import { ProductCardMedia } from '@/components/products/product-card-media';
 import { PROGRAMS, type Program } from '@/data/programs';
 import { fmtAmount } from '@/lib/format';
 
@@ -64,17 +64,8 @@ function ProductCard({
         p.featured ? 'border-[var(--primary)]' : 'border-[var(--border)]'
       }`}
     >
-      {/* Фото программы (фолбэк — зелёный градиент, если файла нет) */}
-      <div className="relative -mx-5 -mt-5 mb-4 aspect-[16/9] overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)]">
-        <FallbackImage
-          src={`/img/programs/${p.id}.jpg`}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <span className="absolute bottom-2 left-2 z-10 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
-          {p.category}
-        </span>
-      </div>
+      {/* Фото + hover-видео программы (фолбэк — зелёный градиент, если файла нет) */}
+      <ProductCardMedia id={p.id} category={p.category} />
       {p.indirectOnly && (
         <span className="mb-2 inline-flex w-fit rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[11px] font-medium text-[var(--accent-2)]">
           {tProg('indirectBadge')}
@@ -133,8 +124,8 @@ export default async function ProductsPage({
   const tp = await getTranslations({ locale, namespace: 'content.products' });
   const tProg = await getTranslations({ locale, namespace: 'funnel.programs' });
 
-  // Каталог продуктов: 6 программ (скрытая «Кең дала» убрана по решению владельца).
-  // featured — первой.
+  // Каталог продуктов: 9 программ (скрытая «Кең дала» убрана по решению владельца).
+  // featured — первой; Аквакультура/Жайлау/тепличные хозяйства — из регламента.
   const visible = PROGRAMS.filter((p) => !p.hidden);
   const ordered = [...visible.filter((p) => p.featured), ...visible.filter((p) => !p.featured)];
 

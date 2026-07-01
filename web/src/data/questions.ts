@@ -84,18 +84,6 @@ export const ANIMAL_TYPE_Q: Question = {
   ]
 };
 
-// Импортное / отечественное поголовье. Спрашивается только для КРС:
-// по регламенту П АКК 002-207-22 (стр. 28) Игілік и Береке финансируют
-// исключительно приобретение импортного племенного поголовья.
-export const CATTLE_ORIGIN_Q: Question = {
-  key: 'cattleOrigin', short: 'Импорт', title: 'Импортное или отечественное поголовье?',
-  hint: 'Игілік и Береке по регламенту финансируют только приобретение импортного племенного поголовья КРС',
-  options: [
-    { value: 'imported', label: 'Импортное племенное поголовье', desc: 'Завоз племенного скота из-за рубежа — подпадает под условия Игілік / Береке' },
-    { value: 'domestic', label: 'Отечественный скот или обновление стада', desc: 'Покупка внутри Казахстана — обычный (товарный) или племенной скот, подойдёт универсальная программа' }
-  ]
-};
-
 export const HEADS_Q: Question = {
   key: 'heads', short: 'Головы', title: 'Сколько голов планируете приобрести?',
   options: [
@@ -120,9 +108,10 @@ export const REGION_PURPOSES: string[] = ['feedlot', 'working', 'micro'];
  * Список вопросов квиза для текущих ответов. Условные ветки:
  *  - sector скрыт, если отрасль вытекает из цели (PURPOSE_TO_SECTOR);
  *  - location скрыт, если для цели регион не влияет (REGION_PURPOSES);
- *  - purpose=livestock → добавляется вид животных (+ количество голов);
- *  - animalType=KRS → дополнительно вопрос импорт/отечественный.
- * Реальное число шагов: 5 / 6 (покупка скота) / 7 (покупка КРС).
+ *  - purpose=livestock → добавляется вид животных (+ количество голов).
+ * Реальное число шагов: 5 / 6 (покупка скота).
+ * (Вопрос импорт/отечественный убран: по 002-207-22 Игілік/Береке финансируют
+ *  и импортный, и отечественный племенной КРС.)
  */
 export function getQuestions(answers: Answers): Question[] {
   const purpose = answers.purpose;
@@ -133,17 +122,14 @@ export function getQuestions(answers: Answers): Question[] {
   });
   // Для покупки скота — добавляем вид животных и количество голов.
   if (purpose === 'livestock') {
-    const livestockQs: Question[] = [ANIMAL_TYPE_Q];
-    // Импорт/отечественный спрашиваем только для КРС — это условие именно Игілік/Береке.
-    if (answers.animalType === 'KRS') livestockQs.push(CATTLE_ORIGIN_Q);
-    livestockQs.push(HEADS_Q);
+    const livestockQs: Question[] = [ANIMAL_TYPE_Q, HEADS_Q];
     return base.concat(livestockQs);
   }
   return base;
 }
 
 // Все вопросы квиза в одном списке — для человекочитаемых пояснений подбора.
-export const ALL_QUESTIONS: Question[] = QUESTIONS.concat([ANIMAL_TYPE_Q, CATTLE_ORIGIN_Q, HEADS_Q]);
+export const ALL_QUESTIONS: Question[] = QUESTIONS.concat([ANIMAL_TYPE_Q, HEADS_Q]);
 
 export function questionByKey(key: QuestionKey | string): Question | null {
   for (let i = 0; i < ALL_QUESTIONS.length; i++) {

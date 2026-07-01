@@ -61,15 +61,14 @@ const PROGRAMS = [
   },
   { id: 'igilik_bereke', title: 'Игілік и Береке', category: 'Племенной скот КРС',
     org: 'АО «Аграрная кредитная корпорация»',
-    description: 'Покупка импортного племенного поголовья КРС. Игілік — от 100 до 499 голов, Береке — от 500 голов (требуется опыт от 2 лет). Мясное и молочное направления.',
-    rate: 6, rateNote: '6% годовых (ГЭСВ от 6%) для прямых заёмщиков, 3,5% для КТ (маржа до 2,5%), 3% для БВУ (маржа до 3%). Субсидированная ставка по средствам республиканского бюджета. Только КРС.',
-    maxAmount: 5000000000, maxTerm: 84, scheduleType: 'annual',
-    scheduleNote: 'Мясное направление — до 84 мес. Молочное: до 84 мес при наличии инвестиционных затрат, иначе до 60 мес. График — по Приложению №3.',
+    description: 'Покупка племенного поголовья КРС (импортного или отечественного). Игілік — от 100 до 499 голов, Береке — от 500 голов (требуется опыт от 2 лет). Мясное и молочное направления.',
+    rate: 6, rateNote: '6% годовых (ГЭСВ от 6%) для прямых заёмщиков, 3% для КТ/БВУ/СПК (маржа не более 3%). Субсидированная ставка по средствам республиканского бюджета. Только КРС.',
+    maxAmount: 5000000000, maxTerm: 108, scheduleType: 'annual',
+    scheduleNote: 'Срок — до 108 мес. Льготный период по погашению основного долга и вознаграждения — до 36 мес. График — по Приложению №3.',
     hard: [
       { q: 'purpose', v: ['livestock'] },
       { q: 'sector', v: ['animal'] },
       { q: 'animalType', v: ['KRS'] },
-      { q: 'cattleOrigin', v: ['imported'] },
       { q: 'heads', v: ['100-499', '500plus'] }
     ],
     soft: [
@@ -117,10 +116,10 @@ const PROGRAMS = [
   { id: 'agrobusiness_2', title: 'Агробизнес 2.0', category: 'Льготные инвестиции',
     org: 'АО «Аграрная кредитная корпорация»',
     description: 'Льготное долгосрочное кредитование инвестиционных проектов сельхозпроизводителей. Самый длинный срок среди программ АКК — до 15 лет.',
-    rate: 12.6, rateNote: '12,6% годовых (ГЭСВ от 12,6%) для прямых заёмщиков. Инвестиционные цели (ОС/СМР) — до 180 мес, пополнение оборотных средств (ПОС) — до 12 мес.',
+    rate: 12.6, rateNote: '12,6% годовых (ГЭСВ от 12,6%) для прямых заёмщиков. Через БВУ — 2% годовых (номинальная ставка для конечных заёмщиков не более 12,6%). Инвестиционные цели (ОС/СМР) — до 180 мес, пополнение оборотных средств (ПОС) — до 48 мес.',
     maxAmount: 15000000000, maxTerm: 180, scheduleType: 'annual',
     scheduleNote: 'Погашение не реже одного раза в год по графику бизнес-плана. Возможен льготный период по решению Кредитного комитета.',
-    termByPurpose: { investments: 180, working: 12 },
+    termByPurpose: { investments: 180, working: 48 },
     hard: [{ q: 'purpose', v: ['investments', 'working'] }],
     soft: [
       { q: 'experience', v: ['3plus'], w: 45 },
@@ -129,6 +128,35 @@ const PROGRAMS = [
       { q: 'amount', v: ['100-500m'], w: 25 },
       { q: 'sector', v: ['processing', 'animal', 'plant'], w: 20 }
     ]
+  },
+  { id: 'aquaculture', title: 'Аквакультура', category: 'Рыбоводство',
+    org: 'Программа «Агробизнес животноводство», направление «Аквакультура»',
+    description: 'Финансирование рыбоводных хозяйств (аквакультуры): основные средства и СМР. Направление программы «Агробизнес животноводство» за счёт средств республиканского бюджета.',
+    rate: 6, rateNote: '6% годовых (ГЭСВ от 6%) для прямых заёмщиков, 3% для КТ/БВУ/СПК (маржа не более 3%). Источник — республиканский бюджет. Минимальная мощность — от 7 тонн в год.',
+    maxAmount: 5000000000, maxTerm: 108, scheduleType: 'annual',
+    scheduleNote: 'Срок — до 108 мес. Льготный период по погашению основного долга и вознаграждения — до 36 мес.',
+    hard: [{ q: 'purpose', v: ['__never__'] }],
+    soft: []
+  },
+  { id: 'zhailau', title: 'Жайлау', category: 'Фермы-репродукторы · через КТ',
+    org: 'Программа «Агробизнес животноводство», направление «Жайлау»',
+    description: 'Создание новых ферм-репродукторов КРС (от 300 голов) или овец (от 1000 голов). Финансирование через КТ, БВУ и СПК за счёт средств республиканского бюджета.',
+    rate: 3, rateNote: '3% годовых (ГЭСВ от 3%) для конечных заёмщиков через КТ/БВУ/СПК (маржа не более 3%). Источник — республиканский бюджет. На конечного заёмщика: до 350 млн ₸ (КРС) / 200 млн ₸ (овцы).',
+    maxAmount: 350000000, maxTerm: 120, scheduleType: 'annual',
+    scheduleNote: 'Срок — до 120 мес. Льготный период по погашению основного долга и вознаграждения — до 24 мес. Создание новых ферм-репродукторов: от 300 голов КРС / от 1000 овец.',
+    hard: [{ q: 'purpose', v: ['__never__'] }],
+    soft: [],
+    indirectOnly: true
+  },
+  { id: 'greenhouse_garden', title: 'Тепличные хозяйства и сады', category: 'Теплицы и сады',
+    org: 'Программа «Агробизнес», направление тепличные хозяйства/сады',
+    description: 'Пополнение оборотных средств для тепличных хозяйств и садов. Источник — привлечённые субсидируемые средства (ПСС), под гарантию «Даму».',
+    rate: 5, rateNote: '5% годовых (ГЭСВ от 5%) для прямых заёмщиков, 1,5% для финучреждений (БВУ/МФО/РИЦ, маржа не более 3,5%). Источник — ПСС. Обеспечение — гарантия «Даму» на 85% либо залог.',
+    maxAmount: 15000000000, maxTerm: 36, scheduleType: 'annual',
+    termByPurpose: { working: 36 },
+    scheduleNote: 'Кредитная линия до 36 мес, отдельный транш до 15 мес. Только пополнение оборотных средств (ПОС). Сумма — до 25% от собственного капитала АКК.',
+    hard: [{ q: 'purpose', v: ['__never__'] }],
+    soft: []
   }
 ];
 
@@ -190,15 +218,6 @@ const ANIMAL_TYPE_Q = {
   ]
 };
 
-const CATTLE_ORIGIN_Q = {
-  key: 'cattleOrigin', short: 'Импорт', title: 'Импортное или отечественное поголовье?',
-  hint: 'Игілік и Береке по регламенту финансируют только приобретение импортного племенного поголовья КРС',
-  options: [
-    { value: 'imported', label: 'Импортное племенное поголовье', desc: 'Завоз племенного скота из-за рубежа — подпадает под условия Игілік / Береке' },
-    { value: 'domestic', label: 'Отечественный скот или обновление стада', desc: 'Покупка внутри Казахстана — обычный (товарный) или племенной скот, подойдёт универсальная программа' }
-  ]
-};
-
 const HEADS_Q = {
   key: 'heads', short: 'Головы', title: 'Сколько голов планируете приобрести?',
   options: [
@@ -230,8 +249,8 @@ const FAJR_NORMS = {
     yearlyFeedCost: 350000,
     yearlyVetCost: 3000,
     yearlyOther: 100000,
-    pastureHaPerHead: 1.5,
-    minBarnSqmPerHead: 6
+    pastureHaPerHead: 3,
+    minBarnSqmPerHead: 3
   },
   MRS: {
     label: 'МРС (овцы, козы)',
@@ -245,8 +264,8 @@ const FAJR_NORMS = {
     yearlyFeedCost: 45000,
     yearlyVetCost: 800,
     yearlyOther: 15000,
-    pastureHaPerHead: 0.3,
-    minBarnSqmPerHead: 1.5
+    pastureHaPerHead: 0.5,
+    minBarnSqmPerHead: 1
   },
   HORSE: {
     label: 'Лошади',
@@ -261,7 +280,7 @@ const FAJR_NORMS = {
     yearlyVetCost: 4000,
     yearlyOther: 80000,
     pastureHaPerHead: 3,
-    minBarnSqmPerHead: 8
+    minBarnSqmPerHead: 3
   },
   CAMEL: {
     label: 'Верблюды',
@@ -275,8 +294,8 @@ const FAJR_NORMS = {
     yearlyFeedCost: 220000,
     yearlyVetCost: 4500,
     yearlyOther: 90000,
-    pastureHaPerHead: 5,
-    minBarnSqmPerHead: 10
+    pastureHaPerHead: 3,
+    minBarnSqmPerHead: 3
   }
 };
 
@@ -306,7 +325,6 @@ function getQuestions(answers) {
   });
   if (purpose === 'livestock') {
     const livestockQs = [ANIMAL_TYPE_Q];
-    if (answers.animalType === 'KRS') livestockQs.push(CATTLE_ORIGIN_Q);
     livestockQs.push(HEADS_Q);
     return base.concat(livestockQs);
   }
@@ -314,7 +332,7 @@ function getQuestions(answers) {
 }
 
 // ---- optionLabel/questionShort (≈2918–2938) ----
-const ALL_QUESTIONS = QUESTIONS.concat([ANIMAL_TYPE_Q, CATTLE_ORIGIN_Q, HEADS_Q]);
+const ALL_QUESTIONS = QUESTIONS.concat([ANIMAL_TYPE_Q, HEADS_Q]);
 function questionByKey(key) {
   for (let i = 0; i < ALL_QUESTIONS.length; i++) {
     if (ALL_QUESTIONS[i].key === key) return ALL_QUESTIONS[i];
@@ -558,7 +576,6 @@ module.exports = {
   PROGRAMS,
   QUESTIONS,
   ANIMAL_TYPE_Q,
-  CATTLE_ORIGIN_Q,
   HEADS_Q,
   FAJR_NORMS,
   fmtAmount,

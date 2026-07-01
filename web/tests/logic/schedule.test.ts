@@ -51,9 +51,9 @@ describe('A5 calculateSchedule — annual (Игілік 6%)', () => {
     for (const y of sch.yearly) expect(y.principal).toBe(principal);
   });
 
-  it('rate Игілік = 6%, maxTerm = 84', () => {
+  it('rate Игілік = 6%, maxTerm = 108', () => {
     expect(byId.igilik_bereke.rate).toBe(6);
-    expect(byId.igilik_bereke.maxTerm).toBe(84);
+    expect(byId.igilik_bereke.maxTerm).toBe(108);
   });
 });
 
@@ -67,8 +67,8 @@ describe('A5 effectiveMaxTerm', () => {
     expect(effectiveMaxTerm(byId.agrobusiness, { purpose: 'investments' })).toBe(120);
   });
 
-  it('Агробизнес 2.0 с целью working → 12 мес (по регламенту)', () => {
-    expect(effectiveMaxTerm(byId.agrobusiness_2, { purpose: 'working' })).toBe(12);
+  it('Агробизнес 2.0 с целью working → 48 мес (по регламенту)', () => {
+    expect(effectiveMaxTerm(byId.agrobusiness_2, { purpose: 'working' })).toBe(48);
   });
 
   it('без termByPurpose / без подходящей цели → общий maxTerm', () => {

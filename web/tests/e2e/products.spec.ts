@@ -29,7 +29,7 @@ test.describe('Раздел «Продукты»', () => {
     await expect(page.getByRole('heading', { name: 'Продукты и программы' })).toBeVisible();
   });
 
-  test('Каталог: 6 программ, «Кең дала» (скрытая) отсутствует', async ({ page }, testInfo) => {
+  test('Каталог: 9 программ, «Кең дала» (скрытая) отсутствует', async ({ page }, testInfo) => {
     await page.goto('/ru/products');
     // Видимые программы в каталоге.
     await expect(page.getByRole('heading', { name: 'Кең дала 2', exact: true })).toBeVisible();

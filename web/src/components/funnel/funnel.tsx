@@ -10,6 +10,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Hero } from './hero';
+import { ImpactMarquee } from './impact-marquee';
 import { GoalCards } from './goal-cards';
 import { ProgramShowcase } from './program-showcase';
 import { HowSteps } from './how-steps';
@@ -84,6 +85,9 @@ export function Funnel() {
           → далее. Метрики теперь внутри hero, отдельной полосы WhyAkk нет. */}
       <div hidden={!isLanding}>
         <Hero />
+        {/* «АКК в масштабе страны» — бегущая лента достижений под hero
+            (изотайп-визуалы + счётчики, авто-скролл с паузой, токены сайта). */}
+        <ImpactMarquee />
         {/* «Под разные цели АПК» — сразу после hero (главное действие выше). */}
         <ProgramShowcase />
         <HowSteps />
