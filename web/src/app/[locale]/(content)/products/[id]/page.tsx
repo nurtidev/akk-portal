@@ -7,6 +7,7 @@ import { ContentPage, AccordionItem } from '@/components/content/content-page';
 import { SupportAsk } from '@/components/content/support-ask';
 import { ProductTabs, type ProductTab } from '@/components/products/product-tabs';
 import { ProductCalculator } from '@/components/products/product-calculator';
+import { DirectionsPanel } from '@/components/products/directions-panel';
 import { PROGRAMS, PROGRAM_DETAILS, type Program } from '@/data/programs';
 import { getBrochure } from '@/data/brochures';
 import { getChecklist } from '@/data/loan-documents';
@@ -245,6 +246,12 @@ export default async function ProductDetailPage({
 
   const tabs: ProductTab[] = [
     { id: 'conditions', label: tp('tabs.conditions'), content: conditions },
+    // Направления «коробочного решения» — у инвестиционных программ «Агробизнес»
+    // и «Агробизнес 2.0», вторым пунктом (главное действие продукта). Ставка в
+    // калькуляторе берётся из самой программы.
+    ...(id === 'agrobusiness' || id === 'agrobusiness_2'
+      ? [{ id: 'directions', label: tp('tabs.directions'), content: <DirectionsPanel program={program} /> }]
+      : []),
     { id: 'requirements', label: tp('tabs.requirements'), content: requirements },
     { id: 'documents', label: tp('tabs.documents'), content: documents },
     { id: 'faq', label: tp('tabs.faq'), content: faq },
