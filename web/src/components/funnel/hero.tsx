@@ -154,6 +154,8 @@ export function Hero() {
               </div>
             ))}
           </dl>
+          {/* Пометка периода: показатели — по итогам 2025 года */}
+          <p className="mt-3 text-xs text-[var(--text-3)]">{t('statsNote')}</p>
         </div>
       </div>
     </section>
