@@ -379,14 +379,14 @@
             "rating": "BBB",
             "outlook": "Stable",
             "date": "09.09.2025",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/investor/ratings/"
           },
           {
             "agency": "Moody's Ratings",
             "rating": "Baa2 / Aa3.kz",
             "outlook": "Stable",
             "date": "11.09.2025",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/investor/ratings/"
           }
         ]
       },
@@ -402,15 +402,15 @@
         "items": [
           {
             "title": "Disclosure of Material Facts",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/about/anti-corruption-activities/disclosure-of-information/"
           },
           {
             "title": "Bond Prospectuses",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/about/anti-corruption-activities/disclosure-of-information/"
           },
           {
             "title": "List of Affiliated Persons",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/about/anti-corruption-activities/disclosure-of-information/"
           }
         ]
       },
@@ -812,27 +812,27 @@
       "documents": [
         {
           "title": "AKK Sustainable Development Policy",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/upload/files/politika-ao-akk-v-oblasti-ustojchivogo-razvitiya-ru.pdf",
           "meta": "PDF"
         },
         {
           "title": "Code of Ethics and Business Conduct",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/upload/iblock/0ae/wtiz0xlbdi9qvtm79evulo0gbka5zje2.pdf",
           "meta": "PDF"
         },
         {
           "title": "Anti-corruption Policy",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/upload/iblock/543/181ggsvf3hfti7tevur6s85orva0s801.pdf",
           "meta": "PDF"
         },
         {
           "title": "AKK Non-financial Report",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/ru/main/about/sustainable-development/",
           "meta": "PDF"
         },
         {
           "title": "Green Lending Methodology",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/ru/main/about/sustainable-development/support-green-projects/",
           "meta": "PDF · in preparation"
         }
       ],

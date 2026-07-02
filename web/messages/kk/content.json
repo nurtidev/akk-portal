@@ -379,14 +379,14 @@
             "rating": "BBB",
             "outlook": "Тұрақты",
             "date": "09.09.2025",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/investor/ratings/"
           },
           {
             "agency": "Moody's Ratings",
             "rating": "Baa2 / Aa3.kz",
             "outlook": "Тұрақты",
             "date": "11.09.2025",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/investor/ratings/"
           }
         ]
       },
@@ -402,15 +402,15 @@
         "items": [
           {
             "title": "Маңызды фактілерді ашу",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/about/anti-corruption-activities/disclosure-of-information/"
           },
           {
             "title": "Облигация эмиссиясының проспектілері",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/about/anti-corruption-activities/disclosure-of-information/"
           },
           {
             "title": "Аффилиирленген тұлғалар тізімі",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/ru/main/about/anti-corruption-activities/disclosure-of-information/"
           }
         ]
       },
@@ -812,27 +812,27 @@
       "documents": [
         {
           "title": "АКК тұрақты даму саясаты",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/upload/files/politika-ao-akk-v-oblasti-ustojchivogo-razvitiya-ru.pdf",
           "meta": "PDF"
         },
         {
           "title": "Этика және іскерлік мінез-құлық кодексі",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/upload/iblock/0ae/wtiz0xlbdi9qvtm79evulo0gbka5zje2.pdf",
           "meta": "PDF"
         },
         {
           "title": "Сыбайлас жемқорлыққа қарсы саясат",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/upload/iblock/543/181ggsvf3hfti7tevur6s85orva0s801.pdf",
           "meta": "PDF"
         },
         {
           "title": "АКК қаржылық емес есебі",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/ru/main/about/sustainable-development/",
           "meta": "PDF"
         },
         {
           "title": "Жасыл несиелеу әдістемесі",
-          "url": "https://agrocredit.kz/ru/main/about/reports/",
+          "url": "https://agrocredit.kz/ru/main/about/sustainable-development/support-green-projects/",
           "meta": "PDF · дайындалуда"
         }
       ],
