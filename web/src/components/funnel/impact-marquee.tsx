@@ -29,7 +29,7 @@ function ImpactPhoto({ factKey }: { factKey: string }) {
       {!failed && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`/img/impact/${factKey}.png`}
+          src={`/img/impact/${factKey}.jpg`}
           alt=""
           aria-hidden
           className="h-full w-full object-cover"
