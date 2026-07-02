@@ -68,9 +68,11 @@ export default async function ReportingPage({
           items={financialItems.map((item) => ({
             title: item.title,
             url: item.url,
-            meta: item.auditor !== "TODO: наименование аудитора" && item.auditor !== "TODO: auditor name" && item.auditor !== "TODO: аудитор атауы"
-              ? item.auditor
-              : undefined,
+            // Показываем аудитора, только если он реально указан (не пусто/не TODO).
+            meta:
+              item.auditor && !item.auditor.startsWith("TODO")
+                ? item.auditor
+                : undefined,
           }))}
         />
       </ContentSection>

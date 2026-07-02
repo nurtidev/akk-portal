@@ -257,6 +257,42 @@
         "description": "Audited financial statements of ACC prepared in accordance with IFRS.",
         "items": [
           {
+            "year": "2026",
+            "title": "Consolidated Financial Statements for Q1 2026",
+            "auditor": "",
+            "url": "https://agrocredit.kz/upload/iblock/b9f/lrjd1b4cih9s60i49kw7bhyq67jpqpss.pdf"
+          },
+          {
+            "year": "2026",
+            "title": "Non-consolidated Financial Statements for Q1 2026",
+            "auditor": "",
+            "url": "https://agrocredit.kz/upload/iblock/0b0/kk44f0u2avgrr0g0jjsxxoqu98k86nz7.pdf"
+          },
+          {
+            "year": "2025",
+            "title": "Consolidated Financial Statements for 2025",
+            "auditor": "Independent auditor (selected via annual tender)",
+            "url": "https://agrocredit.kz/upload/iblock/5e9/fq1wcpuueenvnk6cqai44f4pvmq7b25m.pdf"
+          },
+          {
+            "year": "2025",
+            "title": "Non-consolidated Financial Statements for 2025",
+            "auditor": "",
+            "url": "https://agrocredit.kz/upload/iblock/e8c/2yq9z4x3xbz42cc34408xlria5ibv19c.pdf"
+          },
+          {
+            "year": "2024",
+            "title": "Consolidated Financial Statements for 2024",
+            "auditor": "Independent auditor (selected via annual tender)",
+            "url": "https://agrocredit.kz/upload/iblock/e1c/oaghldn36dkwzteymocz6x8qpf1uycwu.pdf"
+          },
+          {
+            "year": "2024",
+            "title": "Non-consolidated Financial Statements for 2024",
+            "auditor": "",
+            "url": "https://agrocredit.kz/upload/iblock/b14/c0f44ccln3ti20a010qfofbg3cm49cm3.pdf"
+          },
+          {
             "year": "2023",
             "title": "Consolidated Financial Statements for 2023",
             "auditor": "Independent auditor (selected via annual tender)",
@@ -287,14 +323,19 @@
         "description": "The Annual Report discloses ACC's performance for the year: key indicators, programmes, social impact.",
         "items": [
           {
+            "year": "2024",
+            "title": "ACC Annual Report 2024",
+            "url": "https://agrocredit.kz/upload/iblock/7ba/2t2ej9uvlbkylxz4jkvl8d3x1ui9ft40.pdf"
+          },
+          {
             "year": "2023",
             "title": "ACC Annual Report 2023",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/upload/iblock/23f/rf7wspzzo0m2u8n8gi9ab6qtwxrpk1nu.pdf"
           },
           {
             "year": "2022",
             "title": "ACC Annual Report 2022",
-            "url": "https://agrocredit.kz/ru/main/about/reports/"
+            "url": "https://agrocredit.kz/upload/iblock/c87/0y0485pax9gufsrobbrpwuvndv36p4sj.pdf"
           },
           {
             "year": "2021",
