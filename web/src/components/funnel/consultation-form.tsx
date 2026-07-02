@@ -85,7 +85,9 @@ export function ConsultationForm() {
             </label>
             <input
               value={state.callback.name}
-              onChange={(e) => setCallback({ name: e.target.value })}
+              // Маска имени: только буквы (рус/каз/лат), пробел, дефис, апостроф —
+              // цифры и прочие символы отсекаются при вводе.
+              onChange={(e) => setCallback({ name: e.target.value.replace(/[^\p{L}\s'-]/gu, '') })}
               placeholder={t('namePlaceholder')}
               className="w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-[var(--text)] outline-none focus:border-[var(--primary)]"
             />
