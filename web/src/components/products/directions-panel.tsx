@@ -120,9 +120,8 @@ function DirectionModal({
   onClose: () => void;
 }) {
   const t = useTranslations('content.products.directions');
-  const [tab, setTab] = useState<'calc' | 'req'>(
-    direction.dataStatus === 'full' ? 'calc' : 'req',
-  );
+  // Требования — первыми (фермеру важнее понять условия допуска), калькулятор — вторым.
+  const [tab, setTab] = useState<'calc' | 'req'>('req');
   // Ставка — из самой программы (Агробизнес / Агробизнес 2.0); срок и каникулы —
   // из «коробочного» файла (DIRECTIONS_TERMS).
   const rateDisplay = program.rateRange ?? `${String(program.rate).replace('.', ',')}%`;
@@ -157,14 +156,6 @@ function DirectionModal({
           <div className="min-w-0 flex-1">
             <p className="text-xs text-[var(--text-3)]">{t('breadcrumb')}</p>
             <h3 className="truncate font-display text-lg font-bold text-[var(--text)]">{direction.title}</h3>
-            <p className="text-xs text-[var(--text-3)]">
-              {t('terms', {
-                rate: rateDisplay,
-                years: DIRECTIONS_TERMS.termYears,
-                gp: DIRECTIONS_TERMS.gracePrincipalYears,
-                gi: DIRECTIONS_TERMS.graceInterestYears,
-              })}
-            </p>
           </div>
           <button
             type="button"
@@ -178,16 +169,25 @@ function DirectionModal({
           </button>
         </div>
 
-        {/* Под-вкладки */}
+        {/* Параметры направления — читаемый блок «метка + значение»,
+            как в «Условиях» программы (льготный период разложен на 2 части). */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-[var(--border)] bg-[var(--surface-warm)] px-5 py-4 sm:grid-cols-4">
+          <ParamCell label={t('termsRateLabel')} value={rateDisplay} />
+          <ParamCell label={t('termsTermLabel')} value={t('termsTermValue', { years: DIRECTIONS_TERMS.termYears })} />
+          <ParamCell label={t('termsGracePLabel')} value={t('termsGracePValue', { gp: DIRECTIONS_TERMS.gracePrincipalYears })} />
+          <ParamCell label={t('termsGraceILabel')} value={t('termsGraceIValue', { gi: DIRECTIONS_TERMS.graceInterestYears })} />
+        </div>
+
+        {/* Под-вкладки: Требования первыми, затем Калькулятор (если есть данные) */}
         <div className="flex gap-1 border-b border-[var(--border)] px-5">
+          <SubTab active={tab === 'req'} onClick={() => setTab('req')}>
+            {t('reqTab')}
+          </SubTab>
           {direction.dataStatus === 'full' && (
             <SubTab active={tab === 'calc'} onClick={() => setTab('calc')}>
               {t('calcTab')}
             </SubTab>
           )}
-          <SubTab active={tab === 'req'} onClick={() => setTab('req')}>
-            {t('reqTab')}
-          </SubTab>
         </div>
 
         <div className="px-5 py-5">
@@ -197,6 +197,18 @@ function DirectionModal({
             <DirectionRequirements direction={direction} />
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Плитка «метка + крупное значение» (как в ParamStrip «Условий» программы).
+function ParamCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wide text-[var(--text-3)]">{label}</div>
+      <div className="mt-0.5 font-display text-base font-bold leading-tight text-[var(--primary)] sm:text-lg">
+        {value}
       </div>
     </div>
   );

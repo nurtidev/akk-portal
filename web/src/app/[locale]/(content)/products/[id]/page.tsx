@@ -8,6 +8,7 @@ import { SupportAsk } from '@/components/content/support-ask';
 import { ProductTabs, type ProductTab } from '@/components/products/product-tabs';
 import { ProductCalculator } from '@/components/products/product-calculator';
 import { DirectionsPanel } from '@/components/products/directions-panel';
+import { ProductDocsDownload } from '@/components/products/product-docs-download';
 import { PROGRAMS, PROGRAM_DETAILS, type Program } from '@/data/programs';
 import { getBrochure } from '@/data/brochures';
 import { getChecklist } from '@/data/loan-documents';
@@ -185,6 +186,21 @@ export default async function ProductDetailPage({
         </div>
       ))}
       <p className="text-sm text-[var(--text-3)]">{tp('docsNote')}</p>
+
+      {/* Скачать этот чеклист в PDF (клиентская кнопка — jsPDF по клику) */}
+      <div className="border-t border-[var(--border)] pt-5">
+        <ProductDocsDownload
+          programId={program.id}
+          programTitle={program.title}
+          programCategory={program.category}
+          rate={program.rate}
+          rateRange={program.rateRange}
+          maxAmount={program.maxAmount}
+          maxTerm={program.maxTerm}
+          locale={locale}
+        />
+        <p className="mt-2 text-xs text-[var(--text-3)]">{tp('docsPdfHint')}</p>
+      </div>
     </div>
   );
 
