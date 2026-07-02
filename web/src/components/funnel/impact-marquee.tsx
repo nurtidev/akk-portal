@@ -1,56 +1,58 @@
 'use client';
 
 // =====================================================
-// ImpactMarquee — «АКК в масштабе страны»: горизонтальная авто-лента
-// достижений сразу под hero. Карточки-факты сами проезжают справа налево
-// (бесшовный цикл), пауза при наведении/фокусе. Крупный визуал — картинка
-// /img/impact/<key>.png (генерится отдельно, напр. в Gemini); пока файла нет —
-// показывается плейсхолдер. Значение — процент (пиктограмма) или счётчик,
-// отсчитывается вверх при появлении ленты.
+// ImpactMarquee — «АКК в масштабе страны»: бегущая лента достижений под hero.
+// Карточка — flip: лицо = прямой факт (фото 16:9 + число + фраза), оборот =
+// «вау»-сравнение (funFact). Переворот двумя способами:
+//   1) наведение мышкой/фокус — карточка переворачивается, лента встаёт;
+//   2) авто: лента периодически останавливается, переворачивает карточку,
+//      оказавшуюся по центру, даёт ~3 сек на прочтение и едет дальше (каждый
+//      раз — та, что по центру; выбор «случайный» за счёт позиции ленты).
 //
-// Оформление — на дизайн-токенах сайта (тема-aware). Данные и значения —
-// @/data/akk-impact (одна точка правки). Тексты — i18n (funnel.impact).
-// prefers-reduced-motion: лента застывает, листается вручную (см. globals.css).
+// Оформление — на дизайн-токенах сайта; переход от hero — мягкий градиент
+// (--bg → --primary-tint → --bg), без жёсткого бордера. Данные/значения —
+// @/data/akk-impact. Тексты — i18n (funnel.impact). prefers-reduced-motion:
+// лента и авто-переворот отключаются (см. globals.css + проверка в эффекте).
 // =====================================================
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AKK_IMPACT_FACTS, type ImpactFact } from '@/data/akk-impact';
 
 // --------------------------------------------------
-// Картинка факта с плейсхолдером. Пока /img/impact/<key>.png нет —
-// рисуем пунктирный плейсхолдер с именем файла (подскажет, что положить).
+// Фото факта 16:9 с фолбэком (зелёный градиент); при 404 прячем img.
 // --------------------------------------------------
-function ImpactImage({ factKey }: { factKey: string }) {
-  const [loaded, setLoaded] = useState(false);
+function ImpactPhoto({ factKey }: { factKey: string }) {
+  const [failed, setFailed] = useState(false);
   return (
-    <div className="relative h-28 w-full overflow-hidden rounded-[var(--radius)] sm:h-32">
-      {/* Плейсхолдер — всегда снизу; проступает, пока картинки нет */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 rounded-[var(--radius)] border border-dashed border-[var(--border)] bg-[var(--primary-soft)] text-[var(--text-3)]">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <circle cx="8.5" cy="8.5" r="1.5" />
-          <path d="m21 15-5-5L5 21" />
-        </svg>
-        <span className="text-[11px] font-medium">{factKey}.png</span>
-      </div>
-      {/* Картинка — поверх, проявляется только при успешной загрузке */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`/img/impact/${factKey}.png`}
-        alt=""
-        aria-hidden
-        className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-        onLoad={() => setLoaded(true)}
-      />
+    <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--primary-2)]">
+      {!failed && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/img/impact/${factKey}.png`}
+          alt=""
+          aria-hidden
+          className="h-full w-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      )}
     </div>
   );
 }
 
 // --------------------------------------------------
-// Счётчик 0 → target при start=true (easeOutCubic). Формат — по локали.
+// Счётчик 0 → target при start=true (easeOutCubic).
+// Форматируем ЧИСЛО ВРУЧНУЮ (пробел-разряды, запятая для ru/kk, точка для en) —
+// НЕ через Intl: ICU у Node и браузера расходится по разделителю для kk-KZ и
+// ломает гидратацию (server «0,0» vs client «0.0»).
 // --------------------------------------------------
-const INTL_LOCALE: Record<string, string> = { kk: 'kk-KZ', ru: 'ru-RU', en: 'en-US' };
+function fmtNumber(n: number, decimals: number, locale: string): string {
+  const fixed = Math.abs(n).toFixed(decimals);
+  const [intPart, frac] = fixed.split('.');
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); // NBSP-разряды
+  const dec = locale === 'en' ? '.' : ',';
+  return (n < 0 ? '-' : '') + grouped + (frac ? dec + frac : '');
+}
 
 function Counter({ target, start, decimals, locale }: { target: number; start: boolean; decimals: number; locale: string }) {
   const [value, setValue] = useState(0);
@@ -70,57 +72,98 @@ function Counter({ target, start, decimals, locale }: { target: number; start: b
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
   }, [start, target]);
-  const shown = new Intl.NumberFormat(INTL_LOCALE[locale] ?? 'ru-RU', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(start ? value : 0);
-  return <span className="tabular-nums">{shown}</span>;
+  return <span className="tabular-nums">{fmtNumber(start ? value : 0, decimals, locale)}</span>;
 }
 
 // --------------------------------------------------
-// Карточка-факт (на токенах сайта: surface + border + shadow)
+// Карточка-факт: flip (лицо + оборот).
 // --------------------------------------------------
-function Card({ fact, started, locale }: { fact: ImpactFact; started: boolean; locale: string }) {
+function Card({
+  fact,
+  started,
+  locale,
+  flipped,
+  cardRef,
+}: {
+  fact: ImpactFact;
+  started: boolean;
+  locale: string;
+  flipped: boolean;
+  cardRef: (el: HTMLElement | null) => void;
+}) {
   const t = useTranslations('funnel.impact');
   return (
-    <article className="flex w-64 shrink-0 flex-col items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] px-5 py-6 text-center shadow-[var(--shadow-sm)] sm:w-72">
-      <ImpactImage factKey={fact.key} />
+    <article ref={cardRef} className="flip h-[336px] w-60 shrink-0 sm:w-72">
+      <div className={`flip-inner ${flipped ? 'is-flipped' : ''}`}>
+        {/* ЛИЦО — прямой факт */}
+        <div className="flip-face flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+          <ImpactPhoto factKey={fact.key} />
+          <div className="flex flex-1 flex-col items-center justify-center px-5 py-4 text-center">
+            {fact.format === 'percent' ? (
+              <div className="font-display text-4xl font-bold leading-none text-[var(--primary)] sm:text-5xl">
+                <Counter target={fact.value} start={started} decimals={0} locale={locale} />%
+              </div>
+            ) : (
+              <>
+                <div className="font-display text-4xl font-bold leading-none text-[var(--primary)] sm:text-[2.6rem]">
+                  <Counter target={fact.value} start={started} decimals={fact.decimals ?? 0} locale={locale} />
+                </div>
+                <div className="mt-0.5 text-sm font-semibold uppercase tracking-wide text-[var(--accent-2)]">
+                  {t(`items.${fact.key}.unit`)}
+                </div>
+              </>
+            )}
+            <div className="mt-1.5 font-display text-[14px] font-bold leading-tight text-[var(--text)]">
+              {t(`items.${fact.key}.statement`)}
+            </div>
+          </div>
+        </div>
 
-      {fact.kind === 'pictogram' ? (
-        <>
-          {/* Крупный процент + слоган */}
-          <div className="font-display text-4xl font-bold leading-none text-[var(--primary)] sm:text-5xl">
-            {fact.percent}%
-          </div>
-          <div className="font-display text-lg font-bold leading-tight text-[var(--text)]">
-            {t(`items.${fact.key}.headline`)}
-          </div>
-        </>
-      ) : (
-        <>
-          {/* Крупное число, единица — отдельной строкой под ним (чтобы влезало) */}
-          <div className="font-display text-4xl font-bold leading-none text-[var(--primary)] sm:text-5xl">
-            <Counter target={fact.count} start={started} decimals={fact.decimals ?? 0} locale={locale} />
-          </div>
-          <div className="-mt-1 text-sm font-semibold uppercase tracking-wide text-[var(--accent-2)]">
-            {t(`items.${fact.key}.unit`)}
-          </div>
-        </>
-      )}
-
-      <p className="text-sm leading-snug text-[var(--text-2)]">{t(`items.${fact.key}.caption`)}</p>
+        {/* ОБОРОТ — «вау»-сравнение */}
+        <div className="flip-face flip-back flex flex-col items-center justify-center gap-3 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--primary-2)] bg-[var(--primary)] px-6 text-center text-white shadow-[var(--shadow-sm)]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+            {t('funFactEyebrow')}
+          </span>
+          <p className="font-display text-xl font-bold leading-snug">{t(`items.${fact.key}.back`)}</p>
+        </div>
+      </div>
     </article>
   );
 }
 
 // --------------------------------------------------
-// Секция целиком (фон — --primary-tint, как у остальных полос лендинга)
+// Секция целиком
 // --------------------------------------------------
 export function ImpactMarquee() {
   const t = useTranslations('funnel.impact');
   const locale = useLocale();
   const sectionRef = useRef<HTMLElement | null>(null);
+  const marqueeRef = useRef<HTMLDivElement | null>(null);
+  const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const [started, setStarted] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [autoFlip, setAutoFlip] = useState<number>(-1);
+
+  // Индекс карточки, оказавшейся по центру ленты (полностью видимой).
+  const centeredIndex = useCallback(() => {
+    const c = marqueeRef.current;
+    if (!c) return -1;
+    const cr = c.getBoundingClientRect();
+    const cx = cr.left + cr.width / 2;
+    let best = -1;
+    let bd = Infinity;
+    cardRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.left < cr.left - 8 || r.right > cr.right + 8) return; // только целиком видимые
+      const d = Math.abs((r.left + r.right) / 2 - cx);
+      if (d < bd) {
+        bd = d;
+        best = i;
+      }
+    });
+    return best;
+  }, []);
 
   // Счётчики стартуют один раз, когда лента впервые попадает во вьюпорт.
   useEffect(() => {
@@ -143,6 +186,41 @@ export function ImpactMarquee() {
     return () => io.disconnect();
   }, []);
 
+  // Авто-цикл: стоп → переворот центральной карточки → 3 сек → едем дальше.
+  useEffect(() => {
+    if (!started) return;
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    let cancelled = false;
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const wait = (ms: number, fn: () => void) => {
+      const id = setTimeout(() => {
+        timers.delete(id);
+        if (!cancelled) fn();
+      }, ms);
+      timers.add(id);
+    };
+    const cycle = () => {
+      setPaused(true);
+      // дать transform ленты «застыть» и измерить центр
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        setAutoFlip(centeredIndex());
+        wait(3000, () => {
+          setAutoFlip(-1);
+          wait(700, () => {
+            setPaused(false);
+            wait(5000, cycle);
+          });
+        });
+      });
+    };
+    wait(4500, cycle);
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [started, centeredIndex]);
+
   // Дублируем список ×2 для бесшовной ленты (сдвиг -50% в CSS).
   const track = [...AKK_IMPACT_FACTS, ...AKK_IMPACT_FACTS];
 
@@ -150,7 +228,13 @@ export function ImpactMarquee() {
     <section
       ref={sectionRef}
       aria-label={t('title')}
-      className="border-y border-[var(--border)] bg-[var(--primary-tint)] py-14 md:py-20"
+      className="py-16 md:py-24"
+      style={{
+        // Мягкий переход: сверху сливается с фоном hero, к середине — тинт,
+        // снизу снова фон (без жёсткого бордера-линии).
+        background:
+          'linear-gradient(to bottom, var(--bg) 0, var(--primary-tint) 160px, var(--primary-tint) calc(100% - 160px), var(--bg) 100%)',
+      }}
     >
       <div className="container mx-auto mb-10 px-4 text-center">
         <div className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent-2)]">{t('eyebrow')}</div>
@@ -159,15 +243,25 @@ export function ImpactMarquee() {
 
       {/* Лента: маска-угасание по краям, скроллбар скрыт, авто-прокрутка трека */}
       <div
+        ref={marqueeRef}
         className="impact-marquee overflow-x-auto"
         style={{
           maskImage: 'linear-gradient(to right, transparent, #000 5%, #000 95%, transparent)',
           WebkitMaskImage: 'linear-gradient(to right, transparent, #000 5%, #000 95%, transparent)',
         }}
       >
-        <div className="impact-track flex gap-4 px-4 pb-2">
+        <div className={`impact-track flex gap-4 px-4 py-2 ${paused ? 'is-paused' : ''}`}>
           {track.map((fact, i) => (
-            <Card key={`${fact.key}-${i}`} fact={fact} started={started} locale={locale} />
+            <Card
+              key={`${fact.key}-${i}`}
+              fact={fact}
+              started={started}
+              locale={locale}
+              flipped={autoFlip === i}
+              cardRef={(el) => {
+                cardRefs.current[i] = el;
+              }}
+            />
           ))}
         </div>
       </div>

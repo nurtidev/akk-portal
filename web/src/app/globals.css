@@ -150,8 +150,35 @@
 
 /* Пауза при наведении/фокусе внутри ленты — чтобы можно было прочитать. */
 .impact-marquee:hover .impact-track,
-.impact-marquee:focus-within .impact-track {
+.impact-marquee:focus-within .impact-track,
+.impact-track.is-paused {
   animation-play-state: paused;
+}
+
+/* Flip-карточка: лицо (факт) ↔ оборот («вау»-сравнение). Переворот при
+   наведении или по JS-классу .is-flipped (авто-переворот по центру ленты). */
+.flip {
+  perspective: 1200px;
+}
+.flip-inner {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+}
+.flip:hover .flip-inner,
+.flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
 }
 
 /* Прячем скроллбар (лента листается вручную при reduced-motion). */
